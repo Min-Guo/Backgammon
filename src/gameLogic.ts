@@ -161,7 +161,7 @@ module gameLogic {
 		let endMatchScores: number[];
 		let roleAfterMove: number;
 		//let winner = "";
-		if (moveExist(board, start, end, steps, roleBeforeMove)) {
+		if (moveExist(board, start, steps, roleBeforeMove)) {
 			let boardAfterMove = angular.copy(board);
 			if (boardAfterMove[end].status === EMPTY || boardAfterMove[end].status === roleBeforeMove) {
 				//safe to occupy or add
