@@ -223,18 +223,7 @@ module gameLogic {
 		}
 	}
 
-	function moveExist(board: Board, start: number, end: number, steps: number[], role: number): boolean {
-		//check valid start position
-		if (board[start].status !== role) {
-			//throw new Error("One can only make a move with his own checkers!");
-			return false;
-		}
-
-		//check valid direction
-		if ((end - start) * role <= 0) {
-			return false;
-		}
-
+	function moveExist(board: Board, steps: number[], role: number): boolean {
 		let stepCombination: number[];
 		let bearTime: boolean = canBearOff(board, role);
 
@@ -259,28 +248,54 @@ module gameLogic {
 		}
 		
 		if (role === BLACK) {
-			if (board[BLACKBAR].count !== 0 && start !== BLACKBAR) {
-				return false;
-			}
-			for (let step of stepCombination) {
-				let pos = BLACKBAR + step;
-				if (board[pos].status !== WHITE) {
-					return true;
-				} else if (board[pos].count === 1) {
-					return true;
+			if (board[BLACKBAR].count !== 0) {
+				//check valid move for the checker on BLACKBAR
+				for (let step of stepCombination) {
+					let pos = BLACKBAR + step;
+					if (board[pos].status === BLACK || board[pos].status === EMPTY || (board[pos].status === WHITE && board[pos].count === 1)) {
+						return true;
+					}
+				}
+			} else {
+				//check valid move for any black checker on the board
+				for (let i = 2; i < 26; i++) {
+					if (board[i].status === BLACK) {
+						for (let step of stepCombination) {
+							let pos = i + step;
+							if (pos < 26) {
+								if (board[pos].status === BLACK || board[pos].status === EMPTY || (board[pos].status === WHITE && board[i].count === 1)) {
+									return true;
+								}
+							}
+						}
+					}
 				}
 			}
 			return false;
-		} else {
-			if (board[WHITEBAR].count !== 0 && start !== WHITEBAR) {
-				return false;
-			}
-			for (let step of stepCombination) {
-				let pos = WHITEBAR - step;
-				if (board[pos].status !== BLACK) {
-					return true;
-				} else if (board[pos].count === 1) {
-					return true;
+		}
+
+		if (role === WHITE) {
+			if (board[WHITEBAR].count !== 0) {
+				//check valid move for the checker on WHITEBAR
+				for (let step of stepCombination) {
+					let pos = WHITEBAR - step;
+					if (board[pos].status === WHITE || board[pos].status === EMPTY || (board[pos].status === BLACK && board[pos].count === 1)) {
+						return true;
+					}
+				}
+			} else {
+				//check valid move for any white checker on the board
+				for (let i = 25; i > 1; i--) {
+					if (board[i].status === WHITE) {
+						for (let step of stepCombination) {
+							let pos = i - step;
+							if (pos > 1) {
+								if (board[pos].status === WHITE || board[pos].status === EMPTY || (board[pos].status === BLACK && board[i].count === 1)) {
+									return true;
+								}
+							}
+						}
+					}
 				}
 			}
 			return false;
