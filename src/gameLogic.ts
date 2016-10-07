@@ -223,8 +223,43 @@ module gameLogic {
 		}
 	}
 
-	function moveExist(board: Board, start: number, end: number, steps: number[], role: number): boolean {
-		//to do
+	function moveExist(board: Board, start: number, steps: number[], role: number): boolean {
+		let stepCombination: number[];
+		let bearTime: boolean = canBearOff(board,role);
+		//Valid move always exists when bearoff time
+		if (bearTime) {
+			return true;
+		}
+		
+		if (steps.length === 1) {
+			stepCombination = steps;
+		}
+
+		if (steps.length === 2) {
+			if (steps[0] !== steps[1]) {
+				stepCombination = [steps[0], steps[1], steps[0] + steps[1]];
+			} else {
+				stepCombination = [steps[0], 2 * steps[0]];
+			}
+		}
+
+		if (steps.length === 3) {
+			stepCombination = [steps[0], 2 * steps[0], 3 * steps[0]];
+		}
+
+		if (steps.length === 4) {
+			stepCombination = [steps[0], 2 * steps[0], 3 * steps[0], 4 * steps[0]];
+		}
+		//Return true if any move of stepCombination is valid
+		for (let step of stepCombination) {
+			let stepEnd = start + step;
+			if (stepEnd < 26) {
+				if (board[stepEnd].status === EMPTY || (board[stepEnd].status === -role && board[stepEnd].count === 1) ||
+					(board[stepEnd].status === role)) {
+					return true;
+				}
+			}
+		}
 		return false;
 	}
 }
