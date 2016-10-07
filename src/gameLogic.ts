@@ -223,6 +223,57 @@ module gameLogic {
 		}
 	}
 
+	function startMove(stateBeforeMove: IState, start: number): Board {
+		let board = stateBeforeMove.backgammon.board;
+		let steps = stateBeforeMove.backgammon.steps;
+		let role = stateBeforeMove.backgammon.role;
+		let res: Board;
+		if (steps.length === 1) {
+			let t = board[start + steps[0]];
+			if (t.status !== -role) {
+				res.push(t);
+			} else if (t.count === 1) {
+				res.push(t);
+			}
+		} else if (steps.length === 2) {
+			let needSum = false;
+			for (let i = 0; i < steps.length; i++) {
+				let t = board[start + steps[i]];
+				if (t.status !== -role) {
+					res.push(t);
+					needSum = true;
+				} else if (t.count === 1) {
+					res.push(t);
+					needSum = true;
+				}
+			}
+			if (needSum) {
+				let t = board[start + steps[0] + steps[1]];
+				if (t.status !== -role) {
+					res.push(t);
+				} else if (t.count === 1) {
+					res.push(t);
+				}
+			}
+		} else if (steps.length === 3 || steps.length === 4) {
+			for (let i = 1; i <= steps.length; i++) {
+				let t = board[start + i * steps[0]];
+				if (t.status !== -role) {
+					res.push(t);
+				} else if (t.count === 1) {
+					res.push(t);
+				} else {
+					break;
+				}
+			}
+		}
+		return res;
+	}
+
+	function endMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): IMove {
+
+	}
+
 	function moveExist(board: Board, start: number, end: number, steps: number[], role: number): boolean {
 		//check valid start position
 		if (board[start].status !== role) {
@@ -257,7 +308,7 @@ module gameLogic {
 				stepCombination = [steps[0]];
 			}
 		}
-		
+
 		if (role === BLACK) {
 			if (board[BLACKBAR].count !== 0 && start !== BLACKBAR) {
 				return false;
