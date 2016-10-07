@@ -1,6 +1,7 @@
 class Tower {
-	//status: 1 for black, -1 for white, 0 for empty
-	constructor(public status: number, 
+	//status: 1 for black, 0 for white, -1 for empty
+	constructor(public tid: number,
+				public status: number, 
 				public count: number) {
 	}
 }
@@ -39,14 +40,16 @@ module DieCombo {
 
 type Board = Tower[];
 
-interface BackgammonDelta {
+interface BoardDelta {
 	start: number;
 	end: number;
 }
 
 interface IState {
-	backgammon: Backgammon;
-	delta: BackgammonDelta;
+	//backgammon: Backgammon;
+	board: Board;
+	steps: number[];
+	delta: BoardDelta;
 }
 
 module gameLogic {
@@ -55,52 +58,54 @@ module gameLogic {
 	export const WHITEHOME = 0;
 	export const WHITEBAR = 26;
 	export const BLACK = 1;
-	export const WHITE = -1;
-	export const EMPTY = 0;
+	export const WHITE = 0;
+	export const EMPTY = -1;
 
 	//2, 13, 18, 20 black
 	//7, 9, 14, 25 white
-	/** Returns the initial Backgammon instance. */
-	function getInitialBackgammon(): Backgammon {
-		let backgammon: Backgammon;
-		let board: Board = backgammon.board;
+	/** Returns the initial board. */
+	function getInitialBoard(): Board {
+		//let backgammon: Backgammon;
+		// let board: Board = backgammon.board;
+		let board: Board;
 		for (let i = 0; i < 28; i++) {
 			if (i == WHITEHOME || i == WHITEBAR) {
-				board[i] = new Tower(WHITE, 0);
+				board[i] = new Tower(i, WHITE, 0);
 			} else if (i == BLACKHOME || i == BLACKBAR) {
-				board[i] = new Tower(BLACK, 0);
+				board[i] = new Tower(i, BLACK, 0);
 			} else if (i == 2) {
-				board[i] = new Tower(BLACK, 2);
+				board[i] = new Tower(i, BLACK, 2);
 			} else if (i == 7) {
-				board[i] = new Tower(WHITE, 5);
+				board[i] = new Tower(i, WHITE, 5);
 			} else if (i == 9) {
-				board[i] = new Tower(WHITE, 3);
+				board[i] = new Tower(i, WHITE, 3);
 			} else if (i == 13) {
-				board[i] = new Tower(BLACK, 5);
+				board[i] = new Tower(i, BLACK, 5);
 			} else if (i == 14) {
-				board[i] = new Tower(WHITE, 5);
+				board[i] = new Tower(i, WHITE, 5);
 			} else if (i == 18) {
-				board[i] = new Tower(BLACK, 3);
+				board[i] = new Tower(i, BLACK, 3);
 			} else if (i == 20) {
-				board[i] = new Tower(BLACK, 5);
+				board[i] = new Tower(i, BLACK, 5);
 			} else if (i == 25) {
-				board[i] = new Tower(WHITE, 2);
+				board[i] = new Tower(i, WHITE, 2);
 			} else {
-				board[i] = new Tower(EMPTY, 0);
+				board[i] = new Tower(i, EMPTY, 0);
 			}
 		}
-		backgammon.steps = DieCombo.init();
-		//first die tossed by white, and second die tossed by black
-		if (backgammon.steps[0] < backgammon.steps[1]) {
-			backgammon.role = 1;
-		} else {
-			backgammon.role = -1;
-		}
-		return backgammon;
+		// backgammon.steps = DieCombo.init();
+		// //first die tossed by white, and second die tossed by black
+		// if (backgammon.steps[0] < backgammon.steps[1]) {
+		// 	backgammon.role = 1;
+		// } else {
+		// 	backgammon.role = -1;
+		// }
+		//return backgammon;
+		return board;
 	}
 
 	export function getInitialState(): IState {
-		return {backgammon: getInitialBackgammon(), delta: null};
+		return {board: getInitialBoard(), steps: DieCombo.init(), delta: null};
 	}
 
 	/** If all checkers of one player are in his homeboard, he can bear them off. */
@@ -139,98 +144,24 @@ module gameLogic {
 		}
 	}
 
-	export function createMove(
-			stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): IMove {
-		//assume now that (end-start) appears in steps, and no automatic move relay
-		if (!stateBeforeMove) {
-			stateBeforeMove = getInitialState();
-		} else {
-			stateBeforeMove.backgammon.steps = DieCombo.generate();
-		}
-		let board = stateBeforeMove.backgammon.board;
-		//let role = stateBeforeMove.backgammon.role;
-		let steps = stateBeforeMove.backgammon.steps;
-		if (getWinner(board) !== "") {
-			throw new Error("One can only make a move if the game is not over!");
-		}
-
-		//move this into moveExist!
-		if (board[start].status !== roleBeforeMove) {
-			throw new Error("One can only make a move with his own checkers!");
-		}
-		let endMatchScores: number[];
-		let roleAfterMove: number;
-		//let winner = "";
-		if (moveExist(board, start, end, steps, roleBeforeMove)) {
-			let boardAfterMove = angular.copy(board);
-			if (boardAfterMove[end].status === EMPTY || boardAfterMove[end].status === roleBeforeMove) {
-				//safe to occupy or add
-				boardAfterMove[start].count -= 1;
-				if (boardAfterMove[start].count === 0) {
-					boardAfterMove[start].status = EMPTY;
-				}
-				boardAfterMove[end].count += 1;
-				boardAfterMove[end].status = roleBeforeMove;
-			} else if (boardAfterMove[end].status === -roleBeforeMove && boardAfterMove[end].count === 1) {
-				//safe to hit
-				boardAfterMove[start].count -= 1;
-				if (boardAfterMove[start].count === 0) {
-					boardAfterMove[start].status = EMPTY;
-				}
-				boardAfterMove[end].count = 1;
-				boardAfterMove[end].status = roleBeforeMove;
-				if (roleBeforeMove === BLACK) {
-					boardAfterMove[WHITEBAR].count += 1;
-				} else {
-					boardAfterMove[BLACKBAR].count += 1;
-				}
-			}
-			//update backgammon's board
-			stateBeforeMove.backgammon.board = boardAfterMove;
-
-			//update backgammon's steps after this move, delete that tossed value from steps
-			//browser support for indexOf is limited; it is not supported in Internet Explorer 7 and 8.
-			let index = steps.indexOf(end - start);
-			if (index > -1) {
-				steps.splice(index, 1);
-			}
-
-			//update backgammon's role if necessary
-			if (steps.length === 0) {
-				stateBeforeMove.backgammon.role = -roleBeforeMove;
-			}
-
-			let winner = getWinner(boardAfterMove);
-			if (winner !== "") {
-				//Game over.
-				roleAfterMove = 0; //role 0 denotes game over!
-				endMatchScores = winner === "Black" ? [1, 0] : winner === "White" ? [0, 1] : [0, 0];
-			} else {
-				//reflect possibly updated role value of backgammon
-				roleAfterMove = stateBeforeMove.backgammon.role;
-				endMatchScores = null;
-			}
-			let delta: BackgammonDelta = {start: start, end: end};
-			let stateAfterMove: IState = {backgammon: stateBeforeMove.backgammon, delta: delta};
-			return {endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove};
-		} else {
-			stateBeforeMove.backgammon.role = -roleBeforeMove;
-			roleAfterMove = stateBeforeMove.backgammon.role;
-			endMatchScores = null;
-			let delta: BackgammonDelta = {start: start, end: end};
-			let stateAfterMove: IState = {backgammon: stateBeforeMove.backgammon, delta: delta};
-			return {endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove};
-		}
+	//make it a stateBeforeToss transition, or a IMove?
+	export function toss(stateBeforeToss: IState, roleBeforeToss: number): void {
+		stateBeforeToss.steps = DieCombo.generate();
 	}
 
-	function startMove(stateBeforeMove: IState, start: number): Board {
-		let board = stateBeforeMove.backgammon.board;
-		let steps = stateBeforeMove.backgammon.steps;
-		let role = stateBeforeMove.backgammon.role;
+	/** Given a starting position, reflect all reachable positions. */
+	export function startMove(stateBeforeMove: IState, start: number, role: number): Board {
+		let board = stateBeforeMove.board;
+		let steps = stateBeforeMove.steps;
 		let res: Board;
+		for (let i = 0; i < steps.length; i++) {
+			if (role === WHITE) {
+				steps[i] = -steps[i];
+			}
+		}
 		if (steps.length === 1) {
 			let t = board[start + steps[0]];
-			if (t.status !== -role) {
+			if (t.status !== 1 - role) {
 				res.push(t);
 			} else if (t.count === 1) {
 				res.push(t);
@@ -239,7 +170,7 @@ module gameLogic {
 			let needSum = false;
 			for (let i = 0; i < steps.length; i++) {
 				let t = board[start + steps[i]];
-				if (t.status !== -role) {
+				if (t.status !== 1 - role) {
 					res.push(t);
 					needSum = true;
 				} else if (t.count === 1) {
@@ -249,7 +180,7 @@ module gameLogic {
 			}
 			if (needSum) {
 				let t = board[start + steps[0] + steps[1]];
-				if (t.status !== -role) {
+				if (t.status !== 1 - role) {
 					res.push(t);
 				} else if (t.count === 1) {
 					res.push(t);
@@ -258,7 +189,7 @@ module gameLogic {
 		} else if (steps.length === 3 || steps.length === 4) {
 			for (let i = 1; i <= steps.length; i++) {
 				let t = board[start + i * steps[0]];
-				if (t.status !== -role) {
+				if (t.status !== 1 - role) {
 					res.push(t);
 				} else if (t.count === 1) {
 					res.push(t);
@@ -270,8 +201,68 @@ module gameLogic {
 		return res;
 	}
 
-	function endMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): IMove {
+	export function createMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): IMove {
+		//assume now that (end-start) appears in steps, and no automatic move relay
+		if (!stateBeforeMove) {
+			stateBeforeMove = getInitialState();
+		}
+		let board = stateBeforeMove.board;
+		//let role = stateBeforeMove.backgammon.role;
+		let steps = stateBeforeMove.steps;
+		if (getWinner(board) !== "") {
+			throw new Error("One can only make a move if the game is not over!");
+		}
+		let boardAfterMove = angular.copy(board);
+		if (boardAfterMove[end].status !== 1 - roleBeforeMove) {
+			//safe to occupy or add
+			boardAfterMove[start].count -= 1;
+			if (boardAfterMove[start].count === 0) {
+				boardAfterMove[start].status = EMPTY;
+			}
+			boardAfterMove[end].count += 1;
+			boardAfterMove[end].status = roleBeforeMove;
+		} else if (boardAfterMove[end].count === 1) {
+			boardAfterMove[start].count -= 1;
+			if (boardAfterMove[start].count === 0) {
+				boardAfterMove[start].status = EMPTY;
+			}
+			//boardAfterMove[end].count = 1;
+			boardAfterMove[end].status = roleBeforeMove;
+			if (roleBeforeMove === BLACK) {
+				boardAfterMove[WHITEBAR].count += 1;
+			} else {
+				boardAfterMove[BLACKBAR].count += 1;
+			}
+		}
 
+		let endMatchScores: number[];
+		let roleAfterMove: number;
+
+		//update steps after this move, delete that tossed value from steps
+		//browser support for indexOf is limited; it is not supported in Internet Explorer 7 and 8.
+		let index = steps.indexOf(Math.abs(end - start));
+		if (index > -1) {
+			steps.splice(index, 1);
+		} else {
+			//roll back
+			return {endMatchScores: null, turnIndexAfterMove: roleBeforeMove, stateAfterMove: stateBeforeMove};
+		}
+
+		let winner = getWinner(boardAfterMove);
+		if (winner !== "") {
+			//Game over.
+			roleAfterMove = -1; //role -1 denotes game over!
+			endMatchScores = winner === "Black" ? [1, 0] : [0, 1];
+		} else {
+			//if no further steps, switch player.
+			if (steps.length === 0) {
+				roleAfterMove = 1 - roleBeforeMove;
+			}
+			endMatchScores = null;
+		}
+		let delta: BoardDelta = {start: start, end: end};
+		let stateAfterMove: IState = {board: boardAfterMove, steps: steps, delta: delta};
+		return {endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove};
 	}
 
 	function moveExist(board: Board, steps: number[], role: number): boolean {
@@ -284,9 +275,9 @@ module gameLogic {
 		}
 
 		//for the purpose of this function, stepCombination contains at most two numbers
-		if (steps.length === 1) {
-			stepCombination = steps;
-		} else if (steps.length === 2 || steps.length === 3 || steps.length === 4) {
+		if (steps.length === 1 || steps.length === 3 || steps.length === 4) {
+			stepCombination = [steps[0]];
+		} else if (steps.length === 2) {
 			if (steps[0] !== steps[1]) {
 				//only need to check valid split moves, not sum of split moves
 				stepCombination = [steps[0], steps[1]];
@@ -312,7 +303,8 @@ module gameLogic {
 						for (let step of stepCombination) {
 							let pos = i + step;
 							if (pos < 26) {
-								if (board[pos].status === BLACK || board[pos].status === EMPTY || (board[pos].status === WHITE && board[i].count === 1)) {
+								if (board[pos].status === BLACK || board[pos].status === EMPTY 
+										|| (board[pos].status === WHITE && board[i].count === 1)) {
 									return true;
 								}
 							}
@@ -328,7 +320,8 @@ module gameLogic {
 				//check valid move for the checker on WHITEBAR
 				for (let step of stepCombination) {
 					let pos = WHITEBAR - step;
-					if (board[pos].status === WHITE || board[pos].status === EMPTY || (board[pos].status === BLACK && board[pos].count === 1)) {
+					if (board[pos].status === WHITE || board[pos].status === EMPTY 
+							|| (board[pos].status === BLACK && board[pos].count === 1)) {
 						return true;
 					}
 				}
@@ -339,7 +332,8 @@ module gameLogic {
 						for (let step of stepCombination) {
 							let pos = i - step;
 							if (pos > 1) {
-								if (board[pos].status === WHITE || board[pos].status === EMPTY || (board[pos].status === BLACK && board[i].count === 1)) {
+								if (board[pos].status === WHITE || board[pos].status === EMPTY 
+										|| (board[pos].status === BLACK && board[i].count === 1)) {
 									return true;
 								}
 							}
