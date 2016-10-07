@@ -230,11 +230,9 @@ module gameLogic {
 		if (bearTime) {
 			return true;
 		}
-		
 		if (steps.length === 1) {
 			stepCombination = steps;
 		}
-
 		if (steps.length === 2) {
 			if (steps[0] !== steps[1]) {
 				stepCombination = [steps[0], steps[1], steps[0] + steps[1]];
@@ -242,11 +240,9 @@ module gameLogic {
 				stepCombination = [steps[0], 2 * steps[0]];
 			}
 		}
-
 		if (steps.length === 3) {
 			stepCombination = [steps[0], 2 * steps[0], 3 * steps[0]];
 		}
-
 		if (steps.length === 4) {
 			stepCombination = [steps[0], 2 * steps[0], 3 * steps[0], 4 * steps[0]];
 		}
