@@ -161,7 +161,7 @@ module gameLogic {
 		let endMatchScores: number[];
 		let roleAfterMove: number;
 		//let winner = "";
-		if (moveExist(board, start, steps, roleBeforeMove)) {
+		if (moveExist(board, start, end, steps, roleBeforeMove)) {
 			let boardAfterMove = angular.copy(board);
 			if (boardAfterMove[end].status === EMPTY || boardAfterMove[end].status === roleBeforeMove) {
 				//safe to occupy or add
@@ -223,39 +223,67 @@ module gameLogic {
 		}
 	}
 
-	function moveExist(board: Board, start: number, steps: number[], role: number): boolean {
+	function moveExist(board: Board, start: number, end: number, steps: number[], role: number): boolean {
+		//check valid start position
+		if (board[start].status !== role) {
+			//throw new Error("One can only make a move with his own checkers!");
+			return false;
+		}
+
+		//check valid direction
+		if ((end - start) * role <= 0) {
+			return false;
+		}
+
 		let stepCombination: number[];
-		let bearTime: boolean = canBearOff(board,role);
+		let bearTime: boolean = canBearOff(board, role);
+
 		//Valid move always exists when bearoff time
 		if (bearTime) {
 			return true;
 		}
+
+		//for the purpose of this function, stepCombination contains at most two numbers
 		if (steps.length === 1) {
 			stepCombination = steps;
 		}
-		if (steps.length === 2) {
+		if (steps.length === 2 || steps.length === 3 || steps.length === 4) {
 			if (steps[0] !== steps[1]) {
-				stepCombination = [steps[0], steps[1], steps[0] + steps[1]];
+				//only need to check valid split moves, not sum of split moves
+				//stepCombination = [steps[0], steps[1], steps[0] + steps[1]];
+				stepCombination = [steps[0], steps[1]];
 			} else {
-				stepCombination = [steps[0], 2 * steps[0]];
+				//stepCombination = [steps[0], 2 * steps[0]];
+				stepCombination = [steps[0]];
 			}
 		}
-		if (steps.length === 3) {
-			stepCombination = [steps[0], 2 * steps[0], 3 * steps[0]];
-		}
-		if (steps.length === 4) {
-			stepCombination = [steps[0], 2 * steps[0], 3 * steps[0], 4 * steps[0]];
-		}
-		//Return true if any move of stepCombination is valid
-		for (let step of stepCombination) {
-			let stepEnd = start + step;
-			if (stepEnd < 26) {
-				if (board[stepEnd].status === EMPTY || (board[stepEnd].status === -role && board[stepEnd].count === 1) ||
-					(board[stepEnd].status === role)) {
+		
+		if (role === BLACK) {
+			if (board[BLACKBAR].count !== 0 && start !== BLACKBAR) {
+				return false;
+			}
+			for (let step of stepCombination) {
+				let pos = BLACKBAR + step;
+				if (board[pos].status !== WHITE) {
+					return true;
+				} else if (board[pos].count === 1) {
 					return true;
 				}
 			}
+			return false;
+		} else {
+			if (board[WHITEBAR].count !== 0 && start !== WHITEBAR) {
+				return false;
+			}
+			for (let step of stepCombination) {
+				let pos = WHITEBAR - step;
+				if (board[pos].status !== BLACK) {
+					return true;
+				} else if (board[pos].count === 1) {
+					return true;
+				}
+			}
+			return false;
 		}
-		return false;
 	}
 }
