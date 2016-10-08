@@ -213,6 +213,17 @@ module gameLogic {
 			throw new Error("One can only make a move if the game is not over!");
 		}
 		let boardAfterMove = angular.copy(board);
+
+		//update steps after this move, delete that tossed value from steps
+		//browser support for indexOf is limited; it is not supported in Internet Explorer 7 and 8.
+		let index = steps.indexOf(Math.abs(end - start));
+		if (index > -1) {
+			steps.splice(index, 1);
+		} else {
+			//roll back
+			return {endMatchScores: null, turnIndexAfterMove: roleBeforeMove, stateAfterMove: stateBeforeMove};
+		}
+		
 		if (boardAfterMove[end].status !== 1 - roleBeforeMove) {
 			//safe to occupy or add
 			boardAfterMove[start].count -= 1;
@@ -237,16 +248,6 @@ module gameLogic {
 
 		let endMatchScores: number[];
 		let roleAfterMove: number;
-
-		//update steps after this move, delete that tossed value from steps
-		//browser support for indexOf is limited; it is not supported in Internet Explorer 7 and 8.
-		let index = steps.indexOf(Math.abs(end - start));
-		if (index > -1) {
-			steps.splice(index, 1);
-		} else {
-			//roll back
-			return {endMatchScores: null, turnIndexAfterMove: roleBeforeMove, stateAfterMove: stateBeforeMove};
-		}
 
 		let winner = getWinner(boardAfterMove);
 		if (winner !== "") {
