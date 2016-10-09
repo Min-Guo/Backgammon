@@ -201,6 +201,57 @@ module gameLogic {
 		return res;
 	}
 
+	function checkValidPos(board: Board, start: number, end: number, result: Board, role: number): void {
+		if (end < 26) {
+			if (role === 1) {
+				if (board[end].status === role || (board[end].status === WHITE && board[end].count === 1)) {
+					let tBoard = board[end];
+					result.push(tBoard);
+				}
+			}
+			if (role === 0) {
+				if (board[end].status === role || (board[end].status === BLACK && board[end].count === 1)) {
+					let tBoard = board[end];
+					result.push(tBoard);
+				}
+			}
+		} else if (end > 26) {
+			let fakeStart = start + 1;
+			while (fakeStart > 19) {
+				if (board[fakeStart].status === role) {
+					throw new Error("Must move leftmost checker first!");
+				}
+				fakeStart++;
+			}
+			let tBoard = board[27];
+			result.push(tBoard);
+		} else {
+			let tBoard = board[27];
+			result.push(tBoard);
+		}
+	}
+
+	function bearOffStartMove(stateBeforeMove: IState, start: number, role: number): Board {
+		let board = stateBeforeMove.board;
+		let steps = stateBeforeMove.steps;
+		let bearOffRes: Board;
+		if (steps.length === 1) {
+			checkValidPos(board, start, start + steps[0], bearOffRes, role);
+		}
+		if (steps.length === 2 && (steps[0] !== steps[1])) {
+			checkValidPos(board, start, start + steps[0], bearOffRes, role);
+			checkValidPos(board, start, start + steps[1], bearOffRes, role);
+			checkValidPos(board, start, start + steps[0] + start[1], bearOffRes, role);
+		}
+		if (steps.length >= 2 && steps[0] === steps[1]) {
+			let len = steps.length;
+			for (let i = 2; i <= len; i++) {
+				checkValidPos(board, start, start + i * steps[0], bearOffRes, role);
+			}
+		}
+		return bearOffRes;
+	}	
+
 	export function createMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): IMove {
 		//assume now that (end-start) appears in steps, and no automatic move relay
 		if (!stateBeforeMove) {
