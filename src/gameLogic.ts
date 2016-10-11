@@ -1,3 +1,6 @@
+type Board = Tower[];
+type Steps = number[];
+
 class Tower {
 	//status: 1 for black, 0 for white, -1 for empty
 	constructor(public tid: number,
@@ -6,27 +9,18 @@ class Tower {
 	}
 }
 
-class Backgammon {
-	constructor(public board: Tower[],
-				public role: number,
-				public steps: number[]) {
-	}
-}
-
 module DieCombo {
-	export function generate(): number[] {
+	export function generate(): Steps {
 		let die1: number = Math.floor(Math.random() * 6 + 1);
 		let die2: number = Math.floor(Math.random() * 6 + 1);
-		let list: number[];
 		if (die1 === die2) {
-			list = [die1, die1, die1, die1];
+			return [die1, die1, die1, die1];
 		} else {
-			list = [die1, die2];
+			return [die1, die2];
 		}
-		return list;
 	}
 
-	export function init(): number[] {
+	export function init(): Steps {
 		let die1: number = Math.floor(Math.random() * 6 + 1);
 		let die2: number = Math.floor(Math.random() * 6 + 1);
 		while (die1 === die2) {
@@ -38,17 +32,14 @@ module DieCombo {
 	}
 }
 
-type Board = Tower[];
-
 interface BoardDelta {
 	start: number;
 	end: number;
 }
 
 interface IState {
-	//backgammon: Backgammon;
 	board: Board;
-	steps: number[];
+	steps: Steps;
 	delta: BoardDelta;
 }
 
@@ -93,14 +84,6 @@ module gameLogic {
 				board[i] = new Tower(i, EMPTY, 0);
 			}
 		}
-		// backgammon.steps = DieCombo.init();
-		// //first die tossed by white, and second die tossed by black
-		// if (backgammon.steps[0] < backgammon.steps[1]) {
-		// 	backgammon.role = 1;
-		// } else {
-		// 	backgammon.role = -1;
-		// }
-		//return backgammon;
 		return board;
 	}
 
@@ -149,52 +132,118 @@ module gameLogic {
 		stateBeforeToss.steps = DieCombo.generate();
 	}
 
-	/** Given a starting position, reflect all reachable positions. */
-	export function startMove(stateBeforeMove: IState, start: number, role: number): Board {
-		let board = stateBeforeMove.board;
-		let steps = stateBeforeMove.steps;
-		let res: Board;
-		for (let i = 0; i < steps.length; i++) {
-			if (role === WHITE) {
-				steps[i] = -steps[i];
-			}
+	/** This function simply converts overflow indexes to respective home value. */
+	function getValidPos(start: number, step: number, role: number) {
+		let pos: number;
+		if (role === BLACK) {
+			let tmp = start + step;
+			pos = tmp > 25 ? BLACKHOME : tmp;
+		} else {
+			let tmp = start - step;
+			pos = tmp < 2 ? WHITEHOME : tmp;
 		}
-		if (steps.length === 1) {
-			let t = board[start + steps[0]];
-			if (t.status !== 1 - role) {
-				res.push(t);
-			} else if (t.count === 1) {
-				res.push(t);
+		return pos;
+	}
+
+	/** 
+	 * This function models the board result after this move.
+	 * Successful moves modified the board, and return true.
+	 * Unsuccessful moves leave the board unmodified and return false.
+	 */
+	function modelMove(board: Board, start: number, step: number, role: number): boolean {
+		if (board[start].status !== role) {
+			return false;
+		}
+		let end = getValidPos(start, step, role);
+		if (role === BLACK && end === BLACKHOME && canBearOff(board, BLACK)) {
+			board[start].count -= 1;
+			if (board[start].count === 0) {
+				board[start].status = EMPTY;
 			}
-		} else if (steps.length === 2) {
-			let needSum = false;
+			board[BLACKHOME].count += 1;
+			return true;
+		} else if (role === WHITE && end === WHITEHOME && canBearOff(board, WHITE)) {
+			board[start].count -= 1;
+			if (board[start].count === 0) {
+				board[start].status = EMPTY;
+			}
+			board[WHITEHOME].count += 1;
+			return true;
+		} else if (board[end].status !== 1 - role || board[end].count === 1) {
+			board[start].count -= 1;
+			if (board[start].count === 0) {
+				board[start].status = EMPTY;
+			}
+			if (board[end].status !== 1 - role) {
+				board[end].count += 1;
+			} else {
+				let enemyBar = role === BLACK ? WHITEBAR : BLACKBAR;
+				board[enemyBar].count += 1;
+			}
+			board[end].status = role;
+			return true;
+		}
+		return false;
+	}
+
+	/** 
+	 * This function reflects all reachable positions, given starting position.
+	 * From the starting point, all possible moves are assumed from original in order.
+	 * Returns an object, containing unique keys as Tower tid values, and value neglected. 
+	 */
+	export function startMove(stateBeforeMove: IState, start: number, role: number) {
+		let res = {};
+		if (stateBeforeMove.steps.length === 0) {
+			return res;
+		} else if (stateBeforeMove.steps.length === 2) {
+			let board: Board;
+			let steps = stateBeforeMove.steps;
+			let newStart: number;
+			let out1: boolean;
+			// 1 -> 2
+			board = angular.copy(stateBeforeMove.board);
+			newStart = start;
 			for (let i = 0; i < steps.length; i++) {
-				let t = board[start + steps[i]];
-				if (t.status !== 1 - role) {
-					res.push(t);
-					needSum = true;
-				} else if (t.count === 1) {
-					res.push(t);
-					needSum = true;
+				let oldStart = newStart;
+				newStart = getValidPos(oldStart, steps[i], role);
+				let out = modelMove(board, oldStart, steps[i], role);
+				if (out) {
+					res[board[newStart].tid] = true;
+					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+						break;
+					}
+				}
+			}			
+			// 2 -> 1
+			board = angular.copy(stateBeforeMove.board);
+			newStart = start;
+			for (let i = steps.length - 1; i >= 0; i--) {
+				let oldStart = newStart;
+				newStart = getValidPos(oldStart, steps[i], role);
+				let out = modelMove(board, oldStart, steps[i], role);
+				if (out) {
+					res[board[newStart].tid] = true;
+					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+						break;
+					}
 				}
 			}
-			if (needSum) {
-				let t = board[start + steps[0] + steps[1]];
-				if (t.status !== 1 - role) {
-					res.push(t);
-				} else if (t.count === 1) {
-					res.push(t);
-				}
-			}
-		} else if (steps.length === 3 || steps.length === 4) {
-			for (let i = 1; i <= steps.length; i++) {
-				let t = board[start + i * steps[0]];
-				if (t.status !== 1 - role) {
-					res.push(t);
-				} else if (t.count === 1) {
-					res.push(t);
-				} else {
-					break;
+		} else {
+			let board: Board;
+			let steps = stateBeforeMove.steps;
+			let newStart = start;
+			// 1
+			// 1 -> 2 -> 3 [-> 4]
+			board = angular.copy(stateBeforeMove.board);
+			for (let i = 0; i < steps.length; i++) {
+				let oldStart = newStart;
+				newStart = getValidPos(oldStart, steps[i], role);
+				let out = modelMove(board, oldStart, steps[i], role);
+				if (out) {
+					res[board[newStart].tid] = true;
+					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+						break;
+					}
 				}
 			}
 		}
