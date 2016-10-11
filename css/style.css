@@ -2,21 +2,21 @@
 /*****************************/
 
 #container {
-    width: 50vw;
+    width: 70vw;
     position: relative;
     margin: auto;    
 }
 
 #gamearea {
     background: url('../images/bg.jpg') no-repeat;
-    background-size: contain;
+    background-size: 100% 100%;
     position: absolute;
     top: 0;
     left: 0;
     bottom: 0;
     right: 0;
     width: 100%;
-    padding-top: 77.78%;
+    padding-top: 65%;
 }
 
 #upper {
@@ -60,7 +60,7 @@
 }
 
 .piece {
-    width: 85%;
+    width: 75%;
     height: 16.66%;
     margin: auto;
     border-radius: 50%;
@@ -103,12 +103,12 @@
 
 .columnUpper .piece {
     position: absolute;
-    left: 6%;
+    left: 14%;
 }
 
 .columnLower .piece {
     position: absolute;
-    left: 6%;
+    left: 14%;
     bottom: 0;
     
 }
@@ -156,7 +156,6 @@
 button {
     background-color: #4CAF50;
     color: white;
-    padding: 10px 20px;
     text-align: center;
     margin: 4px 2px;
     cursor: pointer;
@@ -164,6 +163,7 @@ button {
     border: none;
     font-size: 14px;
     position: absolute;
-    left: 45%;
     bottom: 0;
+    right: 0;
+    width: 60px;
 }
