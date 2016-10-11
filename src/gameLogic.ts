@@ -202,32 +202,51 @@ module gameLogic {
 	}
 
 	function checkValidPos(board: Board, start: number, end: number, result: Board, role: number): void {
-		if (end < 26) {
-			if (role === 1) {
+		if (role === BLACK) {
+			if (end <= 25) {
 				if (board[end].status === role || (board[end].status === WHITE && board[end].count === 1)) {
 					let tBoard = board[end];
 					result.push(tBoard);
+				} 
+			} else if (end === 26){
+				///if end is 26, home is a reachable position.
+				let tBoard = board[27];
+				result.push(tBoard);
+			} else {
+				///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
+				let fakeStart = start - 1;
+				while (fakeStart > 19) {
+					if (board[fakeStart].status === role) {
+						throw new Error("Must move leftmost checker first!");
+					}
+					fakeStart--;
 				}
-			}
-			if (role === 0) {
+				let tBoard = board[27];
+				result.push(tBoard);
+			} 
+		}
+		if (role === WHITE) {
+			if (end >= 2) {
 				if (board[end].status === role || (board[end].status === BLACK && board[end].count === 1)) {
 					let tBoard = board[end];
 					result.push(tBoard);
 				}
-			}
-		} else if (end > 26) {
-			let fakeStart = start + 1;
-			while (fakeStart > 19) {
-				if (board[fakeStart].status === role) {
-					throw new Error("Must move leftmost checker first!");
+			} else if (end === 1){
+				///if end is 1, home is a reachable postion.
+				let tBoard = board[0];
+				result.push(tBoard);
+			} else {
+				///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
+				let fakeStart = start + 1;
+				while (fakeStart < 8) {
+					if (board[fakeStart].status === role) {
+						throw new Error("Must move leftmost checker first!");
+					}
+					fakeStart++;
 				}
-				fakeStart++;
-			}
-			let tBoard = board[27];
-			result.push(tBoard);
-		} else {
-			let tBoard = board[27];
-			result.push(tBoard);
+				let tBoard = board[0];
+				result.push(tBoard);
+			} 
 		}
 	}
 
@@ -236,17 +255,33 @@ module gameLogic {
 		let steps = stateBeforeMove.steps;
 		let bearOffRes: Board;
 		if (steps.length === 1) {
-			checkValidPos(board, start, start + steps[0], bearOffRes, role);
+			if (role === BLACK) {
+				checkValidPos(board, start, start + steps[0], bearOffRes, role);
+			} else {
+				checkValidPos(board, start, start - steps[0], bearOffRes, role);
+			}
 		}
 		if (steps.length === 2 && (steps[0] !== steps[1])) {
-			checkValidPos(board, start, start + steps[0], bearOffRes, role);
-			checkValidPos(board, start, start + steps[1], bearOffRes, role);
-			checkValidPos(board, start, start + steps[0] + start[1], bearOffRes, role);
+			if (role === BLACK) {
+				checkValidPos(board, start, start + steps[0], bearOffRes, role);
+				checkValidPos(board, start, start + steps[1], bearOffRes, role);
+				checkValidPos(board, start, start + steps[0] + start[1], bearOffRes, role);
+			} else {
+				checkValidPos(board, start, start - steps[0], bearOffRes, role);
+				checkValidPos(board, start, start - steps[1], bearOffRes, role);
+				checkValidPos(board, start, start - steps[0] - start[1], bearOffRes, role);
+			}
 		}
 		if (steps.length >= 2 && steps[0] === steps[1]) {
 			let len = steps.length;
-			for (let i = 2; i <= len; i++) {
-				checkValidPos(board, start, start + i * steps[0], bearOffRes, role);
+			if (role === BLACK) {
+				for (let i = 2; i <= len; i++) {
+					checkValidPos(board, start, start + i * steps[0], bearOffRes, role);
+				}
+			} else {
+				for (let i = 2; i <= len; i++) {
+					checkValidPos(board, start, start - i * steps[0], bearOffRes, role);
+				}
 			}
 		}
 		return bearOffRes;
