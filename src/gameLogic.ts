@@ -156,6 +156,11 @@ module gameLogic {
 		}
 		let end = getValidPos(start, step, role);
 		if (role === BLACK && end === BLACKHOME && canBearOff(board, BLACK)) {
+			for (let i = 20; i < start; i++) {
+				if (board[i].status === BLACK) {
+					return false;
+				}
+			}
 			board[start].count -= 1;
 			if (board[start].count === 0) {
 				board[start].status = EMPTY;
@@ -163,6 +168,11 @@ module gameLogic {
 			board[BLACKHOME].count += 1;
 			return true;
 		} else if (role === WHITE && end === WHITEHOME && canBearOff(board, WHITE)) {
+			for (let i = 7; i > start; i--) {
+				if (board[i].status === WHITE) {
+					return false;
+				}
+			}
 			board[start].count -= 1;
 			if (board[start].count === 0) {
 				board[start].status = EMPTY;
@@ -188,8 +198,9 @@ module gameLogic {
 
 	/** 
 	 * This function reflects all reachable positions, given starting position.
-	 * From the starting point, all possible moves are assumed from original in order.
-	 * Returns an object, containing unique keys as Tower tid values, and value neglected. 
+	 * From start, all possible moves are assumed from original in order.
+	 * Returns an object, containing reachable Tower tid's as keys, and an array of steps indexes by which to walk from start.
+	 * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [1, 0]} 
 	 */
 	export function startMove(stateBeforeMove: IState, start: number, role: number) {
 		let res = {};
@@ -207,7 +218,8 @@ module gameLogic {
 				newStart = getValidPos(oldStart, steps[i], role);
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
-					res[board[newStart].tid] = true;
+					//assume an automatic conversion from number to string
+					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
 					}
@@ -221,7 +233,8 @@ module gameLogic {
 				newStart = getValidPos(oldStart, steps[i], role);
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
-					res[board[newStart].tid] = true;
+					//assume an automatic conversion from number to string
+					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
 					}
@@ -239,7 +252,8 @@ module gameLogic {
 				newStart = getValidPos(oldStart, steps[i], role);
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
-					res[board[newStart].tid] = true;
+					//assume an automatic conversion from number to string
+					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
 					}
@@ -353,17 +367,18 @@ module gameLogic {
 			throw new Error("One can only make a move if the game is not over!");
 		}
 		let boardAfterMove = angular.copy(board);
-		//update steps after this move, delete that tossed value from steps
+		//if the move exists, process the move on the copy board, and remove the step from the steps
 		//browser support for indexOf is limited; it is not supported in Internet Explorer 7 and 8.
-		let step = Math.abs(end - start);
-		let index = steps.indexOf(step);
-		if (index > -1) {
+		let posToStep = startMove(stateBeforeMove, start, roleBeforeMove);
+		if (end in posToStep) {
+			//posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
+			let index = posToStep[end][0];
+			modelMove(boardAfterMove, start, steps[index], roleBeforeMove);
 			steps.splice(index, 1);
 		} else {
 			//no such value found tossed, must roll back
 			return {endMatchScores: null, turnIndexAfterMove: roleBeforeMove, stateAfterMove: stateBeforeMove};
 		}
-		modelMove(boardAfterMove, start, step, roleBeforeMove);
 		let endMatchScores: number[];
 		let roleAfterMove: number;
 		let winner = getWinner(boardAfterMove);
@@ -387,6 +402,11 @@ module gameLogic {
 	}
 
 	function moveExist(stateBeforeMove: IState, role: number): boolean {
+		//no move exists for ended game
+		if (role === -1) {
+			return false;
+		}
+
 		let board = stateBeforeMove.board;
 		let steps = stateBeforeMove.steps;
 
