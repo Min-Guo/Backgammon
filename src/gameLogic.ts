@@ -56,8 +56,6 @@ module gameLogic {
 	//7, 9, 14, 25 white
 	/** Returns the initial board. */
 	function getInitialBoard(): Board {
-		//let backgammon: Backgammon;
-		// let board: Board = backgammon.board;
 		let board: Board;
 		for (let i = 0; i < 28; i++) {
 			if (i == WHITEHOME || i == WHITEBAR) {
@@ -368,7 +366,6 @@ module gameLogic {
 		}
 		let boardAfterMove = angular.copy(board);
 		//if the move exists, process the move on the copy board, and remove the step from the steps
-		//browser support for indexOf is limited; it is not supported in Internet Explorer 7 and 8.
 		let posToStep = startMove(stateBeforeMove, start, roleBeforeMove);
 		if (end in posToStep) {
 			//posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
@@ -432,16 +429,16 @@ module gameLogic {
 
 		if (role === BLACK) {
 			if (board[BLACKBAR].count !== 0) {
-				for (let step of stepCombination) {
-					let moves = startMove(stateBeforeMove, BLACKBAR, BLACK);
+				// for (let step of stepCombination) {
+				let moves = startMove(stateBeforeMove, BLACKBAR, BLACK);
 					// if (angular.equals(moves, {})) {
 					// 	return false;
 					// }
-					if (Object.keys(moves).length === 0 && moves.constructor === Object) {
-						return false;
-					}
+				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+					return true;
 				}
-				return true;
+				// }
+				return false;
 			} else {
 				for (let i = 2; i < 26; i++) {
 					let moves = startMove(stateBeforeMove, i, BLACK);
@@ -453,16 +450,16 @@ module gameLogic {
 			}
 		} else {
 			if (board[WHITEBAR].count !== 0) {
-				for (let step of stepCombination) {
-					let moves = startMove(stateBeforeMove, WHITEBAR, WHITE);
+				// for (let step of stepCombination) {
+				let moves = startMove(stateBeforeMove, WHITEBAR, WHITE);
 					// if (angular.equals(moves, {})) {
 					// 	return false;
 					// }
-					if (Object.keys(moves).length === 0 && moves.constructor === Object) {
-						return false;
-					}
+				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+					return true;
 				}
-				return true;
+				// }
+				return false;
 			} else {
 				for (let i = 25; i > 1; i--) {
 					let moves = startMove(stateBeforeMove, i, WHITE);
@@ -474,4 +471,24 @@ module gameLogic {
 			}
 		}
 	}
+
+  export function checkMoveOk(stateTransition: IStateTransition): void {
+    // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
+    // to verify that the move is OK.
+    let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
+    let stateBeforeMove: IState = stateTransition.stateBeforeMove;
+    let move: IMove = stateTransition.move;
+    if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
+        angular.equals(createInitialMove(), move)) {
+      return;
+    }
+    let deltaValue: BoardDelta = move.stateAfterMove.delta;
+    let start = deltaValue.start;
+    let end = deltaValue.end;
+    let expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
+    if (!angular.equals(move, expectedMove)) {
+      throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
+          ", but got stateTransition=" + angular.toJson(stateTransition, true))
+    }
+  }	
 }
