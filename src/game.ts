@@ -1,26 +1,18 @@
-interface SupportedLanguages {
-  en: string, iw: string,
-  pt: string, zh: string,
-  el: string, fr: string,
-  hi: string, es: string,
+interface SupportLanguages {
+    en: string, ch: string,
 };
 
 interface Translations {
-  [index: string]: SupportedLanguages;
+    [index: string]: SupportLanguages;
 }
 
 module game {
-  // Global variables are cleared when getting updateUI.
-  // I export all variables to make it easy to debug in the browser by
-  // simply typing in the console, e.g.,
-  // game.currentUpdateUI
+
   export let currentUpdateUI: IUpdateUI = null;
-  export let startTower: number = 0;
-  export let didMakeMove: boolean = false; // You can only make one move per updateUI
+  export let didMakeMove: boolean = false;
   export let animationEndedTimeout: ng.IPromise<any> = null;
   export let state: IState = null;
   export let moveStart = -1;
-  export let moveEnd = -1;
 
   export function init() {
     registerServiceWorker();
@@ -45,25 +37,15 @@ module game {
       }).catch(function(err: any) {
         log.log('ServiceWorker registration failed: ', err);
       });
-    }
   }
 
   function getTranslations(): Translations {
     return {};
   }
 
-  /**
-   * turnIndexBeforeMove : number;
-   * stateBeforeMove: IState;
-   * numberOfPlayers: number;
-   * move: IMove;
-   * playersInfo: IPlayerInfo[];
-   * yourPlayerIndex: number;
-   * playMode: PlayMode;
-   */
   export function updateUI(params: IUpdateUI): void {
     log.info("Game got updateUI:", params);
-    // didMakeMove = false; // Only one move per updateUI
+    didMakeMove = false; // Only one move per updateUI
     currentUpdateUI = params;
     clearAnimationTimeout();
     state = params.move.stateAfterMove;
@@ -98,10 +80,10 @@ module game {
   }
 
   function makeMove(move: IMove) {
-    // if (didMakeMove) { // Only one move per updateUI
-    //   return;
-    // }
-    // didMakeMove = true;
+    if (didMakeMove) { // Only one move per updateUI
+      return;
+    }
+    didMakeMove = true;
     moveService.makeMove(move);
   }
 
@@ -137,17 +119,17 @@ module game {
       throw new Error("Throwing the error because URL has '?throwException'");
     }
     if (moveStart !== -1) {
-      moveEnd = target;
       let nextMove: IMove = null;
       try {
         nextMove = gameLogic.createMove(
-          state, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
+          state, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
       } catch (e) {
-        log.info(["Cell is already full in position:", moveStart, moveEnd]);
+        log.info(["Unable to create a move between:", moveStart, target]);
         return;
       }
       // Move is legal, make it!
       makeMove(nextMove);
+      moveStart = -1;
     } else {
       moveStart = target;
       return;
@@ -166,23 +148,23 @@ module game {
 
   }
 
-  // export function shouldShowImage(row: number, col: number): boolean {
-  //   let cell = state.board[row][col];
+  // export function shouldShowImage(end: number): boolean {
+  //   let cell = state.board[end];
   //   return cell !== "";
   // }
 
-  // export function isPieceX(row: number, col: number): boolean {
-  //   return state.board[row][col] === 'X';
-  // }
+  export function isBlackChecker(end: number): boolean {
+    return state.board[end].status === gameLogic.BLACK;
+  }
 
-  // export function isPieceO(row: number, col: number): boolean {
-  //   return state.board[row][col] === 'O';
-  // }
+  export function isWhiteChecker(end: number): boolean {
+    return state.board[end].status === gameLogic.WHITE;
+  }
 
-  // export function shouldSlowlyAppear(row: number, col: number): boolean {
-  //   return state.delta &&
-  //       state.delta.row === row && state.delta.col === col;
-  // }
+  export function shouldSlowlyAppear(start: number, end: number): boolean {
+    return state.delta &&
+      state.delta.start === start && state.delta.end === end;
+  }
 }
 
 angular.module('myApp', ['gameServices'])
