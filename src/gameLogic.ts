@@ -43,6 +43,10 @@ interface IState {
 	delta: BoardDelta;
 }
 
+interface IEndToStepIndex {
+	[key: number]: number[];
+}
+
 module gameLogic {
 	export const BLACKHOME = 27;
 	export const BLACKBAR = 1;
@@ -131,7 +135,7 @@ module gameLogic {
 	}
 
 	/** This function simply converts overflow indexes to respective home value. */
-	function getValidPos(start: number, step: number, role: number) {
+	export function getValidPos(start: number, step: number, role: number) {
 		let pos: number;
 		if (role === BLACK) {
 			let tmp = start + step;
@@ -179,7 +183,7 @@ module gameLogic {
 			return true;
 		} else if (board[end].status !== 1 - role || board[end].count === 1) {
 			board[start].count -= 1;
-			if (board[start].count === 0) {
+			if (board[start].count === 0 && start !== BLACKBAR && start !== WHITEBAR) {
 				board[start].status = EMPTY;
 			}
 			if (board[end].status !== 1 - role) {
@@ -200,8 +204,8 @@ module gameLogic {
 	 * Returns an object, containing reachable Tower tid's as keys, and an array of steps indexes by which to walk from start.
 	 * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [1, 0]} 
 	 */
-	export function startMove(stateBeforeMove: IState, start: number, role: number) {
-		let res = {};
+	export function startMove(stateBeforeMove: IState, start: number, role: number): IEndToStepIndex {
+		let res: IEndToStepIndex = {};
 		if (stateBeforeMove.steps.length === 0) {
 			return res;
 		} else if (stateBeforeMove.steps.length === 2) {
@@ -261,91 +265,91 @@ module gameLogic {
 		return res;
 	}
 
-	function checkValidPos(board: Board, start: number, end: number, result: Board, role: number): void {
-		if (role === BLACK) {
-			if (end <= 25) {
-				if (board[end].status === role || (board[end].status === WHITE && board[end].count === 1)) {
-					let tBoard = board[end];
-					result.push(tBoard);
-				} 
-			} else if (end === 26){
-				///if end is 26, home is a reachable position.
-				let tBoard = board[27];
-				result.push(tBoard);
-			} else {
-				///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
-				let fakeStart = start - 1;
-				while (fakeStart > 19) {
-					if (board[fakeStart].status === role) {
-						throw new Error("Must move leftmost checker first!");
-					}
-					fakeStart--;
-				}
-				let tBoard = board[27];
-				result.push(tBoard);
-			} 
-		}
-		if (role === WHITE) {
-			if (end >= 2) {
-				if (board[end].status === role || (board[end].status === BLACK && board[end].count === 1)) {
-					let tBoard = board[end];
-					result.push(tBoard);
-				}
-			} else if (end === 1){
-				///if end is 1, home is a reachable postion.
-				let tBoard = board[0];
-				result.push(tBoard);
-			} else {
-				///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
-				let fakeStart = start + 1;
-				while (fakeStart < 8) {
-					if (board[fakeStart].status === role) {
-						throw new Error("Must move leftmost checker first!");
-					}
-					fakeStart++;
-				}
-				let tBoard = board[0];
-				result.push(tBoard);
-			} 
-		}
-	}
+	// function checkValidPos(board: Board, start: number, end: number, result: Board, role: number): void {
+	// 	if (role === BLACK) {
+	// 		if (end <= 25) {
+	// 			if (board[end].status === role || (board[end].status === WHITE && board[end].count === 1)) {
+	// 				let tBoard = board[end];
+	// 				result.push(tBoard);
+	// 			} 
+	// 		} else if (end === 26){
+	// 			///if end is 26, home is a reachable position.
+	// 			let tBoard = board[27];
+	// 			result.push(tBoard);
+	// 		} else {
+	// 			///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
+	// 			let fakeStart = start - 1;
+	// 			while (fakeStart > 19) {
+	// 				if (board[fakeStart].status === role) {
+	// 					throw new Error("Must move leftmost checker first!");
+	// 				}
+	// 				fakeStart--;
+	// 			}
+	// 			let tBoard = board[27];
+	// 			result.push(tBoard);
+	// 		} 
+	// 	}
+	// 	if (role === WHITE) {
+	// 		if (end >= 2) {
+	// 			if (board[end].status === role || (board[end].status === BLACK && board[end].count === 1)) {
+	// 				let tBoard = board[end];
+	// 				result.push(tBoard);
+	// 			}
+	// 		} else if (end === 1){
+	// 			///if end is 1, home is a reachable postion.
+	// 			let tBoard = board[0];
+	// 			result.push(tBoard);
+	// 		} else {
+	// 			///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
+	// 			let fakeStart = start + 1;
+	// 			while (fakeStart < 8) {
+	// 				if (board[fakeStart].status === role) {
+	// 					throw new Error("Must move leftmost checker first!");
+	// 				}
+	// 				fakeStart++;
+	// 			}
+	// 			let tBoard = board[0];
+	// 			result.push(tBoard);
+	// 		} 
+	// 	}
+	// }
 
-	function bearOffStartMove(stateBeforeMove: IState, start: number, role: number): Board {
-		let board = stateBeforeMove.board;
-		let steps = stateBeforeMove.steps;
-		let bearOffRes: Board;
-		if (steps.length === 1) {
-			if (role === BLACK) {
-				checkValidPos(board, start, start + steps[0], bearOffRes, role);
-			} else {
-				checkValidPos(board, start, start - steps[0], bearOffRes, role);
-			}
-		}
-		if (steps.length === 2 && (steps[0] !== steps[1])) {
-			if (role === BLACK) {
-				checkValidPos(board, start, start + steps[0], bearOffRes, role);
-				checkValidPos(board, start, start + steps[1], bearOffRes, role);
-				checkValidPos(board, start, start + steps[0] + start[1], bearOffRes, role);
-			} else {
-				checkValidPos(board, start, start - steps[0], bearOffRes, role);
-				checkValidPos(board, start, start - steps[1], bearOffRes, role);
-				checkValidPos(board, start, start - steps[0] - start[1], bearOffRes, role);
-			}
-		}
-		if (steps.length >= 2 && steps[0] === steps[1]) {
-			let len = steps.length;
-			if (role === BLACK) {
-				for (let i = 2; i <= len; i++) {
-					checkValidPos(board, start, start + i * steps[0], bearOffRes, role);
-				}
-			} else {
-				for (let i = 2; i <= len; i++) {
-					checkValidPos(board, start, start - i * steps[0], bearOffRes, role);
-				}
-			}
-		}
-		return bearOffRes;
-	}	
+	// function bearOffStartMove(stateBeforeMove: IState, start: number, role: number): Board {
+	// 	let board = stateBeforeMove.board;
+	// 	let steps = stateBeforeMove.steps;
+	// 	let bearOffRes: Board;
+	// 	if (steps.length === 1) {
+	// 		if (role === BLACK) {
+	// 			checkValidPos(board, start, start + steps[0], bearOffRes, role);
+	// 		} else {
+	// 			checkValidPos(board, start, start - steps[0], bearOffRes, role);
+	// 		}
+	// 	}
+	// 	if (steps.length === 2 && (steps[0] !== steps[1])) {
+	// 		if (role === BLACK) {
+	// 			checkValidPos(board, start, start + steps[0], bearOffRes, role);
+	// 			checkValidPos(board, start, start + steps[1], bearOffRes, role);
+	// 			checkValidPos(board, start, start + steps[0] + start[1], bearOffRes, role);
+	// 		} else {
+	// 			checkValidPos(board, start, start - steps[0], bearOffRes, role);
+	// 			checkValidPos(board, start, start - steps[1], bearOffRes, role);
+	// 			checkValidPos(board, start, start - steps[0] - start[1], bearOffRes, role);
+	// 		}
+	// 	}
+	// 	if (steps.length >= 2 && steps[0] === steps[1]) {
+	// 		let len = steps.length;
+	// 		if (role === BLACK) {
+	// 			for (let i = 2; i <= len; i++) {
+	// 				checkValidPos(board, start, start + i * steps[0], bearOffRes, role);
+	// 			}
+	// 		} else {
+	// 			for (let i = 2; i <= len; i++) {
+	// 				checkValidPos(board, start, start - i * steps[0], bearOffRes, role);
+	// 			}
+	// 		}
+	// 	}
+	// 	return bearOffRes;
+	// }	
 
 	/**
 	 * This function reacts on the mouse second click or drop event to trigger a move to be created on the original board.
@@ -364,12 +368,13 @@ module gameLogic {
 		if (getWinner(board) !== "") {
 			throw new Error("One can only make a move if the game is not over!");
 		}
-		let boardAfterMove = angular.copy(board);
+		let boardAfterMove: Board;
 		//if the move exists, process the move on the copy board, and remove the step from the steps
 		let posToStep = startMove(stateBeforeMove, start, roleBeforeMove);
 		if (end in posToStep) {
 			//posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
 			let index = posToStep[end][0];
+			boardAfterMove = angular.copy(board);
 			modelMove(boardAfterMove, start, steps[index], roleBeforeMove);
 			steps.splice(index, 1);
 		} else {
@@ -397,6 +402,10 @@ module gameLogic {
 		let stateAfterMove: IState = {board: boardAfterMove, steps: steps, delta: delta};
 		return {endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove};
 	}
+
+	export function createInitialMove(): IMove {
+    	return {endMatchScores: null, turnIndexAfterMove: -1, stateAfterMove: getInitialState()};  
+  	}
 
 	function moveExist(stateBeforeMove: IState, role: number): boolean {
 		//no move exists for ended game
@@ -472,6 +481,12 @@ module gameLogic {
 		}
 	}
 
+// interface IStateTransition {
+//   turnIndexBeforeMove : number;
+//   stateBeforeMove: IState;
+//   numberOfPlayers: number;
+//   move: IMove;
+// }
   export function checkMoveOk(stateTransition: IStateTransition): void {
     // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
     // to verify that the move is OK.
