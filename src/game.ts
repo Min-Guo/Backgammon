@@ -1,15 +1,15 @@
-interface SupportLanguages {
+interface SupportedLanguages {
     en: string, ch: string,
 };
 
 interface Translations {
-    [index: string]: SupportLanguages;
+    [index: string]: SupportedLanguages;
 }
 
 module game {
 
   export let currentUpdateUI: IUpdateUI = null;
-  export let didMakeMove: boolean = false;
+  export let didMakeMove: boolean = false; // You can only make one move per updateUI
   export let animationEndedTimeout: ng.IPromise<any> = null;
   export let state: IState = null;
   export let moveStart = -1;
@@ -37,6 +37,7 @@ module game {
       }).catch(function(err: any) {
         log.log('ServiceWorker registration failed: ', err);
       });
+    }
   }
 
   function getTranslations(): Translations {
