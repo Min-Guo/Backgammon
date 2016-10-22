@@ -27,7 +27,7 @@
     box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
 }
 
-#gamearea {
+#gameArea {
     background: url('../images/bg.jpg') no-repeat;
     background-size: 100% 100%;
     position: absolute;
