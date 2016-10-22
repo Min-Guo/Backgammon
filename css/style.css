@@ -7,6 +7,12 @@
     margin: auto;    
 }
 
+.eatenPiece {
+    -moz-box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
+    -webkit-box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
+    box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
+}
+
 #ctrl {
     position: absolute;
     left: 85%;
@@ -21,7 +27,7 @@
     box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
 }
 
-#gamearea {
+#gameArea {
     background: url('../images/bg.jpg') no-repeat;
     background-size: 100% 100%;
     position: absolute;
