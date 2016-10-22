@@ -6,30 +6,7 @@
     position: relative;
     margin: auto;    
 }
-/*
-#eaten {
-    position: absolute;
-    width: 6%;
-    padding-top: 60%;
-    background-color: #e6e3df;
-}
 
-#eaten div.upper {
-    padding: 15% 5%;
-    width: 90%;
-    height: 48%;
-    position: absolute;
-    top: 0;
-}
-
-#eaten div.lower {
-    padding: 15% 5%;
-    width: 90%;
-    height: 48%;
-    position: absolute;
-    bottom: 0;
-}
-*/
 .eatenPiece {
     -moz-box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
     -webkit-box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
@@ -46,8 +23,8 @@
     background-repeat: no-repeat;
     border-radius: 10px;
     -webkit-box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
--moz-box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
-box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
+    -moz-box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
+    box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
 }
 
 #gamearea {
@@ -62,18 +39,18 @@ box-shadow: -9px 9px 38px -11px rgba(122,122,122,1);
     padding-top: 56%;
     border-radius: 2%;
     -webkit-box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
--moz-box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
-box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
+    -moz-box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
+    box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
 }
 
 #t26 {
     background-color: rgba(128, 128, 128, 0.6);
-    border-radius: 30%;
+    border-radius: 40%;
 }
 
 #t1 {
     background-color: rgba(128, 128, 128, 0.6);
-    border-radius: 30%;
+    border-radius: 40%;
 }
 
 .upper {
@@ -101,7 +78,9 @@ box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
 .column:hover {
     background-color: rgba(0, 0, 0, 0.2);
 }
-
+.colActive {
+    background-color: rgba(0, 0, 0, 0.2);
+}
 .columnUpper {
     width: 7.68%;
     height: 100%;
@@ -122,6 +101,10 @@ box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
     margin: auto;
     border-radius: 50%;
     
+}
+
+.selectedPiece {
+    border: 3px solid  #cc9900 !important;
 }
 
 .piece.player1 {
@@ -170,45 +153,7 @@ box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
     
 }
 
-.columnUpper .piece:nth-child(2) {
-    top: 16.66%;
-}
 
-.columnUpper .piece:nth-child(3) {
-    top: 33.32%;
-}
-
-.columnUpper .piece:nth-child(4) {
-    top: 49.98%;
-}
-
-.columnUpper .piece:nth-child(5) {
-    top: 66.64%;
-}
-
-.columnUpper .piece:nth-child(6) {
-    top: 83.3%;
-}
-
-.columnLower .piece:nth-child(2) {
-    bottom: 16.66%;
-}
-
-.columnLower .piece:nth-child(3) {
-    bottom: 33.32%;
-}
-
-.columnLower .piece:nth-child(4) {
-    bottom: 49.98%;
-}
-
-.columnLower .piece:nth-child(5) {
-    bottom: 66.64%;
-}
-
-.columnLower .piece:nth-child(6) {
-    bottom: 83.3%;
-}
 
 /********dice********/
 #dicewrapper {
@@ -228,7 +173,6 @@ box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
     width: 100%;
     height: 100%;
     animation: spin 70s infinite linear;
-    
 }
 
 #cube div {
@@ -275,6 +219,14 @@ box-shadow: -15px 14px 38px -11px rgba(122,122,122,1);
 #cube.show5 { transform: translateZ( -100px ) rotateX(  -90deg ); }
 #cube.show6 { transform: translateZ( -100px ) rotateX(   90deg ); }
 
+
+.rollingDice {
+    animation: roll 1.6s infinite linear;
+}
+
+.newSpinSpeed {
+    animation: spin 2s infinite linear !important;
+}
 
 @keyframes roll {
     0% { transform: translate3d(-25px,-20px,-200px) }
@@ -384,14 +336,14 @@ button {
     }
     
     @keyframes roll {
-    0% { transform: translate3d(-10px,-10px,-100px) }
-    12% { transform: translate3d(0px,0,-25px) }
-    25% { transform: translate3d(10px,-10px,-100px) }
-    37% { transform: translate3d(0px,-10px,-200px) }
-    50% { transform: translate3d(-10px,-10px,-100px) }
-    62% { transform: translate3d(0px,0,-25px) }
-    75% { transform: translate3d(10px,-10px,-100px) }
-    87% { transform: translate3d(0px,-25px,-200px) }
-    100% { transform: translate3d(-10px,-10px,-100px) }
-}
+        0% { transform: translate3d(-10px,-10px,-100px) }
+        12% { transform: translate3d(0px,0,-25px) }
+        25% { transform: translate3d(10px,-10px,-100px) }
+        37% { transform: translate3d(0px,-10px,-200px) }
+        50% { transform: translate3d(-10px,-10px,-100px) }
+        62% { transform: translate3d(0px,0,-25px) }
+        75% { transform: translate3d(10px,-10px,-100px) }
+        87% { transform: translate3d(0px,-25px,-200px) }
+        100% { transform: translate3d(-10px,-10px,-100px) }
+    }
 }
