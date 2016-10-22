@@ -13,7 +13,7 @@
     <script src="ts_output_readonly_do_NOT_change_manually/src/aiService.js"></script>
 </head>
 <body ng-cloak>
-    <div id="page" ng-controller="myController">    
+    <div id="page">    
         <div id="container">
             <div id="gameArea">
                 <div class="upper">
@@ -21,14 +21,14 @@
                          ng-class="{column: col!=26, colActive: isActive(col)}"
                          class="columnUpper"
                          id="{{'t'+col}}"
-                         ng-click="selectCol(col)">
+                         ng-click="game.towerClicked(col)">
                         <div ng-repeat="piece in game.getTowerCount(col) track by $index"
                              ng-class="{
                                        'player1': game.getPlayer(col)=='player1', 
-                                       'player2': game.getPlayer(col)=='player2',
+                                       'player2': game.getPlayer(col)=='player0',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
-                             style="top: {{$index * getHeight(col)}}%"></div>
+                             style="top: {{$index * game.getHeight(col)}}%"></div>
                     </div>
                 </div>
                 <div class="lower">
@@ -36,14 +36,14 @@
                          ng-class="{column: col!=1, colActive: isActive(col)}"
                          class="columnLower"
                          id="{{'t'+col}}"
-                         ng-click="selectCol(col)">
-                        <div ng-repeat="piece in getPieceNum(col) track by $index"
+                         ng-click="game.towerClicked(col)">
+                        <div ng-repeat="piece in game.getTowerCount(col) track by $index"
                              ng-class="{
-                                       'player1': getPlayer(col)=='player1', 
-                                       'player2': getPlayer(col)=='player2',
+                                       'player1': game.getPlayer(col)=='player1', 
+                                       'player2': game.getPlayer(col)=='player0',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
-                             style="bottom: {{$index * getHeight(col)}}%"></div>
+                             style="bottom: {{$index * game.getHeight(col)}}%"></div>
                     </div>
                 </div>
             </div>
@@ -77,7 +77,7 @@
     </div>
     
     <script>
-        
+        /*
         //below imitating controller functions, need to apply game.ts later
         var myApp = angular
                 .module("myApp", [])
@@ -131,14 +131,14 @@
                         }
                     };
                     
-                    /*
+                    
                     $scope.getPlayer = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
                                 return new Array(newBoard[i].player);
                             }
                         }
-                    };*/
+                    };
                     $scope.getHeight = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
@@ -151,6 +151,7 @@
                         }
                     };
                 });
+                */
     </script>
 </body>
 </html>

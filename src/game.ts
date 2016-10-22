@@ -18,7 +18,8 @@ module game {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
-    resizeGameAreaService.setWidthToHeight(1);
+    //resizeGameAreaService.setWidthToHeight(1);
+    state = gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
       maxNumberOfPlayers: 2,
@@ -26,7 +27,6 @@ module game {
       updateUI: updateUI,
       gotMessageFromPlatform: null,
     });
-    state = gameLogic.getInitialState();
   }
 
   function registerServiceWorker() {
@@ -153,18 +153,32 @@ module game {
 
   export function getTowerCount(col: number): number[] {
     let tc = state.board[col].count;
-    let res: number[] = [];
-    for (let i = 0; i < tc; i++) {
-      res.push(1);
-    }
-    return res;
-    // return new Array(tc);
+    return new Array(tc);
   }
 
   export function getPlayer(col: number):  string {
     return 'player' + state.board[col].status;
   }
+  
+  export function getHeight(col: number): number {
+    for(let i=0; i < state.board.length; i++) {
+      if(state.board[i].tid === col) {
+        var n = state.board[i].count;
+        if(n < 7) {
+          return 16.66;
+        }
+        return 100 / n;
+      }
+    }
+  }
 
+  //to-do
+  export function isActive(col: number): boolean {
+    let tmp = moveStart;
+    moveStart = -1;
+    return tmp !== -1 && col === tmp;
+  }
+  
   export function shouldSlowlyAppear(start: number, end: number): boolean {
     return state.delta &&
       state.delta.start === start && state.delta.end === end;

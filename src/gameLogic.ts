@@ -60,27 +60,27 @@ module gameLogic {
 	//7, 9, 14, 25 white
 	/** Returns the initial board. */
 	function getInitialBoard(): Board {
-		let board: Board;
+		let board: Board = Array(27);
 		for (let i = 0; i < 28; i++) {
-			if (i == WHITEHOME || i == WHITEBAR) {
+			if (i === WHITEHOME || i === WHITEBAR) {
 				board[i] = new Tower(i, WHITE, 0);
-			} else if (i == BLACKHOME || i == BLACKBAR) {
+			} else if (i === BLACKHOME || i === BLACKBAR) {
 				board[i] = new Tower(i, BLACK, 0);
-			} else if (i == 2) {
+			} else if (i === 2) {
 				board[i] = new Tower(i, BLACK, 2);
-			} else if (i == 7) {
+			} else if (i === 7) {
 				board[i] = new Tower(i, WHITE, 5);
-			} else if (i == 9) {
+			} else if (i === 9) {
 				board[i] = new Tower(i, WHITE, 3);
-			} else if (i == 13) {
+			} else if (i === 13) {
 				board[i] = new Tower(i, BLACK, 5);
-			} else if (i == 14) {
+			} else if (i === 14) {
 				board[i] = new Tower(i, WHITE, 5);
-			} else if (i == 18) {
+			} else if (i === 18) {
 				board[i] = new Tower(i, BLACK, 3);
-			} else if (i == 20) {
+			} else if (i === 20) {
 				board[i] = new Tower(i, BLACK, 5);
-			} else if (i == 25) {
+			} else if (i === 25) {
 				board[i] = new Tower(i, WHITE, 2);
 			} else {
 				board[i] = new Tower(i, EMPTY, 0);
@@ -221,6 +221,9 @@ module gameLogic {
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -236,6 +239,9 @@ module gameLogic {
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -255,6 +261,9 @@ module gameLogic {
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -404,7 +413,7 @@ module gameLogic {
 	}
 
 	export function createInitialMove(): IMove {
-    	return {endMatchScores: null, turnIndexAfterMove: -1, stateAfterMove: getInitialState()};  
+    	return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState()};  
   	}
 
 	function moveExist(stateBeforeMove: IState, role: number): boolean {
@@ -498,9 +507,14 @@ module gameLogic {
       return;
     }
     let deltaValue: BoardDelta = move.stateAfterMove.delta;
-    let start = deltaValue.start;
-    let end = deltaValue.end;
-    let expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
+	let expectedMove: IMove = null;
+	if (deltaValue) {
+    	let start = deltaValue.start;
+    	let end = deltaValue.end;
+    	expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
+	} else {
+		expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
+	}
     if (!angular.equals(move, expectedMove)) {
       throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
           ", but got stateTransition=" + angular.toJson(stateTransition, true))
