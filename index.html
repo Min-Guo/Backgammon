@@ -8,6 +8,7 @@
     <link rel="icon" type="image/jpg" href="">
     <script src="lib/angular.js"></script>
     <script type="text/javascript" src="lib/jquery.min.js"></script>
+    <script src="ts_output_readonly_do_NOT_change_manually/src/game.js"></script>
 </head>
 <body ng-cloak>
     <div id="page" ng-controller="myController">    
@@ -19,10 +20,10 @@
                          class="columnUpper"
                          id="{{'t'+col}}"
                          ng-click="selectCol(col)">
-                        <div ng-repeat="piece in getPieceNum(col) track by $index"
+                        <div ng-repeat="piece in getTowerCount(col) track by $index"
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
-                                       'player2': getPlayer(col)=='player2',
+                                       'player2': getPlayer(col)=='player0',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
                              style="top: {{$index * getHeight(col)}}%"></div>
