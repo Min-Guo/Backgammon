@@ -26,6 +26,7 @@ module game {
       updateUI: updateUI,
       gotMessageFromPlatform: null,
     });
+    state = gameLogic.getInitialState();
   }
 
   function registerServiceWorker() {
@@ -152,7 +153,12 @@ module game {
 
   export function getTowerCount(col: number): number[] {
     let tc = state.board[col].count;
-    return new Array(tc);
+    let res: number[] = [];
+    for (let i = 0; i < tc; i++) {
+      res.push(1);
+    }
+    return res;
+    // return new Array(tc);
   }
 
   export function getPlayer(col: number):  string {
