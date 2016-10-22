@@ -22,10 +22,10 @@
                          class="columnUpper"
                          id="{{'t'+col}}"
                          ng-click="selectCol(col)">
-                        <div ng-repeat="piece in getTowerCount(col) track by $index"
+                        <div ng-repeat="piece in getPieceNum(col) track by $index"
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
-                                       'player2': getPlayer(col)=='player0',
+                                       'player2': getPlayer(col)=='player2',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
                              style="top: {{$index * getHeight(col)}}%"></div>
@@ -131,14 +131,14 @@
                         }
                     };
                     
-                    /*
+                    
                     $scope.getPlayer = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
                                 return new Array(newBoard[i].player);
                             }
                         }
-                    };*/
+                    };
                     $scope.getHeight = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
