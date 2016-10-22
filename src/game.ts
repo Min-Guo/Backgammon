@@ -133,6 +133,7 @@ module game {
       moveStart = -1;
     } else {
       moveStart = target;
+      //to-do startMove(...)
       return;
     }
   }
@@ -149,17 +150,13 @@ module game {
 
   }
 
-  // export function shouldShowImage(end: number): boolean {
-  //   let cell = state.board[end];
-  //   return cell !== "";
-  // }
-
-  export function isBlackChecker(end: number): boolean {
-    return state.board[end].status === gameLogic.BLACK;
+  export function getTowerCount(col: number): number[] {
+    let tc = state.board[col].count;
+    return new Array(tc);
   }
 
-  export function isWhiteChecker(end: number): boolean {
-    return state.board[end].status === gameLogic.WHITE;
+  export function getPlayer(col: number):  string {
+    return 'player' + state.board[col].status;
   }
 
   export function shouldSlowlyAppear(start: number, end: number): boolean {
