@@ -13,6 +13,7 @@ module game {
   export let animationEndedTimeout: ng.IPromise<any> = null;
   export let state: IState = null;
   export let moveStart = -1;
+  export let curSelectedCol: number = null;
 
   export function init() {
     registerServiceWorker();
@@ -173,11 +174,24 @@ module game {
   }
 
   //to-do
-  export function isActive(col: number): boolean {
-    let tmp = moveStart;
-    moveStart = -1;
-    return tmp !== -1 && col === tmp;
+
+  //tower on click highlight
+  export function selectTower(col: number) {
+    curSelectedCol = col;
   }
+  export function isActive(col: number) {
+    return curSelectedCol === col;
+  }
+
+
+
+
+
+  // export function isActive(col: number): boolean {
+  //   let tmp = moveStart;
+  //   moveStart = -1;
+  //   return tmp !== -1 && col === tmp;
+  // }
   
   export function shouldSlowlyAppear(start: number, end: number): boolean {
     return state.delta &&
