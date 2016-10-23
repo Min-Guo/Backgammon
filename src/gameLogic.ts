@@ -60,27 +60,27 @@ module gameLogic {
 	//7, 9, 14, 25 white
 	/** Returns the initial board. */
 	function getInitialBoard(): Board {
-		let board: Board;
+		let board: Board = Array(27);
 		for (let i = 0; i < 28; i++) {
-			if (i == WHITEHOME || i == WHITEBAR) {
+			if (i === WHITEHOME || i === WHITEBAR) {
 				board[i] = new Tower(i, WHITE, 0);
-			} else if (i == BLACKHOME || i == BLACKBAR) {
+			} else if (i === BLACKHOME || i === BLACKBAR) {
 				board[i] = new Tower(i, BLACK, 0);
-			} else if (i == 2) {
+			} else if (i === 2) {
 				board[i] = new Tower(i, BLACK, 2);
-			} else if (i == 7) {
+			} else if (i === 7) {
 				board[i] = new Tower(i, WHITE, 5);
-			} else if (i == 9) {
+			} else if (i === 9) {
 				board[i] = new Tower(i, WHITE, 3);
-			} else if (i == 13) {
+			} else if (i === 13) {
 				board[i] = new Tower(i, BLACK, 5);
-			} else if (i == 14) {
+			} else if (i === 14) {
 				board[i] = new Tower(i, WHITE, 5);
-			} else if (i == 18) {
+			} else if (i === 18) {
 				board[i] = new Tower(i, BLACK, 3);
-			} else if (i == 20) {
+			} else if (i === 20) {
 				board[i] = new Tower(i, BLACK, 5);
-			} else if (i == 25) {
+			} else if (i === 25) {
 				board[i] = new Tower(i, WHITE, 2);
 			} else {
 				board[i] = new Tower(i, EMPTY, 0);
@@ -90,7 +90,7 @@ module gameLogic {
 	}
 
 	export function getInitialState(): IState {
-		return {board: getInitialBoard(), steps: DieCombo.init(), delta: null};
+		return {board: getInitialBoard(), steps: null, delta: null};
 	}
 
 	/** If all checkers of one player are in his homeboard, he can bear them off. */
@@ -221,6 +221,9 @@ module gameLogic {
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -236,6 +239,9 @@ module gameLogic {
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -255,6 +261,9 @@ module gameLogic {
 				let modified = modelMove(board, oldStart, steps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -368,43 +377,48 @@ module gameLogic {
 		if (getWinner(board) !== "") {
 			throw new Error("One can only make a move if the game is not over!");
 		}
-		let boardAfterMove: Board;
+		if (!steps) {
+			throw new Error("You haven't rolled the dices yet!");
+		}
+		let boardAfterMove: Board = angular.copy(board);
+		let endMatchScores: number[];
+		let roleAfterMove: number;
 		//if the move exists, process the move on the copy board, and remove the step from the steps
 		let posToStep = startMove(stateBeforeMove, start, roleBeforeMove);
 		if (end in posToStep) {
 			//posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
 			let index = posToStep[end][0];
-			boardAfterMove = angular.copy(board);
 			modelMove(boardAfterMove, start, steps[index], roleBeforeMove);
 			steps.splice(index, 1);
+			let winner = getWinner(boardAfterMove);
+			if (winner !== "") {
+				//Game over.
+				roleAfterMove = -1;
+				endMatchScores = winner === "Black" ? [1, 0] : [0, 1];
+			} else {
+				if (steps.length === 0) {
+					//if no further steps, switch player.
+					roleAfterMove = 1 - roleBeforeMove;
+				} else {
+					//further steps, player unchanged.
+					roleAfterMove = roleBeforeMove;
+				}
+				endMatchScores = null;
+			}
+			let delta: BoardDelta = {start: start, end: end};
+			let stateAfterMove: IState = {board: boardAfterMove, steps: steps, delta: delta};
+			return {endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove};
 		} else {
 			//no such value found tossed, must roll back
+			let delta: BoardDelta = {start: start, end: start};
+			let stateAfterMove: IState = {board: boardAfterMove, steps: steps, delta: delta}
 			return {endMatchScores: null, turnIndexAfterMove: roleBeforeMove, stateAfterMove: stateBeforeMove};
 		}
-		let endMatchScores: number[];
-		let roleAfterMove: number;
-		let winner = getWinner(boardAfterMove);
-		if (winner !== "") {
-			//Game over.
-			roleAfterMove = -1;
-			endMatchScores = winner === "Black" ? [1, 0] : [0, 1];
-		} else {
-			if (steps.length === 0) {
-				//if no further steps, switch player.
-				roleAfterMove = 1 - roleBeforeMove;
-			} else {
-				//further steps, player unchanged.
-				roleAfterMove = roleBeforeMove;
-			}
-			endMatchScores = null;
-		}
-		let delta: BoardDelta = {start: start, end: end};
-		let stateAfterMove: IState = {board: boardAfterMove, steps: steps, delta: delta};
-		return {endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove};
+		
 	}
 
 	export function createInitialMove(): IMove {
-    	return {endMatchScores: null, turnIndexAfterMove: -1, stateAfterMove: getInitialState()};  
+    	return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState()};  
   	}
 
 	function moveExist(stateBeforeMove: IState, role: number): boolean {
@@ -498,9 +512,14 @@ module gameLogic {
       return;
     }
     let deltaValue: BoardDelta = move.stateAfterMove.delta;
-    let start = deltaValue.start;
-    let end = deltaValue.end;
-    let expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
+	let expectedMove: IMove = null;
+	if (deltaValue) {
+    	let start = deltaValue.start;
+    	let end = deltaValue.end;
+    	expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
+	} else {
+		expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
+	}
     if (!angular.equals(move, expectedMove)) {
       throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
           ", but got stateTransition=" + angular.toJson(stateTransition, true))

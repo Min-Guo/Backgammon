@@ -6,6 +6,7 @@ var game;
     game.animationEndedTimeout = null;
     game.state = null;
     game.moveStart = -1;
+    game.curSelectedCol = null;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -43,6 +44,7 @@ var game;
         game.state = params.move.stateAfterMove;
         if (isFirstMove()) {
             game.state = gameLogic.getInitialState();
+            setInitialTurnIndex();
             if (isMyTurn())
                 makeMove(gameLogic.createInitialMove());
         }
@@ -156,17 +158,32 @@ var game;
     }
     game.getHeight = getHeight;
     //to-do
+    //tower on click highlight
+    function selectTower(col) {
+        game.curSelectedCol = col;
+    }
+    game.selectTower = selectTower;
     function isActive(col) {
-        var tmp = game.moveStart;
-        game.moveStart = -1;
-        return tmp !== -1 && col === tmp;
+        return game.curSelectedCol === col;
     }
     game.isActive = isActive;
+    // export function isActive(col: number): boolean {
+    //   let tmp = moveStart;
+    //   moveStart = -1;
+    //   return tmp !== -1 && col === tmp;
+    // }
     function shouldSlowlyAppear(start, end) {
         return game.state.delta &&
             game.state.delta.start === start && game.state.delta.end === end;
     }
     game.shouldSlowlyAppear = shouldSlowlyAppear;
+    function setInitialTurnIndex() {
+        if (game.state && game.state.steps)
+            return;
+        var twoDies = DieCombo.init();
+        game.state.steps = twoDies;
+        game.currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
+    }
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {

@@ -13,12 +13,14 @@ module game {
   export let animationEndedTimeout: ng.IPromise<any> = null;
   export let state: IState = null;
   export let moveStart = -1;
+  export let curSelectedCol: number = null;
 
   export function init() {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
-    resizeGameAreaService.setWidthToHeight(1);
+    //resizeGameAreaService.setWidthToHeight(1);
+    state = gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
       maxNumberOfPlayers: 2,
@@ -52,6 +54,7 @@ module game {
     state = params.move.stateAfterMove;
     if (isFirstMove()) {
       state = gameLogic.getInitialState();
+      setInitialTurnIndex();
       if (isMyTurn()) makeMove(gameLogic.createInitialMove());
     } else {
       // We calculate the AI move only after the animation finishes,
@@ -158,10 +161,49 @@ module game {
   export function getPlayer(col: number):  string {
     return 'player' + state.board[col].status;
   }
+  
+  export function getHeight(col: number): number {
+    for(let i=0; i < state.board.length; i++) {
+      if(state.board[i].tid === col) {
+        var n = state.board[i].count;
+        if(n < 7) {
+          return 16.66;
+        }
+        return 100 / n;
+      }
+    }
+  }
 
+  //to-do
+
+  //tower on click highlight
+  export function selectTower(col: number) {
+    curSelectedCol = col;
+  }
+  export function isActive(col: number) {
+    return curSelectedCol === col;
+  }
+
+
+
+
+
+  // export function isActive(col: number): boolean {
+  //   let tmp = moveStart;
+  //   moveStart = -1;
+  //   return tmp !== -1 && col === tmp;
+  // }
+  
   export function shouldSlowlyAppear(start: number, end: number): boolean {
     return state.delta &&
       state.delta.start === start && state.delta.end === end;
+  }
+
+  function setInitialTurnIndex(): void {
+    if (state && state.steps) return;
+    let twoDies = DieCombo.init();
+    state.steps = twoDies;
+    currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
   }
 }
 
