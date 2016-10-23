@@ -53,6 +53,7 @@ module game {
     state = params.move.stateAfterMove;
     if (isFirstMove()) {
       state = gameLogic.getInitialState();
+      setInitialTurnIndex();
       if (isMyTurn()) makeMove(gameLogic.createInitialMove());
     } else {
       // We calculate the AI move only after the animation finishes,
@@ -182,6 +183,13 @@ module game {
   export function shouldSlowlyAppear(start: number, end: number): boolean {
     return state.delta &&
       state.delta.start === start && state.delta.end === end;
+  }
+
+  function setInitialTurnIndex(): void {
+    if (state && state.steps) return;
+    let twoDies = DieCombo.init();
+    state.steps = twoDies;
+    currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
   }
 }
 
