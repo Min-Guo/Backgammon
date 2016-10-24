@@ -291,19 +291,15 @@
 
 #diceVal0 {
     left: 2%;
-    background-image: url('../images/side2.png');
 }
 #diceVal1 {
     left: 26%;
-    background-image: url('../images/side5.png');
 }
 #diceVal2 {
     left: 50%;
-    background-image: url('../images/side1.png');
 }
 #diceVal3 {
     left: 74%;
-    background-image: url('../images/side4.png');
 }
 
 /******dice end******/
