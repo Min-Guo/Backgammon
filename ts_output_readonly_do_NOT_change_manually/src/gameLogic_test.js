@@ -21,14 +21,14 @@ describe("In Backgammon", function () {
             }
         }
     }
-    function expectMove(isOk, turnIndexBeforeMove, boardBeforeMove, boardAfterMove, turnIndexAfterMove, endMatchScores) {
+    function expectMove(isOk, turnIndexBeforeMove, boardBeforeMove, boardAfterMove, start, end, steps, turnIndexAfterMove, endMatchScores) {
         var stateTransition = {
             turnIndexBeforeMove: turnIndexBeforeMove,
-            stateBeforeMove: boardBeforeMove ? { board: boardBeforeMove, delta: null } : null,
+            stateBeforeMove: boardBeforeMove ? { board: boardBeforeMove, steps: steps, delta: null } : null,
             move: {
                 turnIndexAfterMove: turnIndexAfterMove,
                 endMatchScores: endMatchScores,
-                stateAfterMove: { board: boardAfterMove, delta: { start: start, end: end } }
+                stateAfterMove: { board: boardAfterMove, steps: steps, delta: { start: start, end: end } }
             },
             numberOfPlayers: null
         };
@@ -68,7 +68,8 @@ describe("In Backgammon", function () {
                         new Tower(24, NO_ONE_TURN, 0),
                         new Tower(25, WHITE_TURN, 2),
                         new Tower(26, WHITE_TURN, 0),
-                        new Tower(27, BLACK_TURN, 0)], delta: delta }
+                        new Tower(27, BLACK_TURN, 0)],
+                    steps: null, delta: null }
             },
             numberOfPlayers: null
         });

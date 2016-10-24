@@ -34,6 +34,8 @@ module.exports = function(config) {
 
     browsers : ['Chrome'],
 
+    logLevel: config.LOG_DEBUG,
+
     plugins : [
             'karma-chrome-launcher',
             'karma-jasmine',
