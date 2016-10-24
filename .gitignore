@@ -1,15 +1,4 @@
-coverage
-node_modules
-.tscache
 .DS_Store
-<<<<<<< HEAD
-
-coverage
-node_modules
-.tscache
-
-=======
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
 # Logs
 logs
 *.log
@@ -54,3 +43,5 @@ jspm_packages
 
 # Output of 'npm pack'
 *.tgz
+Contact GitHub API Training Shop Blog About
+
