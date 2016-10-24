@@ -86,7 +86,7 @@ module gameLogic {
 	}
 
 	export function getInitialState(): IState {
-		return {board: getInitialBoard(), steps: DieCombo.init(), delta: null};
+		return {board: getInitialBoard(), steps: null, delta: null};
 	}
 
 	/** If all checkers of one player are in his homeboard, he can bear them off. */
