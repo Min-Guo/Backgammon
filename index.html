@@ -21,11 +21,11 @@
                          ng-class="{column: col!=26, colActive: isActive(col)}"
                          class="columnUpper"
                          id="{{'t'+col}}"
-                         ng-click="selectCol(col)">
-                        <div ng-repeat="piece in game.getTowerCount(col) track by $index"
+                         ng-click="selectTower(col)">
+                        <div ng-repeat="piece in getTowerCount(col) track by $index"
                              ng-class="{
-                                       'player1': game.getPlayer(col)=='player1', 
-                                       'player2': game.getPlayer(col)=='player2',
+                                       'player1': getPlayer(col)=='player1', 
+                                       'player0': getPlayer(col)=='player0',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
                              style="top: {{$index * getHeight(col)}}%"></div>
@@ -36,11 +36,11 @@
                          ng-class="{column: col!=1, colActive: isActive(col)}"
                          class="columnLower"
                          id="{{'t'+col}}"
-                         ng-click="selectCol(col)">
-                        <div ng-repeat="piece in getPieceNum(col) track by $index"
+                         ng-click="selectTower(col)">
+                        <div ng-repeat="piece in getTowerCount(col) track by $index"
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
-                                       'player2': getPlayer(col)=='player2',
+                                       'player0': getPlayer(col)=='player0',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
                              style="bottom: {{$index * getHeight(col)}}%"></div>
@@ -49,11 +49,11 @@
             </div>
             <div id="ctrl">
                 <div id="dicewrapper"
-                     ng-click="rolling=!rolling"
-                     ng-class="{rollingDice: rolling}">
+                     ng-click="setDiceStatus(); setDiceVal()"
+                     ng-class="{rollingDice: getDiceStatus()}">
                     <div id="cube" 
                          class="show1"
-                         ng-class="{newSpinSpeed: rolling}">
+                         ng-class="{newSpinSpeed: getDiceStatus()}">
                         <div class="top"></div>
                         <div class="front"></div>
                         <div class="left"></div>
@@ -63,10 +63,10 @@
                       </div>
                 </div>
                 <div id="diceVal">
-                    <div id="diceVal1"></div>
-                    <div id="diceVal2"></div>
-                    <div id="diceVal3"></div>
-                    <div id="diceVal4"></div>
+                    <div ng-repeat="dice in [0, 1, 2, 3]"
+                         id="{{'diceVal'+dice}}"
+                         ng-class="{spinFour: getDiceStatus()}"
+                         style="background-image: url('images/side{{getDiceVal(dice)}}.png')"></div>
                 </div>
             </div>
             
@@ -88,14 +88,14 @@
                         {tid: 4, numPiece: 0, player: null},
                         {tid: 5, numPiece: 0, player: null},
                         {tid: 6, numPiece: 0, player: null},
-                        {tid: 7, numPiece: 5, player: 'player2'},
+                        {tid: 7, numPiece: 5, player: 'player0'},
                         {tid: 8, numPiece: 0, player: null},
-                        {tid: 9, numPiece: 3, player: 'player2'},
+                        {tid: 9, numPiece: 3, player: 'player0'},
                         {tid: 10, numPiece: 0, player: null},
                         {tid: 11, numPiece: 0, player: null},
                         {tid: 12, numPiece: 0, player: null},
                         {tid: 13, numPiece: 5, player: 'player1'},
-                        {tid: 14, numPiece: 5, player: 'player2'},
+                        {tid: 14, numPiece: 5, player: 'player0'},
                         {tid: 15, numPiece: 0, player: null},
                         {tid: 16, numPiece: 0, player: null},
                         {tid: 17, numPiece: 0, player: null},
@@ -106,15 +106,15 @@
                         {tid: 22, numPiece: 0, player: null},
                         {tid: 23, numPiece: 0, player: null},
                         {tid: 24, numPiece: 0, player: null},
-                        {tid: 25, numPiece: 2, player: 'player2'}
+                        {tid: 25, numPiece: 2, player: 'player0'}
                     ]
                     
                     
                     $scope.newBoard = newBoard;
-                    $scope.rolling = false;
                     
                     
-                    $scope.selectCol = function(item) {
+                    
+                    $scope.selectTower = function(item) {
                         $scope.selectedCol = item;
                     };
                     
@@ -122,7 +122,7 @@
                         return $scope.selectedCol === item;
                     };
                     
-                    $scope.getPieceNum = function(col) {
+                    $scope.getTowerCount = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
                                 var n = newBoard[i].numPiece;
@@ -131,14 +131,14 @@
                         }
                     };
                     
-                    /*
+                    
                     $scope.getPlayer = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
-                                return new Array(newBoard[i].player);
+                                return newBoard[i].player;
                             }
                         }
-                    };*/
+                    };
                     $scope.getHeight = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
@@ -150,6 +150,38 @@
                             }
                         }
                     };
+                    
+                    
+                    //add dice functions
+                    var rolling = false;
+                    $scope.setDiceStatus = function() {
+                        if(rolling) {
+                            rolling = false;
+                        } else {
+                            rolling = true;
+                        }
+                    }
+                    $scope.getDiceStatus = function(){
+                        return rolling;
+                    }
+                    
+                    var vals = [0, 0, 0, 0];
+                    $scope.setDiceVal = function(){
+                        val1 = Math.floor(Math.random()*6)+1;
+                        val2 = Math.floor(Math.random()*6)+1;
+                        if (val1 == val2) {
+                            vals = [val1, val1, val1, val1];
+                        } else {
+                            vals = [0, val1, val2, 0];
+                        }
+                    }
+                    
+                    $scope.getDiceVal = function(idx) {
+                        return vals[idx];
+                    }
+                    
+                    
+                    
                 });
     </script>
 </body>
