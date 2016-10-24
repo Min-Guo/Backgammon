@@ -6,11 +6,20 @@ var game;
     game.animationEndedTimeout = null;
     game.state = null;
     game.moveStart = -1;
+<<<<<<< HEAD
+=======
+    game.curSelectedCol = null;
+>>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
         translate.setLanguage('en');
+<<<<<<< HEAD
         resizeGameAreaService.setWidthToHeight(1);
+=======
+        //resizeGameAreaService.setWidthToHeight(1);
+        game.state = gameLogic.getInitialState();
+>>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
         moveService.setGame({
             minNumberOfPlayers: 2,
             maxNumberOfPlayers: 2,
@@ -42,6 +51,10 @@ var game;
         game.state = params.move.stateAfterMove;
         if (isFirstMove()) {
             game.state = gameLogic.getInitialState();
+<<<<<<< HEAD
+=======
+            setInitialTurnIndex();
+>>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
             if (isMyTurn())
                 makeMove(gameLogic.createInitialMove());
         }
@@ -142,11 +155,51 @@ var game;
         return 'player' + game.state.board[col].status;
     }
     game.getPlayer = getPlayer;
+<<<<<<< HEAD
+=======
+    function getHeight(col) {
+        for (var i = 0; i < game.state.board.length; i++) {
+            if (game.state.board[i].tid === col) {
+                var n = game.state.board[i].count;
+                if (n < 7) {
+                    return 16.66;
+                }
+                return 100 / n;
+            }
+        }
+    }
+    game.getHeight = getHeight;
+    //to-do
+    //tower on click highlight
+    function selectTower(col) {
+        game.curSelectedCol = col;
+    }
+    game.selectTower = selectTower;
+    function isActive(col) {
+        return game.curSelectedCol === col;
+    }
+    game.isActive = isActive;
+    // export function isActive(col: number): boolean {
+    //   let tmp = moveStart;
+    //   moveStart = -1;
+    //   return tmp !== -1 && col === tmp;
+    // }
+>>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
     function shouldSlowlyAppear(start, end) {
         return game.state.delta &&
             game.state.delta.start === start && game.state.delta.end === end;
     }
     game.shouldSlowlyAppear = shouldSlowlyAppear;
+<<<<<<< HEAD
+=======
+    function setInitialTurnIndex() {
+        if (game.state && game.state.steps)
+            return;
+        var twoDies = DieCombo.init();
+        game.state.steps = twoDies;
+        game.currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
+    }
+>>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {

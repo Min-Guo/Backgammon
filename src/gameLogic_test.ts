@@ -4,35 +4,6 @@ describe("In Backgammon", function() {
   let WHITE_TURN = 0;
   let NO_ONE_TURN = -1;
   let NO_ONE_WINS: number[] = null;
-  let INITIAL_BOARD: Tower[] = 
-          [new Tower(0, WHITE_TURN, 0),
-           new Tower(1, BLACK_TURN, 0),
-           new Tower(2, BLACK_TURN, 2),
-           new Tower(3, NO_ONE_TURN, 0),
-           new Tower(4, NO_ONE_TURN, 0),
-           new Tower(5, NO_ONE_TURN, 0),
-           new Tower(6, NO_ONE_TURN, 0),
-           new Tower(7, WHITE_TURN, 5),
-           new Tower(8, NO_ONE_TURN, 0),
-           new Tower(9, WHITE_TURN, 3),
-           new Tower(10, NO_ONE_TURN, 0),
-           new Tower(11, NO_ONE_TURN, 0),
-           new Tower(12, NO_ONE_TURN, 0),
-           new Tower(13, BLACK_TURN, 5),
-           new Tower(14, WHITE_TURN, 5),
-           new Tower(15, NO_ONE_TURN, 0),
-           new Tower(16, NO_ONE_TURN, 0),
-           new Tower(17, NO_ONE_TURN, 0),
-           new Tower(18, BLACK_TURN, 3),
-           new Tower(19, NO_ONE_TURN, 0),
-           new Tower(20, BLACK_TURN, 5),
-           new Tower(21, NO_ONE_TURN, 0),
-           new Tower(22, NO_ONE_TURN, 0),
-           new Tower(23, NO_ONE_TURN, 0),
-           new Tower(24, NO_ONE_TURN, 0),
-           new Tower(25, WHITE_TURN, 2),
-           new Tower(26, WHITE_TURN, 0),
-           new Tower(27, BLACK_TURN, 0)];
   
   
   function expectStateTransition(
@@ -82,12 +53,41 @@ describe("In Backgammon", function() {
       move: {
         turnIndexAfterMove: BLACK_TURN,
         endMatchScores: NO_ONE_WINS,
-        stateAfterMove: {board: INITIAL_BOARD, 
+        stateAfterMove: {board:
+          [new Tower(0, WHITE_TURN, 0),
+           new Tower(1, BLACK_TURN, 0),
+           new Tower(2, BLACK_TURN, 2),
+           new Tower(3, NO_ONE_TURN, 0),
+           new Tower(4, NO_ONE_TURN, 0),
+           new Tower(5, NO_ONE_TURN, 0),
+           new Tower(6, NO_ONE_TURN, 0),
+           new Tower(7, WHITE_TURN, 5),
+           new Tower(8, NO_ONE_TURN, 0),
+           new Tower(9, WHITE_TURN, 3),
+           new Tower(10, NO_ONE_TURN, 0),
+           new Tower(11, NO_ONE_TURN, 0),
+           new Tower(12, NO_ONE_TURN, 0),
+           new Tower(13, BLACK_TURN, 5),
+           new Tower(14, WHITE_TURN, 5),
+           new Tower(15, NO_ONE_TURN, 0),
+           new Tower(16, NO_ONE_TURN, 0),
+           new Tower(17, NO_ONE_TURN, 0),
+           new Tower(18, BLACK_TURN, 3),
+           new Tower(19, NO_ONE_TURN, 0),
+           new Tower(20, BLACK_TURN, 5),
+           new Tower(21, NO_ONE_TURN, 0),
+           new Tower(22, NO_ONE_TURN, 0),
+           new Tower(23, NO_ONE_TURN, 0),
+           new Tower(24, NO_ONE_TURN, 0),
+           new Tower(25, WHITE_TURN, 2),
+           new Tower(26, WHITE_TURN, 0),
+           new Tower(27, BLACK_TURN, 0)], 
            steps: null, delta: null}
       },
       numberOfPlayers: null
     });
   });
+
 
   
 });
