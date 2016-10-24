@@ -124,7 +124,7 @@
     background-color: #f9ecef !important;
 }
 
-.piece.player2 {
+.piece.player0 {
     background-color: #d7f4f4;
     background-image: url('../images/flower.svg');
     background-size: 50% 50%;
@@ -133,7 +133,7 @@
     box-shadow: 0px 8px 10px 0px rgba(0, 0, 0, .3), inset 0px 4px 1px 1px white, inset 0px -3px 1px 1px rgba(204,198,197,.5);
     transition: all .3s ease;
 }
-.piece.player2:hover {
+.piece.player0:hover {
     background-image: url('../images/flower_dark.svg') !important;
     background-repeat: no-repeat;
     background-size: 50% 50%;
