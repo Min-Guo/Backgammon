@@ -8,8 +8,8 @@
     <link rel="icon" type="image/jpg" href="">
     <script src="lib/angular.js"></script>
     <script src="lib/turnBasedServices.3.js"></script>
-    <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/game.js"></script>
+    <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/aiService.js"></script>
 </head>
 <body ng-cloak>
@@ -21,11 +21,11 @@
                          ng-class="{column: col!=26, colActive: isActive(col)}"
                          class="columnUpper"
                          id="{{'t'+col}}"
-                         ng-click="selectCol(col)">
-                        <div ng-repeat="piece in getPieceNum(col) track by $index"
+                         ng-click="selectTower(col)">
+                        <div ng-repeat="piece in getTowerCount(col) track by $index"
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
-                                       'player2': getPlayer(col)=='player2',
+                                       'player0': getPlayer(col)=='player0',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
                              style="top: {{$index * getHeight(col)}}%"></div>
@@ -36,11 +36,11 @@
                          ng-class="{column: col!=1, colActive: isActive(col)}"
                          class="columnLower"
                          id="{{'t'+col}}"
-                         ng-click="selectCol(col)">
-                        <div ng-repeat="piece in getPieceNum(col) track by $index"
+                         ng-click="selectTower(col)">
+                        <div ng-repeat="piece in getTowerCount(col) track by $index"
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
-                                       'player2': getPlayer(col)=='player2',
+                                       'player0': getPlayer(col)=='player0',
                                        selectedPiece: isActive(col)&&$last}"
                              class="piece"
                              style="bottom: {{$index * getHeight(col)}}%"></div>
@@ -88,14 +88,14 @@
                         {tid: 4, numPiece: 0, player: null},
                         {tid: 5, numPiece: 0, player: null},
                         {tid: 6, numPiece: 0, player: null},
-                        {tid: 7, numPiece: 5, player: 'player2'},
+                        {tid: 7, numPiece: 5, player: 'player0'},
                         {tid: 8, numPiece: 0, player: null},
-                        {tid: 9, numPiece: 3, player: 'player2'},
+                        {tid: 9, numPiece: 3, player: 'player0'},
                         {tid: 10, numPiece: 0, player: null},
                         {tid: 11, numPiece: 0, player: null},
                         {tid: 12, numPiece: 0, player: null},
                         {tid: 13, numPiece: 5, player: 'player1'},
-                        {tid: 14, numPiece: 5, player: 'player2'},
+                        {tid: 14, numPiece: 5, player: 'player0'},
                         {tid: 15, numPiece: 0, player: null},
                         {tid: 16, numPiece: 0, player: null},
                         {tid: 17, numPiece: 0, player: null},
@@ -106,7 +106,7 @@
                         {tid: 22, numPiece: 0, player: null},
                         {tid: 23, numPiece: 0, player: null},
                         {tid: 24, numPiece: 0, player: null},
-                        {tid: 25, numPiece: 2, player: 'player2'}
+                        {tid: 25, numPiece: 2, player: 'player0'}
                     ]
                     
                     
@@ -114,7 +114,7 @@
                     
                     
                     
-                    $scope.selectCol = function(item) {
+                    $scope.selectTower = function(item) {
                         $scope.selectedCol = item;
                     };
                     
@@ -122,7 +122,7 @@
                         return $scope.selectedCol === item;
                     };
                     
-                    $scope.getPieceNum = function(col) {
+                    $scope.getTowerCount = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
                                 var n = newBoard[i].numPiece;
@@ -135,7 +135,7 @@
                     $scope.getPlayer = function(col) {
                         for(var i=0; i<newBoard.length; i++) {
                             if(newBoard[i].tid==col) {
-                                return new Array(newBoard[i].player);
+                                return newBoard[i].player;
                             }
                         }
                     };
