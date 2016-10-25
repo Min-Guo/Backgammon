@@ -45,38 +45,6 @@ var gameLogic;
     //7, 9, 14, 25 white
     /** Returns the initial board. */
     function getInitialBoard() {
-<<<<<<< HEAD
-        var board;
-        for (var i = 0; i < 28; i++) {
-            if (i == gameLogic.WHITEHOME || i == gameLogic.WHITEBAR) {
-                board[i] = new Tower(i, gameLogic.WHITE, 0);
-            }
-            else if (i == gameLogic.BLACKHOME || i == gameLogic.BLACKBAR) {
-                board[i] = new Tower(i, gameLogic.BLACK, 0);
-            }
-            else if (i == 2) {
-                board[i] = new Tower(i, gameLogic.BLACK, 2);
-            }
-            else if (i == 7) {
-                board[i] = new Tower(i, gameLogic.WHITE, 5);
-            }
-            else if (i == 9) {
-                board[i] = new Tower(i, gameLogic.WHITE, 3);
-            }
-            else if (i == 13) {
-                board[i] = new Tower(i, gameLogic.BLACK, 5);
-            }
-            else if (i == 14) {
-                board[i] = new Tower(i, gameLogic.WHITE, 5);
-            }
-            else if (i == 18) {
-                board[i] = new Tower(i, gameLogic.BLACK, 3);
-            }
-            else if (i == 20) {
-                board[i] = new Tower(i, gameLogic.BLACK, 5);
-            }
-            else if (i == 25) {
-=======
         var board = Array(27);
         for (var i = 0; i < 28; i++) {
             if (i === gameLogic.WHITEHOME || i === gameLogic.WHITEBAR) {
@@ -107,7 +75,6 @@ var gameLogic;
                 board[i] = new Tower(i, gameLogic.BLACK, 5);
             }
             else if (i === 25) {
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
                 board[i] = new Tower(i, gameLogic.WHITE, 2);
             }
             else {
@@ -175,10 +142,7 @@ var gameLogic;
         }
         return pos;
     }
-<<<<<<< HEAD
-=======
     gameLogic.getValidPos = getValidPos;
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
     /**
      * This function models the board result after this move.
      * Successful moves modified the board, and return true.
@@ -217,11 +181,7 @@ var gameLogic;
         }
         else if (board[end].status !== 1 - role || board[end].count === 1) {
             board[start].count -= 1;
-<<<<<<< HEAD
-            if (board[start].count === 0) {
-=======
             if (board[start].count === 0 && start !== gameLogic.BLACKBAR && start !== gameLogic.WHITEBAR) {
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
                 board[start].status = gameLogic.EMPTY;
             }
             if (board[end].status !== 1 - role) {
@@ -260,12 +220,9 @@ var gameLogic;
                 var modified = modelMove(board, oldStart, steps[i], role);
                 if (modified) {
                     //assume an automatic conversion from number to string
-<<<<<<< HEAD
-=======
                     if (!res[board[newStart].tid]) {
                         res[board[newStart].tid] = [];
                     }
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
                     res[board[newStart].tid].push(i);
                     if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
                         break;
@@ -281,12 +238,9 @@ var gameLogic;
                 var modified = modelMove(board, oldStart, steps[i], role);
                 if (modified) {
                     //assume an automatic conversion from number to string
-<<<<<<< HEAD
-=======
                     if (!res[board[newStart].tid]) {
                         res[board[newStart].tid] = [];
                     }
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
                     res[board[newStart].tid].push(i);
                     if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
                         break;
@@ -307,12 +261,9 @@ var gameLogic;
                 var modified = modelMove(board, oldStart, steps[i], role);
                 if (modified) {
                     //assume an automatic conversion from number to string
-<<<<<<< HEAD
-=======
                     if (!res[board[newStart].tid]) {
                         res[board[newStart].tid] = [];
                     }
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
                     res[board[newStart].tid].push(i);
                     if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
                         break;
@@ -323,99 +274,6 @@ var gameLogic;
         return res;
     }
     gameLogic.startMove = startMove;
-<<<<<<< HEAD
-    function checkValidPos(board, start, end, result, role) {
-        if (role === gameLogic.BLACK) {
-            if (end <= 25) {
-                if (board[end].status === role || (board[end].status === gameLogic.WHITE && board[end].count === 1)) {
-                    var tBoard = board[end];
-                    result.push(tBoard);
-                }
-            }
-            else if (end === 26) {
-                ///if end is 26, home is a reachable position.
-                var tBoard = board[27];
-                result.push(tBoard);
-            }
-            else {
-                ///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
-                var fakeStart = start - 1;
-                while (fakeStart > 19) {
-                    if (board[fakeStart].status === role) {
-                        throw new Error("Must move leftmost checker first!");
-                    }
-                    fakeStart--;
-                }
-                var tBoard = board[27];
-                result.push(tBoard);
-            }
-        }
-        if (role === gameLogic.WHITE) {
-            if (end >= 2) {
-                if (board[end].status === role || (board[end].status === gameLogic.BLACK && board[end].count === 1)) {
-                    var tBoard = board[end];
-                    result.push(tBoard);
-                }
-            }
-            else if (end === 1) {
-                ///if end is 1, home is a reachable postion.
-                var tBoard = board[0];
-                result.push(tBoard);
-            }
-            else {
-                ///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
-                var fakeStart = start + 1;
-                while (fakeStart < 8) {
-                    if (board[fakeStart].status === role) {
-                        throw new Error("Must move leftmost checker first!");
-                    }
-                    fakeStart++;
-                }
-                var tBoard = board[0];
-                result.push(tBoard);
-            }
-        }
-    }
-    function bearOffStartMove(stateBeforeMove, start, role) {
-        var board = stateBeforeMove.board;
-        var steps = stateBeforeMove.steps;
-        var bearOffRes;
-        if (steps.length === 1) {
-            if (role === gameLogic.BLACK) {
-                checkValidPos(board, start, start + steps[0], bearOffRes, role);
-            }
-            else {
-                checkValidPos(board, start, start - steps[0], bearOffRes, role);
-            }
-        }
-        if (steps.length === 2 && (steps[0] !== steps[1])) {
-            if (role === gameLogic.BLACK) {
-                checkValidPos(board, start, start + steps[0], bearOffRes, role);
-                checkValidPos(board, start, start + steps[1], bearOffRes, role);
-                checkValidPos(board, start, start + steps[0] + start[1], bearOffRes, role);
-            }
-            else {
-                checkValidPos(board, start, start - steps[0], bearOffRes, role);
-                checkValidPos(board, start, start - steps[1], bearOffRes, role);
-                checkValidPos(board, start, start - steps[0] - start[1], bearOffRes, role);
-            }
-        }
-        if (steps.length >= 2 && steps[0] === steps[1]) {
-            var len = steps.length;
-            if (role === gameLogic.BLACK) {
-                for (var i = 2; i <= len; i++) {
-                    checkValidPos(board, start, start + i * steps[0], bearOffRes, role);
-                }
-            }
-            else {
-                for (var i = 2; i <= len; i++) {
-                    checkValidPos(board, start, start - i * steps[0], bearOffRes, role);
-                }
-            }
-        }
-        return bearOffRes;
-    }
-=======
     // function checkValidPos(board: Board, start: number, end: number, result: Board, role: number): void {
     // 	if (role === BLACK) {
     // 		if (end <= 25) {
@@ -500,7 +358,6 @@ var gameLogic;
     // 	}
     // 	return bearOffRes;
     // }	
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
     /**
      * This function reacts on the mouse second click or drop event to trigger a move to be created on the original board.
      * Param start comes from the mouse first click or drag event, and denotes the starting point of this move.
@@ -518,16 +375,12 @@ var gameLogic;
         if (getWinner(board) !== "") {
             throw new Error("One can only make a move if the game is not over!");
         }
-<<<<<<< HEAD
-        var boardAfterMove = angular.copy(board);
-=======
         if (!steps) {
             throw new Error("You haven't rolled the dices yet!");
         }
         var boardAfterMove = angular.copy(board);
         var endMatchScores;
         var roleAfterMove;
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
         //if the move exists, process the move on the copy board, and remove the step from the steps
         var posToStep = startMove(stateBeforeMove, start, roleBeforeMove);
         if (end in posToStep) {
@@ -535,37 +388,6 @@ var gameLogic;
             var index = posToStep[end][0];
             modelMove(boardAfterMove, start, steps[index], roleBeforeMove);
             steps.splice(index, 1);
-<<<<<<< HEAD
-        }
-        else {
-            //no such value found tossed, must roll back
-            return { endMatchScores: null, turnIndexAfterMove: roleBeforeMove, stateAfterMove: stateBeforeMove };
-        }
-        var endMatchScores;
-        var roleAfterMove;
-        var winner = getWinner(boardAfterMove);
-        if (winner !== "") {
-            //Game over.
-            roleAfterMove = -1;
-            endMatchScores = winner === "Black" ? [1, 0] : [0, 1];
-        }
-        else {
-            if (steps.length === 0) {
-                //if no further steps, switch player.
-                roleAfterMove = 1 - roleBeforeMove;
-            }
-            else {
-                //further steps, player unchanged.
-                roleAfterMove = roleBeforeMove;
-            }
-            endMatchScores = null;
-        }
-        var delta = { start: start, end: end };
-        var stateAfterMove = { board: boardAfterMove, steps: steps, delta: delta };
-        return { endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove };
-    }
-    gameLogic.createMove = createMove;
-=======
             var winner = getWinner(boardAfterMove);
             if (winner !== "") {
                 //Game over.
@@ -599,7 +421,6 @@ var gameLogic;
         return { endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState() };
     }
     gameLogic.createInitialMove = createInitialMove;
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
     function moveExist(stateBeforeMove, role) {
         //no move exists for ended game
         if (role === -1) {
@@ -673,15 +494,12 @@ var gameLogic;
             }
         }
     }
-<<<<<<< HEAD
-=======
     // interface IStateTransition {
     //   turnIndexBeforeMove : number;
     //   stateBeforeMove: IState;
     //   numberOfPlayers: number;
     //   move: IMove;
     // }
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
     function checkMoveOk(stateTransition) {
         // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
         // to verify that the move is OK.
@@ -693,11 +511,6 @@ var gameLogic;
             return;
         }
         var deltaValue = move.stateAfterMove.delta;
-<<<<<<< HEAD
-        var start = deltaValue.start;
-        var end = deltaValue.end;
-        var expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
-=======
         var expectedMove = null;
         if (deltaValue) {
             var start = deltaValue.start;
@@ -707,7 +520,6 @@ var gameLogic;
         else {
             expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
         }
->>>>>>> 4eda5e79a282487f84dfb7bb6dc9aaa853f9f0e7
         if (!angular.equals(move, expectedMove)) {
             throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
                 ", but got stateTransition=" + angular.toJson(stateTransition, true));
