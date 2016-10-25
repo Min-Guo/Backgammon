@@ -154,9 +154,11 @@ var gameLogic;
         }
         var end = getValidPos(start, step, role);
         if (role === gameLogic.BLACK && end === gameLogic.BLACKHOME && canBearOff(board, gameLogic.BLACK)) {
-            for (var i = 20; i < start; i++) {
-                if (board[i].status === gameLogic.BLACK) {
-                    return false;
+            if (start + step > gameLogic.BLACKHOME - 1) {
+                for (var i = start - 1; i > 19; i--) {
+                    if (board[i].status === gameLogic.BLACK) {
+                        return false;
+                    }
                 }
             }
             board[start].count -= 1;
@@ -167,9 +169,11 @@ var gameLogic;
             return true;
         }
         else if (role === gameLogic.WHITE && end === gameLogic.WHITEHOME && canBearOff(board, gameLogic.WHITE)) {
-            for (var i = 7; i > start; i--) {
-                if (board[i].status === gameLogic.WHITE) {
-                    return false;
+            if (start - step < gameLogic.WHITEHOME + 1) {
+                for (var i = start + 1; i < 8; i++) {
+                    if (board[i].status === gameLogic.WHITE) {
+                        return false;
+                    }
                 }
             }
             board[start].count -= 1;
@@ -512,14 +516,13 @@ var gameLogic;
         }
         var deltaValue = move.stateAfterMove.delta;
         var expectedMove = null;
-        if (deltaValue) {
-            var start = deltaValue.start;
-            var end = deltaValue.end;
-            expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
-        }
-        else {
-            expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
-        }
+        // if (deltaValue) {
+        var start = deltaValue.start;
+        var end = deltaValue.end;
+        expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
+        // } else {
+        // 	expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
+        // }
         if (!angular.equals(move, expectedMove)) {
             throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
                 ", but got stateTransition=" + angular.toJson(stateTransition, true));

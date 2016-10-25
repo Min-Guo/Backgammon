@@ -158,11 +158,13 @@ module gameLogic {
 		}
 		let end = getValidPos(start, step, role);
 		if (role === BLACK && end === BLACKHOME && canBearOff(board, BLACK)) {
-			for (let i = 20; i < start; i++) {
-				if (board[i].status === BLACK) {
-					return false;
+			if (start + step > BLACKHOME - 1) {
+				for (let i = start - 1; i > 19; i--) {
+					if (board[i].status === BLACK) {
+						return false;
+					}
 				}
-			}
+			}			
 			board[start].count -= 1;
 			if (board[start].count === 0) {
 				board[start].status = EMPTY;
@@ -170,9 +172,11 @@ module gameLogic {
 			board[BLACKHOME].count += 1;
 			return true;
 		} else if (role === WHITE && end === WHITEHOME && canBearOff(board, WHITE)) {
-			for (let i = 7; i > start; i--) {
-				if (board[i].status === WHITE) {
-					return false;
+			if (start - step < WHITEHOME + 1) {
+				for (let i = start + 1; i < 8; i++) {
+					if (board[i].status === WHITE) {
+						return false;
+					}
 				}
 			}
 			board[start].count -= 1;
@@ -513,13 +517,13 @@ module gameLogic {
     }
     let deltaValue: BoardDelta = move.stateAfterMove.delta;
 	let expectedMove: IMove = null;
-	if (deltaValue) {
+	// if (deltaValue) {
     	let start = deltaValue.start;
     	let end = deltaValue.end;
     	expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
-	} else {
-		expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
-	}
+	// } else {
+	// 	expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
+	// }
     if (!angular.equals(move, expectedMove)) {
       throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
           ", but got stateTransition=" + angular.toJson(stateTransition, true))
