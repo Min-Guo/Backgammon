@@ -7,7 +7,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="css/style.css">
     <link rel="icon" type="image/jpg" href="">
     <script src="lib/angular.js"></script>
-    <script src="lib/turnBasedServices.3.js"></script>
+    
     <script src="ts_output_readonly_do_NOT_change_manually/src/game.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/aiService.js"></script>
@@ -48,6 +48,11 @@
                 </div>
             </div>
             <div id="ctrl">
+                <div id='t27' 
+                     class="bearOffHome"
+                     ng-repeat="idx in [27]">
+                    <span>{{getHomeCount(idx)}}</span>
+                </div>
                 <div id="dicewrapper"
                      ng-click="setDiceStatus(); setDiceVal()"
                      ng-class="{rollingDice: getDiceStatus()}">
@@ -68,6 +73,11 @@
                          ng-class="{spinFour: getDiceStatus()}"
                          style="background-image: url('images/side{{getDiceVal(dice)}}.png')"></div>
                 </div>
+                <div id='t0'
+                     class="bearOffHome"
+                     ng-repeat="idx in [0]">
+                    <span>{{getHomeCount(idx)}}</span>
+                </div>
             </div>
             
         </div>
@@ -83,6 +93,8 @@
                 .module("myApp", [])
                 .controller("myController", function($scope) {
                     var newBoard = [
+                        {tid: 0, numPiece: 0, player: 'player0'},
+                        {tid: 1, numPiece: 0, player: 'player1'},
                         {tid: 2, numPiece: 2, player: 'player1'},
                         {tid: 3, numPiece: 0, player: null},
                         {tid: 4, numPiece: 0, player: null},
@@ -106,7 +118,9 @@
                         {tid: 22, numPiece: 0, player: null},
                         {tid: 23, numPiece: 0, player: null},
                         {tid: 24, numPiece: 0, player: null},
-                        {tid: 25, numPiece: 2, player: 'player0'}
+                        {tid: 25, numPiece: 2, player: 'player0'},
+                        {tid: 26, numPiece: 0, player: 'player0'},
+                        {tid: 27, numPiece: 0, player: 'player1'}
                     ]
                     
                     
@@ -179,6 +193,11 @@
                     $scope.getDiceVal = function(idx) {
                         return vals[idx];
                     }
+                    
+                    $scope.getHomeCount = function(idx) {
+                        return newBoard[idx].numPiece;
+                    }
+                    
                     
                     
                     
