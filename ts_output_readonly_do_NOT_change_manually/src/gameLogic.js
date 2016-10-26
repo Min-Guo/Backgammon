@@ -425,79 +425,74 @@ var gameLogic;
         return { endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState() };
     }
     gameLogic.createInitialMove = createInitialMove;
-    function moveExist(stateBeforeMove, role) {
-        //no move exists for ended game
-        if (role === -1) {
-            return false;
-        }
-        var board = stateBeforeMove.board;
-        var steps = stateBeforeMove.steps;
-        var stepCombination;
-        var bearTime = canBearOff(board, role);
-        //Valid move always exists when bearoff time
-        if (bearTime) {
-            return true;
-        }
-        //for the purpose of this function, stepCombination contains at most two numbers
-        if (steps.length === 1 || steps.length === 3 || steps.length === 4) {
-            stepCombination = [steps[0]];
-        }
-        else if (steps.length === 2) {
-            if (steps[0] !== steps[1]) {
-                //only need to check valid split moves, not sum of split moves
-                stepCombination = [steps[0], steps[1]];
-            }
-            else {
-                stepCombination = [steps[0]];
-            }
-        }
-        if (role === gameLogic.BLACK) {
-            if (board[gameLogic.BLACKBAR].count !== 0) {
-                // for (let step of stepCombination) {
-                var moves = startMove(stateBeforeMove, gameLogic.BLACKBAR, gameLogic.BLACK);
-                // if (angular.equals(moves, {})) {
-                // 	return false;
-                // }
-                if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-                    return true;
-                }
-                // }
-                return false;
-            }
-            else {
-                for (var i = 2; i < 26; i++) {
-                    var moves = startMove(stateBeforeMove, i, gameLogic.BLACK);
-                    if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-        else {
-            if (board[gameLogic.WHITEBAR].count !== 0) {
-                // for (let step of stepCombination) {
-                var moves = startMove(stateBeforeMove, gameLogic.WHITEBAR, gameLogic.WHITE);
-                // if (angular.equals(moves, {})) {
-                // 	return false;
-                // }
-                if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-                    return true;
-                }
-                // }
-                return false;
-            }
-            else {
-                for (var i = 25; i > 1; i--) {
-                    var moves = startMove(stateBeforeMove, i, gameLogic.WHITE);
-                    if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-                        return true;
-                    }
-                }
-                return false;
-            }
-        }
-    }
+    // function moveExist(stateBeforeMove: IState, role: number): boolean {
+    // 	//no move exists for ended game
+    // 	if (role === -1) {
+    // 		return false;
+    // 	}
+    // 	let board = stateBeforeMove.board;
+    // 	let steps = stateBeforeMove.steps;
+    // 	let stepCombination: number[];
+    // 	let bearTime: boolean = canBearOff(board, role);
+    // 	//Valid move always exists when bearoff time
+    // 	if (bearTime) {
+    // 		return true;
+    // 	}
+    // 	//for the purpose of this function, stepCombination contains at most two numbers
+    // 	if (steps.length === 1 || steps.length === 3 || steps.length === 4) {
+    // 		stepCombination = [steps[0]];
+    // 	} else if (steps.length === 2) {
+    // 		if (steps[0] !== steps[1]) {
+    // 			//only need to check valid split moves, not sum of split moves
+    // 			stepCombination = [steps[0], steps[1]];
+    // 		} else {
+    // 			stepCombination = [steps[0]];
+    // 		}
+    // 	}
+    // 	if (role === BLACK) {
+    // 		if (board[BLACKBAR].count !== 0) {
+    // 			// for (let step of stepCombination) {
+    // 			let moves = startMove(stateBeforeMove, BLACKBAR, BLACK);
+    // 				// if (angular.equals(moves, {})) {
+    // 				// 	return false;
+    // 				// }
+    // 			if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+    // 				return true;
+    // 			}
+    // 			// }
+    // 			return false;
+    // 		} else {
+    // 			for (let i = 2; i < 26; i++) {
+    // 				let moves = startMove(stateBeforeMove, i, BLACK);
+    // 				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+    // 					return true;
+    // 				}
+    // 			}
+    // 			return false;
+    // 		}
+    // 	} else {
+    // 		if (board[WHITEBAR].count !== 0) {
+    // 			// for (let step of stepCombination) {
+    // 			let moves = startMove(stateBeforeMove, WHITEBAR, WHITE);
+    // 				// if (angular.equals(moves, {})) {
+    // 				// 	return false;
+    // 				// }
+    // 			if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+    // 				return true;
+    // 			}
+    // 			// }
+    // 			return false;
+    // 		} else {
+    // 			for (let i = 25; i > 1; i--) {
+    // 				let moves = startMove(stateBeforeMove, i, WHITE);
+    // 				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+    // 					return true;
+    // 				}
+    // 			}
+    // 			return false;
+    // 		}
+    // 	}
+    // }
     // interface IStateTransition {
     //   turnIndexBeforeMove : number;
     //   stateBeforeMove: IState;
