@@ -5,7 +5,7 @@ describe("In Backgammon", function () {
     var WHITE_TURN = 0;
     var NO_ONE_TURN = -1;
     var NO_ONE_WINS = null;
-    var EMPTY_BOARD = [new Tower(0, NO_ONE_TURN, 0), new Tower(1, NO_ONE_TURN, 0),
+    var EMPTY_BOARD = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
         new Tower(2, NO_ONE_TURN, 0), new Tower(3, NO_ONE_TURN, 0),
         new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
         new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
@@ -18,35 +18,21 @@ describe("In Backgammon", function () {
         new Tower(20, NO_ONE_TURN, 0), new Tower(21, NO_ONE_TURN, 0),
         new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
         new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
-        new Tower(26, NO_ONE_TURN, 0), new Tower(27, NO_ONE_TURN, 0)];
-    var INITIAL_BOARD = [new Tower(0, WHITE_TURN, 0),
-        new Tower(1, BLACK_TURN, 0),
-        new Tower(2, BLACK_TURN, 2),
-        new Tower(3, NO_ONE_TURN, 0),
-        new Tower(4, NO_ONE_TURN, 0),
-        new Tower(5, NO_ONE_TURN, 0),
-        new Tower(6, NO_ONE_TURN, 0),
-        new Tower(7, WHITE_TURN, 5),
-        new Tower(8, NO_ONE_TURN, 0),
-        new Tower(9, WHITE_TURN, 3),
-        new Tower(10, NO_ONE_TURN, 0),
-        new Tower(11, NO_ONE_TURN, 0),
-        new Tower(12, NO_ONE_TURN, 0),
-        new Tower(13, BLACK_TURN, 5),
-        new Tower(14, WHITE_TURN, 5),
-        new Tower(15, NO_ONE_TURN, 0),
-        new Tower(16, NO_ONE_TURN, 0),
-        new Tower(17, NO_ONE_TURN, 0),
-        new Tower(18, BLACK_TURN, 3),
-        new Tower(19, NO_ONE_TURN, 0),
-        new Tower(20, BLACK_TURN, 5),
-        new Tower(21, NO_ONE_TURN, 0),
-        new Tower(22, NO_ONE_TURN, 0),
-        new Tower(23, NO_ONE_TURN, 0),
-        new Tower(24, NO_ONE_TURN, 0),
-        new Tower(25, WHITE_TURN, 2),
-        new Tower(26, WHITE_TURN, 0),
-        new Tower(27, BLACK_TURN, 0)];
+        new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
+    var INITIAL_BOARD = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+        new Tower(2, BLACK_TURN, 2), new Tower(3, NO_ONE_TURN, 0),
+        new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+        new Tower(6, NO_ONE_TURN, 0), new Tower(7, WHITE_TURN, 5),
+        new Tower(8, NO_ONE_TURN, 0), new Tower(9, WHITE_TURN, 3),
+        new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+        new Tower(12, NO_ONE_TURN, 0), new Tower(13, BLACK_TURN, 5),
+        new Tower(14, WHITE_TURN, 5), new Tower(15, NO_ONE_TURN, 0),
+        new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+        new Tower(18, BLACK_TURN, 3), new Tower(19, NO_ONE_TURN, 0),
+        new Tower(20, BLACK_TURN, 5), new Tower(21, NO_ONE_TURN, 0),
+        new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
+        new Tower(24, NO_ONE_TURN, 0), new Tower(25, WHITE_TURN, 2),
+        new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
     function expectStateTransition(isOk, stateTransition) {
         if (isOk) {
             gameLogic.checkMoveOk(stateTransition);
@@ -274,6 +260,44 @@ describe("In Backgammon", function () {
             numberOfPlayers: 2
         });
     });
+    //We expect an illegal move, but checkMoveOk didn't throw any exception!
+    it("Moving other WHITE is illegal while WHITE_BAR is not empty.", function () {
+        var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+            new Tower(2, BLACK_TURN, 1), new Tower(3, NO_ONE_TURN, 0),
+            new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+            new Tower(6, NO_ONE_TURN, 0), new Tower(7, WHITE_TURN, 5),
+            new Tower(8, BLACK_TURN, 1), new Tower(9, WHITE_TURN, 2),
+            new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, BLACK_TURN, 4),
+            new Tower(14, WHITE_TURN, 5), new Tower(15, BLACK_TURN, 1),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(18, BLACK_TURN, 3), new Tower(19, NO_ONE_TURN, 0),
+            new Tower(20, BLACK_TURN, 5), new Tower(21, NO_ONE_TURN, 0),
+            new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
+            new Tower(24, NO_ONE_TURN, 0), new Tower(25, WHITE_TURN, 2),
+            new Tower(26, WHITE_TURN, 1), new Tower(27, BLACK_TURN, 0)];
+        var boardAfterMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+            new Tower(2, BLACK_TURN, 1), new Tower(3, NO_ONE_TURN, 0),
+            new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+            new Tower(6, NO_ONE_TURN, 0), new Tower(7, WHITE_TURN, 5),
+            new Tower(8, BLACK_TURN, 1), new Tower(9, WHITE_TURN, 2),
+            new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, BLACK_TURN, 4),
+            new Tower(14, WHITE_TURN, 5), new Tower(15, BLACK_TURN, 1),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(18, BLACK_TURN, 3), new Tower(19, NO_ONE_TURN, 0),
+            new Tower(20, BLACK_TURN, 5), new Tower(21, NO_ONE_TURN, 0),
+            new Tower(22, NO_ONE_TURN, 0), new Tower(23, WHITE_TURN, 1),
+            new Tower(24, NO_ONE_TURN, 0), new Tower(25, WHITE_TURN, 1),
+            new Tower(26, WHITE_TURN, 1), new Tower(27, BLACK_TURN, 0)];
+        expectStateTransition(ILLEGAL, {
+            turnIndexBeforeMove: WHITE_TURN,
+            stateBeforeMove: { board: boardBeforeMove, steps: [4, 2], delta: null },
+            move: { turnIndexAfterMove: WHITE_TURN, endMatchScores: NO_ONE_WINS,
+                stateAfterMove: { board: boardAfterMove, steps: [4], delta: { start: 25, end: 23 } } },
+            numberOfPlayers: 2
+        });
+    });
     it("Legal BLACK move when bearoff.", function () {
         var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
             new Tower(2, WHITE_TURN, 3), new Tower(3, WHITE_TURN, 1),
@@ -311,40 +335,40 @@ describe("In Backgammon", function () {
             numberOfPlayers: 2
         });
     });
-    it("Legal BLACK move when bearoff.", function () {
-        var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
-            new Tower(2, WHITE_TURN, 3), new Tower(3, WHITE_TURN, 1),
-            new Tower(4, WHITE_TURN, 3), new Tower(5, WHITE_TURN, 1),
-            new Tower(6, NO_ONE_TURN, 0), new Tower(7, WHITE_TURN, 2),
+    it("Legal WHITE move when bearoff.", function () {
+        var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 1),
+            new Tower(2, BLACK_TURN, 2), new Tower(3, BLACK_TURN, 3),
+            new Tower(4, WHITE_TURN, 4), new Tower(5, WHITE_TURN, 2),
+            new Tower(6, WHITE_TURN, 3), new Tower(7, WHITE_TURN, 6),
             new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
             new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
-            new Tower(12, WHITE_TURN, 1), new Tower(13, WHITE_TURN, 1),
-            new Tower(14, NO_ONE_TURN, 0), new Tower(15, WHITE_TURN, 1),
-            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, BLACK_TURN, 1),
+            new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, BLACK_TURN, 1),
             new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
-            new Tower(20, BLACK_TURN, 8), new Tower(21, BLACK_TURN, 3),
-            new Tower(22, BLACK_TURN, 2), new Tower(23, WHITE_TURN, 1),
-            new Tower(24, WHITE_TURN, 1), new Tower(25, BLACK_TURN, 2),
+            new Tower(20, NO_ONE_TURN, 0), new Tower(21, BLACK_TURN, 3),
+            new Tower(22, BLACK_TURN, 4), new Tower(23, NO_ONE_TURN, 0),
+            new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
             new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
-        var boardAfterMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
-            new Tower(2, WHITE_TURN, 3), new Tower(3, WHITE_TURN, 1),
-            new Tower(4, WHITE_TURN, 3), new Tower(5, WHITE_TURN, 1),
-            new Tower(6, NO_ONE_TURN, 0), new Tower(7, WHITE_TURN, 2),
+        var boardAfterMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 1),
+            new Tower(2, BLACK_TURN, 2), new Tower(3, BLACK_TURN, 3),
+            new Tower(4, WHITE_TURN, 4), new Tower(5, WHITE_TURN, 3),
+            new Tower(6, WHITE_TURN, 3), new Tower(7, WHITE_TURN, 5),
             new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
             new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
-            new Tower(12, WHITE_TURN, 1), new Tower(13, WHITE_TURN, 1),
-            new Tower(14, NO_ONE_TURN, 0), new Tower(15, WHITE_TURN, 1),
-            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, BLACK_TURN, 1),
+            new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, BLACK_TURN, 1),
             new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
-            new Tower(20, BLACK_TURN, 8), new Tower(21, BLACK_TURN, 2),
-            new Tower(22, BLACK_TURN, 2), new Tower(23, WHITE_TURN, 1),
-            new Tower(24, WHITE_TURN, 1), new Tower(25, BLACK_TURN, 2),
-            new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 1)];
-        expectStateTransition(ILLEGAL, {
-            turnIndexBeforeMove: BLACK_TURN,
-            stateBeforeMove: { board: boardBeforeMove, steps: [6, 4], delta: null },
+            new Tower(20, NO_ONE_TURN, 0), new Tower(21, BLACK_TURN, 3),
+            new Tower(22, BLACK_TURN, 4), new Tower(23, NO_ONE_TURN, 0),
+            new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
+            new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
+        expectStateTransition(OK, {
+            turnIndexBeforeMove: WHITE_TURN,
+            stateBeforeMove: { board: boardBeforeMove, steps: [2], delta: null },
             move: { turnIndexAfterMove: BLACK_TURN, endMatchScores: NO_ONE_WINS,
-                stateAfterMove: { board: boardAfterMove, steps: [4], delta: { start: 21, end: 27 } } },
+                stateAfterMove: { board: boardAfterMove, steps: [], delta: { start: 7, end: 5 } } },
             numberOfPlayers: 2
         });
     });
