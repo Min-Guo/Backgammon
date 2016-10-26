@@ -113,6 +113,30 @@ describe("In Backgammon", function () {
             numberOfPlayers: 2
         });
     });
+    it("Illeal BLACK move when WHITE's steps is not empty", function () {
+        var boardBeforeMove = INITIAL_BOARD;
+        var boardAfterMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+            new Tower(2, BLACK_TURN, 2), new Tower(3, NO_ONE_TURN, 0),
+            new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+            new Tower(6, NO_ONE_TURN, 0), new Tower(7, WHITE_TURN, 5),
+            new Tower(8, WHITE_TURN, 1), new Tower(9, WHITE_TURN, 2),
+            new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, BLACK_TURN, 5),
+            new Tower(14, WHITE_TURN, 5), new Tower(15, NO_ONE_TURN, 0),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(18, BLACK_TURN, 2), new Tower(19, NO_ONE_TURN, 0),
+            new Tower(20, BLACK_TURN, 4), new Tower(21, NO_ONE_TURN, 0),
+            new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
+            new Tower(24, BLACK_TURN, 2), new Tower(25, WHITE_TURN, 2),
+            new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
+        expectStateTransition(ILLEGAL, {
+            turnIndexBeforeMove: WHITE_TURN,
+            stateBeforeMove: { board: boardBeforeMove, steps: [1, 1, 1, 1], delta: null },
+            move: { turnIndexAfterMove: BLACK_TURN, endMatchScores: NO_ONE_WINS,
+                stateAfterMove: { board: boardAfterMove, steps: [1, 1, 1], delta: { start: 9, end: 8 } } },
+            numberOfPlayers: 2
+        });
+    });
     //Wrong actual check number 16.
     it("PLacing BLACK on the position where only one WHITE is legal.", function () {
         var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
