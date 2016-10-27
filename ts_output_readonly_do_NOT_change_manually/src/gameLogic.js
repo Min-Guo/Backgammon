@@ -505,7 +505,7 @@ var gameLogic;
         var turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
         var stateBeforeMove = stateTransition.stateBeforeMove;
         var move = stateTransition.move;
-        if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
+        if (!stateBeforeMove && turnIndexBeforeMove === -1 &&
             angular.equals(createInitialMove(), move)) {
             return;
         }
