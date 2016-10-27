@@ -511,7 +511,7 @@ module gameLogic {
     let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
     let stateBeforeMove: IState = stateTransition.stateBeforeMove;
     let move: IMove = stateTransition.move;
-    if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
+    if (!stateBeforeMove && turnIndexBeforeMove === -1 &&
         angular.equals(createInitialMove(), move)) {
       return;
     }
