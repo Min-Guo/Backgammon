@@ -158,11 +158,13 @@ module gameLogic {
 		}
 		let end = getValidPos(start, step, role);
 		if (role === BLACK && end === BLACKHOME && canBearOff(board, BLACK)) {
-			for (let i = 20; i < start; i++) {
-				if (board[i].status === BLACK) {
-					return false;
+			if (start + step > BLACKHOME - 1) {
+				for (let i = start - 1; i > 19; i--) {
+					if (board[i].status === BLACK) {
+						return false;
+					}
 				}
-			}
+			}			
 			board[start].count -= 1;
 			if (board[start].count === 0) {
 				board[start].status = EMPTY;
@@ -170,9 +172,11 @@ module gameLogic {
 			board[BLACKHOME].count += 1;
 			return true;
 		} else if (role === WHITE && end === WHITEHOME && canBearOff(board, WHITE)) {
-			for (let i = 7; i > start; i--) {
-				if (board[i].status === WHITE) {
-					return false;
+			if (start - step < WHITEHOME + 1) {
+				for (let i = start + 1; i < 8; i++) {
+					if (board[i].status === WHITE) {
+						return false;
+					}
 				}
 			}
 			board[start].count -= 1;
@@ -421,79 +425,79 @@ module gameLogic {
     	return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState()};  
   	}
 
-	function moveExist(stateBeforeMove: IState, role: number): boolean {
-		//no move exists for ended game
-		if (role === -1) {
-			return false;
-		}
+	// function moveExist(stateBeforeMove: IState, role: number): boolean {
+	// 	//no move exists for ended game
+	// 	if (role === -1) {
+	// 		return false;
+	// 	}
 
-		let board = stateBeforeMove.board;
-		let steps = stateBeforeMove.steps;
+	// 	let board = stateBeforeMove.board;
+	// 	let steps = stateBeforeMove.steps;
 
-		let stepCombination: number[];
-		let bearTime: boolean = canBearOff(board, role);
+	// 	let stepCombination: number[];
+	// 	let bearTime: boolean = canBearOff(board, role);
 
-		//Valid move always exists when bearoff time
-		if (bearTime) {
-			return true;
-		}
+	// 	//Valid move always exists when bearoff time
+	// 	if (bearTime) {
+	// 		return true;
+	// 	}
 
-		//for the purpose of this function, stepCombination contains at most two numbers
-		if (steps.length === 1 || steps.length === 3 || steps.length === 4) {
-			stepCombination = [steps[0]];
-		} else if (steps.length === 2) {
-			if (steps[0] !== steps[1]) {
-				//only need to check valid split moves, not sum of split moves
-				stepCombination = [steps[0], steps[1]];
-			} else {
-				stepCombination = [steps[0]];
-			}
-		}
+	// 	//for the purpose of this function, stepCombination contains at most two numbers
+	// 	if (steps.length === 1 || steps.length === 3 || steps.length === 4) {
+	// 		stepCombination = [steps[0]];
+	// 	} else if (steps.length === 2) {
+	// 		if (steps[0] !== steps[1]) {
+	// 			//only need to check valid split moves, not sum of split moves
+	// 			stepCombination = [steps[0], steps[1]];
+	// 		} else {
+	// 			stepCombination = [steps[0]];
+	// 		}
+	// 	}
 
-		if (role === BLACK) {
-			if (board[BLACKBAR].count !== 0) {
-				// for (let step of stepCombination) {
-				let moves = startMove(stateBeforeMove, BLACKBAR, BLACK);
-					// if (angular.equals(moves, {})) {
-					// 	return false;
-					// }
-				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-					return true;
-				}
-				// }
-				return false;
-			} else {
-				for (let i = 2; i < 26; i++) {
-					let moves = startMove(stateBeforeMove, i, BLACK);
-					if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-						return true;
-					}
-				}
-				return false;
-			}
-		} else {
-			if (board[WHITEBAR].count !== 0) {
-				// for (let step of stepCombination) {
-				let moves = startMove(stateBeforeMove, WHITEBAR, WHITE);
-					// if (angular.equals(moves, {})) {
-					// 	return false;
-					// }
-				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-					return true;
-				}
-				// }
-				return false;
-			} else {
-				for (let i = 25; i > 1; i--) {
-					let moves = startMove(stateBeforeMove, i, WHITE);
-					if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
-	}
+	// 	if (role === BLACK) {
+	// 		if (board[BLACKBAR].count !== 0) {
+	// 			// for (let step of stepCombination) {
+	// 			let moves = startMove(stateBeforeMove, BLACKBAR, BLACK);
+	// 				// if (angular.equals(moves, {})) {
+	// 				// 	return false;
+	// 				// }
+	// 			if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+	// 				return true;
+	// 			}
+	// 			// }
+	// 			return false;
+	// 		} else {
+	// 			for (let i = 2; i < 26; i++) {
+	// 				let moves = startMove(stateBeforeMove, i, BLACK);
+	// 				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+	// 					return true;
+	// 				}
+	// 			}
+	// 			return false;
+	// 		}
+	// 	} else {
+	// 		if (board[WHITEBAR].count !== 0) {
+	// 			// for (let step of stepCombination) {
+	// 			let moves = startMove(stateBeforeMove, WHITEBAR, WHITE);
+	// 				// if (angular.equals(moves, {})) {
+	// 				// 	return false;
+	// 				// }
+	// 			if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+	// 				return true;
+	// 			}
+	// 			// }
+	// 			return false;
+	// 		} else {
+	// 			for (let i = 25; i > 1; i--) {
+	// 				let moves = startMove(stateBeforeMove, i, WHITE);
+	// 				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
+	// 					return true;
+	// 				}
+	// 			}
+	// 			return false;
+	// 		}
+	// 	}
+	// }
 
 // interface IStateTransition {
 //   turnIndexBeforeMove : number;
@@ -507,19 +511,19 @@ module gameLogic {
     let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
     let stateBeforeMove: IState = stateTransition.stateBeforeMove;
     let move: IMove = stateTransition.move;
-    if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
+    if (!stateBeforeMove && turnIndexBeforeMove === -1 &&
         angular.equals(createInitialMove(), move)) {
       return;
     }
     let deltaValue: BoardDelta = move.stateAfterMove.delta;
 	let expectedMove: IMove = null;
-	if (deltaValue) {
+	// if (deltaValue) {
     	let start = deltaValue.start;
     	let end = deltaValue.end;
     	expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
-	} else {
-		expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
-	}
+	// } else {
+	// 	expectedMove = createMove(stateBeforeMove, 0, 0, turnIndexBeforeMove);
+	// }
     if (!angular.equals(move, expectedMove)) {
       throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
           ", but got stateTransition=" + angular.toJson(stateTransition, true))
