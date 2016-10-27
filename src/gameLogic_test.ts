@@ -4,6 +4,8 @@ describe("In Backgammon", function() {
   let BLACK_TURN = 1;
   let WHITE_TURN = 0;
   let NO_ONE_TURN = -1;
+  let BLACK_WIN_SCORES = [1, 0];
+  let WHITE_WIN_SCORES = [0, 1];
   let NO_ONE_WINS: number[] = null;
   let EMPTY_BOARD: Tower[] = 
          [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
@@ -446,6 +448,86 @@ describe("In Backgammon", function() {
       stateBeforeMove: {board: boardBeforeMove, steps:[4], delta: null},
       move: { turnIndexAfterMove: BLACK_TURN, endMatchScores: NO_ONE_WINS,
          stateAfterMove: {board: boardAfterMove, steps: null, delta: null}},
+         numberOfPlayers: 2
+    });
+  });
+
+  it("BLACK wins game while BLACK_HOME equals to 15.", function() {
+    let boardBeforeMove: Tower[] = 
+        [new Tower(0, WHITE_TURN, 10), new Tower(1, BLACK_TURN, 0),
+          new Tower(2, WHITE_TURN, 5), new Tower(3, NO_ONE_TURN, 0),
+          new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+          new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
+          new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+          new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+          new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+          new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+          new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+          new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+          new Tower(20, NO_ONE_TURN, 0), new Tower(21, NO_ONE_TURN, 0),
+          new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
+          new Tower(24, NO_ONE_TURN, 0), new Tower(25, BLACK_TURN, 1),
+          new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 14)];
+    let boardAfterMove: Tower[] = 
+        [new Tower(0, WHITE_TURN, 10), new Tower(1, BLACK_TURN, 0),
+          new Tower(2, WHITE_TURN, 5), new Tower(3, NO_ONE_TURN, 0),
+          new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+          new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
+          new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+          new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+          new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+          new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+          new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+          new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+          new Tower(20, NO_ONE_TURN, 0), new Tower(21, NO_ONE_TURN, 0),
+          new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
+          new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
+          new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 15)];
+    expectStateTransition(OK, {
+      turnIndexBeforeMove: BLACK_TURN,
+      stateBeforeMove: {board: boardBeforeMove, steps:[4], delta: null},
+      move: { turnIndexAfterMove: NO_ONE_TURN, endMatchScores: BLACK_WIN_SCORES,
+         stateAfterMove: {board: boardAfterMove, steps: [], delta: {start: 25, end: 27}}},
+         numberOfPlayers: 2
+    });
+  });
+
+  it("WHITE wins game while WHITE_HOME equals to 15.", function() {
+    let boardBeforeMove: Tower[] = 
+        [new Tower(0, WHITE_TURN, 14), new Tower(1, BLACK_TURN, 0),
+          new Tower(2, WHITE_TURN, 1), new Tower(3, NO_ONE_TURN, 0),
+          new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+          new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
+          new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+          new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+          new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+          new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+          new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+          new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+          new Tower(20, NO_ONE_TURN, 0), new Tower(21, NO_ONE_TURN, 0),
+          new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
+          new Tower(24, NO_ONE_TURN, 0), new Tower(25, BLACK_TURN, 5),
+          new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 10)];
+    let boardAfterMove: Tower[] = 
+        [new Tower(0, WHITE_TURN, 15), new Tower(1, BLACK_TURN, 0),
+          new Tower(2, NO_ONE_TURN, 0), new Tower(3, NO_ONE_TURN, 0),
+          new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+          new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
+          new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+          new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+          new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+          new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+          new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+          new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+          new Tower(20, NO_ONE_TURN, 0), new Tower(21, NO_ONE_TURN, 0),
+          new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
+          new Tower(24, NO_ONE_TURN, 0), new Tower(25, BLACK_TURN, 5),
+          new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 10)];
+    expectStateTransition(OK, {
+      turnIndexBeforeMove: WHITE_TURN,
+      stateBeforeMove: {board: boardBeforeMove, steps:[4], delta: null},
+      move: { turnIndexAfterMove: NO_ONE_TURN, endMatchScores: WHITE_WIN_SCORES,
+         stateAfterMove: {board: boardAfterMove, steps: [], delta: {start: 2, end: 0}}},
          numberOfPlayers: 2
     });
   });
