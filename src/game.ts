@@ -54,7 +54,7 @@ module game {
     state = params.move.stateAfterMove;
     if (isFirstMove()) {
       state = gameLogic.getInitialState();
-      setInitialTurnIndex();
+      //setInitialTurnIndex();
       if (isMyTurn()) makeMove(gameLogic.createInitialMove());
     } else {
       // We calculate the AI move only after the animation finishes,
@@ -117,22 +117,20 @@ module game {
   }
 
   export function towerClicked(target: number): void {
-    log.info("Clicked on tower:", target);
+    log.info(["Clicked on tower:", target]);
     if (!isHumanTurn()) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
     if (moveStart !== -1) {
-      let nextMove: IMove = null;
       try {
-        nextMove = gameLogic.createMiniMove(
-          state, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
+        gameLogic.createMiniMove(moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
       } catch (e) {
         log.info(["Unable to create a move between:", moveStart, target]);
         return;
       }
       // Move is legal, make it!
-      makeMove(nextMove);
+      // makeMove(nextMiniMove);
       moveStart = -1;
     } else {
       moveStart = target;
@@ -141,9 +139,18 @@ module game {
     }
   }
 
+  export function submitClicked(): void {
+    log.info(["Submit move."]);
+    let stateBeforeMove: IState = gameLogic.originalState;
+    let delta: BoardDelta = gameLogic.currentState.delta;
+    let oneMove: IMove = gameLogic.createMove(stateBeforeMove, delta, currentUpdateUI.move.turnIndexAfterMove);
+    // Move is legal, make it!
+    makeMove(oneMove);
+  }
+
   /**
    * This function tries to generate a new combination of dies each time the player's turn begins.
-   * It sets the combination to the local storage of gameLogic.
+   * It sets the original combination to the local storage of gameLogic.
    */
   export function rollClicked(): void {
     log.info("Clicked on roll:");
@@ -151,8 +158,7 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    let steps = DieCombo.generate();
-    gameLogic.setOriginalSteps(steps);
+    gameLogic.setOriginalSteps();
   }
 
   export function getTowerCount(col: number): number[] {
@@ -196,17 +202,17 @@ module game {
   //   return tmp !== -1 && col === tmp;
   // }
   
-  export function shouldSlowlyAppear(start: number, end: number): boolean {
-    return state.delta &&
-      state.delta.start === start && state.delta.end === end;
-  }
+  // export function shouldSlowlyAppear(start: number, end: number): boolean {
+  //   return state.delta &&
+  //     state.delta.start === start && state.delta.end === end;
+  // }
 
-  function setInitialTurnIndex(): void {
-    if (state && state.currentSteps) return;
-    let twoDies = DieCombo.init();
-    state.currentSteps = twoDies;
-    currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
-  }
+  // function setInitialTurnIndex(): void {
+  //   if (state && state.currentSteps) return;
+  //   let twoDies = DieCombo.init();
+  //   state.currentSteps = twoDies;
+  //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
+  // }
 }
 
 angular.module('myApp', ['gameServices'])
