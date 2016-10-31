@@ -125,7 +125,7 @@ module game {
     if (moveStart !== -1) {
       let nextMove: IMove = null;
       try {
-        nextMove = gameLogic.createMove(
+        nextMove = gameLogic.createMiniMove(
           state, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
       } catch (e) {
         log.info(["Unable to create a move between:", moveStart, target]);
