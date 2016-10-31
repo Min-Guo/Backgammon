@@ -22,7 +22,7 @@ module aiService {
             let choice = Math.floor(Math.random() * ends.length); //pick one end position.
             let index = moves[choice][0]; //pick the first step's index in order to reach that end position.
             let end = gameLogic.getValidPos(i, state.steps[index], turnIndexBeforeMove); //use the step according to its index in steps
-            possibleMoves.push(gameLogic.createMove(state, i, end, turnIndexBeforeMove));
+            possibleMoves.push(gameLogic.createMiniMove(state, i, end, turnIndexBeforeMove));
           } catch (e) {
             continue;
           }
@@ -37,7 +37,7 @@ module aiService {
             let choice = Math.floor(Math.random() * ends.length); //pick one end position.
             let index = moves[choice][0]; //pick the first step's index in order to reach that end position.
             let end = gameLogic.getValidPos(i, state.steps[index], turnIndexBeforeMove); //use the step according to its index in steps
-            possibleMoves.push(gameLogic.createMove(state, i, end, turnIndexBeforeMove));
+            possibleMoves.push(gameLogic.createMiniMove(state, i, end, turnIndexBeforeMove));
           } catch (e) {
             continue;
           }
