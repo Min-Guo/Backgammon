@@ -141,16 +141,18 @@ module game {
     }
   }
 
+  /**
+   * This function tries to generate a new combination of dies each time the player's turn begins.
+   * It sets the combination to the local storage of gameLogic.
+   */
   export function rollClicked(): void {
     log.info("Clicked on roll:");
-    if (!isHumanTurn()) return;
+    if (!isMyTurn()) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
     let steps = DieCombo.generate();
-
-
-
+    gameLogic.setOriginalSteps(steps);
   }
 
   export function getTowerCount(col: number): number[] {
@@ -200,9 +202,9 @@ module game {
   }
 
   function setInitialTurnIndex(): void {
-    if (state && state.steps) return;
+    if (state && state.currentSteps) return;
     let twoDies = DieCombo.init();
-    state.steps = twoDies;
+    state.currentSteps = twoDies;
     currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
   }
 }
