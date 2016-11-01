@@ -52,26 +52,14 @@ interface IEndToStepIndex {
 }
 
 module gameLogic {
-	let currentState: IState = {
-		/** 
-		 * A successful minimove modifies the currentState's board. 
-		 * When all minimoves are done, it serves as the boardAfterMove.
-		 */
-		board: null,
-		/**
-		 * Records the die combination used.
-		 * Records the minimoves to produce the current state from stateBeforeMove in order.
-		 */
-		delta: {
-			originalSteps: null,
-			moves: null,
-		},
-	};
+	//export let originalState: IState = null;
+	//export let currentState: IState = null;
 
 	/** 
 	 * A successful minimove shortens the currentSteps. 
 	 * When it reaches 0, the move is submitted.
 	 */
+	//export let currentDelta: BoardDelta = null;
 	let currentSteps: Steps = null;
 
 	export const BLACKHOME = 27;
@@ -156,17 +144,13 @@ module gameLogic {
 	}
 
 	/** Set the dies value. Initialize the local copy of modifiable steps. */
-	export function setOriginalSteps(): void {
+	export function setOriginalSteps(currentState: IState): void {
 		if (currentSteps) {
 			throw new Error("You have already rolled the dices!");
 		}
-		if (!currentState) {
-			currentState = getInitialState();
-		}
 		if (!currentState.delta) {
-			currentState.delta = {originalSteps: null, moves: null};
+			currentState.delta = {originalSteps: DieCombo.generate(), moves: null};
 		}
-		currentState.delta.originalSteps = DieCombo.generate();
 		currentSteps = angular.copy(currentState.delta.originalSteps);
 	}
 
@@ -244,7 +228,7 @@ module gameLogic {
 	 * Returns an object, containing reachable Tower tid's as keys, and an array of steps indexes by which to walk from start.
 	 * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [1, 0]} 
 	 */
-	export function startMove(start: number, role: number): IEndToStepIndex {
+	export function startMove(curBoard: Board, start: number, role: number): IEndToStepIndex {
 		let res: IEndToStepIndex = {};
 		if (currentSteps.length === 0) {
 			return res;
@@ -252,7 +236,7 @@ module gameLogic {
 			let board: Board;
 			let newStart: number;
 			// 1 -> 2
-			board = angular.copy(currentState.board);
+			board = angular.copy(curBoard);
 			newStart = start;
 			for (let i = 0; i < currentSteps.length; i++) {
 				let oldStart = newStart;
@@ -270,7 +254,7 @@ module gameLogic {
 				}
 			}			
 			// 2 -> 1
-			board = angular.copy(currentState.board);
+			board = angular.copy(curBoard);
 			newStart = start;
 			for (let i = currentSteps.length - 1; i >= 0; i--) {
 				let oldStart = newStart;
@@ -292,7 +276,7 @@ module gameLogic {
 			let newStart = start;
 			// 1
 			// 1 -> 2 -> 3 [-> 4]
-			board = angular.copy(currentState.board);
+			board = angular.copy(curBoard);
 			for (let i = 0; i < currentSteps.length; i++) {
 				let oldStart = newStart;
 				newStart = getValidPos(oldStart, currentSteps[i], role);
@@ -312,7 +296,7 @@ module gameLogic {
 		return res;
 	}
 
-	export function createMove(stateBeforeMove: IState, delta: BoardDelta, turnIndexBeforeMove: number): IMove {
+	export function createMove(stateBeforeMove: IState, stateAfterMove: IState, turnIndexBeforeMove: number): IMove {
 		if (!stateBeforeMove) {
 			stateBeforeMove = getInitialState();
 		}
@@ -323,8 +307,7 @@ module gameLogic {
 		if (!currentSteps) {
 			throw new Error("You haven't yet rolled the dices!");
 		}
-		let newBoard: Board = angular.copy(currentState.board);
-		let winner = getWinner(newBoard);
+		let winner = getWinner(stateAfterMove.board);
 		let endMatchScores: number[];
 		let turnIndexAfterMove: number;
 		if (winner !== '') {
@@ -332,16 +315,14 @@ module gameLogic {
 			turnIndexAfterMove = -1;
 			endMatchScores = winner === "Black" ? [1, 0] : [0, 1];
 		} else if (currentSteps.length !== 0) {
+			// Game continues. You haven't finished your moves.
 			throw new Error("You haven't completed your moves!");
 		} else {
 			// Game continues. Now it's the opponent's turn.
 			turnIndexAfterMove = 1 - turnIndexBeforeMove;
 			endMatchScores = null;
 		}
-		let newDelta: BoardDelta = angular.copy(currentState.delta);
-		let stateAfterMove: IState = {board: newBoard, delta: newDelta};
 		// Reset after the turn ends.
-		currentState.delta = null;
 		currentSteps = null;
 		return {endMatchScores: endMatchScores, 
 				turnIndexAfterMove: turnIndexAfterMove, 
@@ -355,27 +336,27 @@ module gameLogic {
 	 * If |end - start| is indeed a valid step, a trial of modelMove is issued which may modify boardAfterMove.
 	 * When no more step available, players are switched.
 	 */
-	export function createMiniMove(start: number, end: number, roleBeforeMove: number): void {
+	export function createMiniMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): void {
 		if (!currentSteps) {
 			throw new Error("You haven't yet rolled the dices!");
 		} else if (currentSteps.length === 0) {
 			console.log("All moves complete. Please submit!");
 			return;
 		}
-		if (getWinner(currentState.board) !== "") {
+		if (getWinner(stateBeforeMove.board) !== "") {
 			throw new Error("One can only make a move if the game is not over!");
 		}
-		let posToStep = startMove(start, roleBeforeMove);
+		let posToStep = startMove(stateBeforeMove.board, start, roleBeforeMove);
 		if (end in posToStep) {
 			//posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
 			let index = posToStep[end][0];
-			modelMove(currentState.board, start, currentSteps[index], roleBeforeMove);
+			modelMove(stateBeforeMove.board, start, currentSteps[index], roleBeforeMove);
 			currentSteps.splice(index, 1);
-			if (!currentState.delta.moves) {
-				currentState.delta.moves = [];
+			if (!stateBeforeMove.delta.moves) {
+				stateBeforeMove.delta.moves = [];
 			}
 			let oneMiniMove: IMiniMove = {start: start, end: end};
-			currentState.delta.moves.push(oneMiniMove);
+			stateBeforeMove.delta.moves.push(oneMiniMove);
 		} else {
 			//no such value found tossed, not a legal move
 			throw new Error("No such move!");
@@ -392,14 +373,18 @@ module gameLogic {
 		let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
 		let stateBeforeMove: IState = stateTransition.stateBeforeMove;
 		let move: IMove = stateTransition.move;
-		if (!stateBeforeMove && turnIndexBeforeMove === -1 &&
+		if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
 			angular.equals(createInitialMove(), move)) {
-		return;
+			return;
 		}
-		let deltaValue: BoardDelta = move.stateAfterMove.delta;
+		let delta: BoardDelta = move.stateAfterMove.delta;
 		let expectedMove: IMove = null;
-		
-		expectedMove = createMove(stateBeforeMove, deltaValue, turnIndexBeforeMove);
+		currentSteps = angular.copy(delta.originalSteps);
+		let stateAfterMove: IState = angular.copy(stateBeforeMove);
+		for (let move of delta.moves) {
+			createMiniMove(stateAfterMove, move.start, move.end, turnIndexBeforeMove);
+		}
+		expectedMove = createMove(stateBeforeMove, stateAfterMove, turnIndexBeforeMove);
 		if (!angular.equals(move, expectedMove)) {
 		throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
 			", but got stateTransition=" + angular.toJson(stateTransition, true))

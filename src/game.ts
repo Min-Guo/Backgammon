@@ -11,7 +11,8 @@ module game {
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
   export let animationEndedTimeout: ng.IPromise<any> = null;
-  export let state: IState = null;
+  export let originalState: IState = null;
+  export let currentState: IState = null;
   export let moveStart = -1;
   export let curSelectedCol: number = null;
 
@@ -20,7 +21,7 @@ module game {
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
     //resizeGameAreaService.setWidthToHeight(1);
-    state = gameLogic.getInitialState();
+    originalState = gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
       maxNumberOfPlayers: 2,
@@ -51,12 +52,19 @@ module game {
     didMakeMove = false; // Only one move per updateUI
     currentUpdateUI = params;
     clearAnimationTimeout();
-    state = params.move.stateAfterMove;
+    originalState = params.move.stateAfterMove;
     if (isFirstMove()) {
-      state = gameLogic.getInitialState();
+      originalState = gameLogic.getInitialState();
+      currentState = angular.copy(originalState);
       //setInitialTurnIndex();
-      if (isMyTurn()) makeMove(gameLogic.createInitialMove());
+      if (isMyTurn()) {
+        makeMove(gameLogic.createInitialMove());
+      }
     } else {
+      currentState = angular.copy(originalState);
+      // maybe we want to show the original steps by the opponent first
+      // some animation on the originalState.delta.originalSteps needed
+      currentState.delta = null;
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
@@ -124,28 +132,28 @@ module game {
     }
     if (moveStart !== -1) {
       try {
-        gameLogic.createMiniMove(moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
+        gameLogic.createMiniMove(currentState, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
+        log.info(["Create a move between:", moveStart, target]);
       } catch (e) {
         log.info(["Unable to create a move between:", moveStart, target]);
-        return;
+      } finally { // comment the finally clause if you want the moveStart unchanged
+        moveStart = -1;
       }
-      // Move is legal, make it!
-      // makeMove(nextMiniMove);
-      moveStart = -1;
     } else {
       moveStart = target;
+      log.info(["Starting a move from:", moveStart]);
       //to-do startMove(...)
-      return;
     }
   }
 
   export function submitClicked(): void {
     log.info(["Submit move."]);
-    let stateBeforeMove: IState = gameLogic.originalState;
-    let delta: BoardDelta = gameLogic.currentState.delta;
-    let oneMove: IMove = gameLogic.createMove(stateBeforeMove, delta, currentUpdateUI.move.turnIndexAfterMove);
-    // Move is legal, make it!
-    makeMove(oneMove);
+    try {
+      let oneMove: IMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
+      makeMove(oneMove);
+    } catch (e) {
+      log.info(["Game: Move submission failed."]);
+    }
   }
 
   /**
@@ -158,22 +166,22 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    gameLogic.setOriginalSteps();
+    gameLogic.setOriginalSteps(currentState);
   }
 
   export function getTowerCount(col: number): number[] {
-    let tc = state.board[col].count;
+    let tc = currentState.board[col].count;
     return new Array(tc);
   }
 
   export function getPlayer(col: number):  string {
-    return 'player' + state.board[col].status;
+    return 'player' + currentState.board[col].status;
   }
   
   export function getHeight(col: number): number {
-    for(let i=0; i < state.board.length; i++) {
-      if(state.board[i].tid === col) {
-        var n = state.board[i].count;
+    for(let i=0; i < currentState.board.length; i++) {
+      if(currentState.board[i].tid === col) {
+        var n = currentState.board[i].count;
         if(n < 7) {
           return 16.66;
         }
