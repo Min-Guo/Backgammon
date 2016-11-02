@@ -40,22 +40,23 @@ var game;
     function updateUI(params) {
         log.info("Game got updateUI:", params);
         game.didMakeMove = false; // Only one move per updateUI
+        game.currentState = null; // reset
         game.currentUpdateUI = params;
         clearAnimationTimeout();
         game.originalState = params.move.stateAfterMove;
+        //currentState.delta = null;    
         if (isFirstMove()) {
             game.originalState = gameLogic.getInitialState();
-            game.currentState = angular.copy(game.originalState);
+            game.currentState.board = angular.copy(game.originalState.board);
             //setInitialTurnIndex();
             if (isMyTurn()) {
                 makeMove(gameLogic.createInitialMove());
             }
         }
         else {
-            game.currentState = angular.copy(game.originalState);
+            game.currentState.board = angular.copy(game.originalState.board);
             // maybe we want to show the original steps by the opponent first
             // some animation on the originalState.delta.originalSteps needed
-            game.currentState.delta = null;
             // We calculate the AI move only after the animation finishes,
             // because if we call aiService now
             // then the animation will be paused until the javascript finishes.
@@ -133,13 +134,19 @@ var game;
     game.towerClicked = towerClicked;
     function submitClicked() {
         log.info(["Submit move."]);
+        if (window.location.search === '?throwException') {
+            throw new Error("Throwing the error because URL has '?throwException'");
+        }
+        var oneMove = null;
         try {
-            var oneMove = gameLogic.createMove(game.originalState, game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
-            makeMove(oneMove);
+            oneMove = gameLogic.createMove(game.originalState, game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
         }
         catch (e) {
             log.info(["Game: Move submission failed."]);
+            return;
         }
+        // Move is legal, make it!
+        makeMove(oneMove);
     }
     game.submitClicked = submitClicked;
     /**
@@ -153,7 +160,7 @@ var game;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
-        gameLogic.setOriginalSteps(game.currentState);
+        gameLogic.setOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
     }
     game.rollClicked = rollClicked;
     function getTowerCount(col) {

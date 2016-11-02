@@ -50,21 +50,23 @@ module game {
   export function updateUI(params: IUpdateUI): void {
     log.info("Game got updateUI:", params);
     didMakeMove = false; // Only one move per updateUI
+    currentState = null; // reset
     currentUpdateUI = params;
     clearAnimationTimeout();
     originalState = params.move.stateAfterMove;
+    //currentState.delta = null;    
     if (isFirstMove()) {
       originalState = gameLogic.getInitialState();
-      currentState = angular.copy(originalState);
+      currentState.board = angular.copy(originalState.board);
       //setInitialTurnIndex();
       if (isMyTurn()) {
         makeMove(gameLogic.createInitialMove());
       }
     } else {
-      currentState = angular.copy(originalState);
+      currentState.board = angular.copy(originalState.board);
       // maybe we want to show the original steps by the opponent first
       // some animation on the originalState.delta.originalSteps needed
-      currentState.delta = null;
+
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
@@ -148,12 +150,18 @@ module game {
 
   export function submitClicked(): void {
     log.info(["Submit move."]);
+    if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
+      throw new Error("Throwing the error because URL has '?throwException'");
+    }
+    let oneMove: IMove = null;
     try {
-      let oneMove: IMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
-      makeMove(oneMove);
+      oneMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
     } catch (e) {
       log.info(["Game: Move submission failed."]);
+      return;
     }
+    // Move is legal, make it!
+    makeMove(oneMove);
   }
 
   /**
@@ -166,7 +174,7 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    gameLogic.setOriginalSteps(currentState);
+    gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
   }
 
   export function getTowerCount(col: number): number[] {

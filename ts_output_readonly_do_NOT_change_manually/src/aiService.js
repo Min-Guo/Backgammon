@@ -13,10 +13,36 @@ var aiService;
      */
     function getPossibleMoves(state, turnIndexBeforeMove) {
         var possibleMoves = [];
+        state.delta = { originalSteps: DieCombo.generate(), moves: null }; // help the computer roll the dies : )
+        var selfBar;
+        if (turnIndexBeforeMove === gameLogic.BLACK) {
+            selfBar = gameLogic.BLACKBAR;
+        }
+        else {
+            selfBar = gameLogic.WHITEBAR;
+        }
+        // code below applies to every possible move
+        var stateAfterMove = angular.copy(state);
+        gameLogic.currentSteps = angular.copy(state.delta.originalSteps);
+        var board = stateAfterMove.board;
+        var steps = stateAfterMove.delta.originalSteps;
+        while (gameLogic.currentSteps.length !== 0) {
+            if (board[selfBar].count !== 0) {
+                for (var i = 1; i < 7; i++) {
+                    var end = gameLogic.getValidPos(selfBar, i, turnIndexBeforeMove);
+                    if (gameLogic.createMiniMove(stateAfterMove, selfBar, end, turnIndexBeforeMove)) {
+                        stateAfterMove.delta.moves.push({ start: selfBar, end: end });
+                        break;
+                    }
+                }
+            }
+            else {
+            }
+        }
         var moves = {};
         if (turnIndexBeforeMove === gameLogic.BLACK) {
             for (var i = 1; i < 27; i++) {
-                moves = gameLogic.startMove(state, i, gameLogic.BLACK);
+                moves = gameLogic.startMove(state.board, i, gameLogic.BLACK);
                 if (!angular.equals(moves, {})) {
                     try {
                         var ends = Object.keys(moves); //all reachable end positions.
