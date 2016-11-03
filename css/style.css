@@ -320,8 +320,10 @@
 .bearOffHome span {
     color: #aaa;
     position: absolute;
-    top: 30%;
-    left: 35%;
+    top: 105%;
+    width: 100%;
+    text-align: center;
+    left: 0;
 }
 
 #t27 {
@@ -372,36 +374,39 @@ button {
     width: 60px;
 }
 
-@media screen and (max-width: 900px) {
+@media screen and (max-width: 1000px) {
+    span {
+        font-size: .7em;
+    }
     #dicewrapper {
-        width:20px;
-        height:20px;
-        left: 40%;
+        width:30px;
+        height:30px;
+        left: 30%;
     }
     
     #cube div {
-        width:20px;
-        height:20px;
-        border-radius: 5px;
+        width:30px;
+        height:30px;
+        border-radius: 10px;
     }
     
     .front {
-        transform: rotateY(   0deg ) translateZ( 10px );
+        transform: rotateY(   0deg ) translateZ( 15px );
     }
     .back {
-        transform: rotateX( 180deg ) translateZ( 10px );
+        transform: rotateX( 180deg ) translateZ( 15px );
     }
     .right {
-        transform: rotateY(  90deg ) translateZ( 10px );
+        transform: rotateY(  90deg ) translateZ( 15px );
     }
     .left {
-        transform: rotateY( -90deg ) translateZ( 10px );
+        transform: rotateY( -90deg ) translateZ( 15px );
     }
     .top {
-        transform: rotateX(  90deg ) translateZ( 10px );
+        transform: rotateX(  90deg ) translateZ( 15px );
     }
     .bottom {
-        transform: rotateX( -90deg ) translateZ( 10px );
+        transform: rotateX( -90deg ) translateZ( 15px );
     }
     
     @keyframes roll {
@@ -412,7 +417,53 @@ button {
         50% { transform: translate3d(-10px,-10px,-100px) }
         62% { transform: translate3d(0px,0,-25px) }
         75% { transform: translate3d(10px,-10px,-100px) }
-        87% { transform: translate3d(0px,-25px,-200px) }
+        87% { transform: translate3d(0px,-10px,-200px) }
+        100% { transform: translate3d(-10px,-10px,-100px) }
+    }
+}
+
+@media screen and (max-width: 700px) {
+    #dicewrapper {
+        width:16px;
+        height:16px;
+        top: 37%;
+        left: 35%;
+    }
+    
+    #cube div {
+        width:16px;
+        height:16px;
+        border-radius: 10px;
+    }
+    
+    .front {
+        transform: rotateY(   0deg ) translateZ( 8px );
+    }
+    .back {
+        transform: rotateX( 180deg ) translateZ( 8px );
+    }
+    .right {
+        transform: rotateY(  90deg ) translateZ( 8px );
+    }
+    .left {
+        transform: rotateY( -90deg ) translateZ( 8px );
+    }
+    .top {
+        transform: rotateX(  90deg ) translateZ( 8px );
+    }
+    .bottom {
+        transform: rotateX( -90deg ) translateZ( 8px );
+    }
+    
+    @keyframes roll {
+        0% { transform: translate3d(-10px,-10px,-100px) }
+        12% { transform: translate3d(0px,0,-25px) }
+        25% { transform: translate3d(10px,-10px,-100px) }
+        37% { transform: translate3d(0px,-10px,-200px) }
+        50% { transform: translate3d(-10px,-10px,-100px) }
+        62% { transform: translate3d(0px,0,-25px) }
+        75% { transform: translate3d(10px,-10px,-100px) }
+        87% { transform: translate3d(0px,-10px,-200px) }
         100% { transform: translate3d(-10px,-10px,-100px) }
     }
 }
