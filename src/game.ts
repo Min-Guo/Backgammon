@@ -15,6 +15,10 @@ module game {
   export let currentState: IState = null;
   export let moveStart = -1;
   export let curSelectedCol: number = null;
+  export let showSteps: number[] = [0, 0, 0, 0];
+  export let rollingEndedTimeout: ng.IPromise<any> = null;
+  let rolling: boolean = false;
+
 
   export function init() {
     registerServiceWorker();
@@ -54,7 +58,7 @@ module game {
     currentUpdateUI = params;
     clearAnimationTimeout();
     originalState = params.move.stateAfterMove;
-    //currentState.delta = null;    
+    currentState = {board: null, delta: null};    
     if (isFirstMove()) {
       originalState = gameLogic.getInitialState();
       currentState.board = angular.copy(originalState.board);
@@ -174,7 +178,24 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
+    setDiceStatus(true);    
     gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+    let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+    if (originalSteps.length === 2) {
+      showSteps[1] = originalSteps[0];
+      showSteps[2] = originalSteps[1];
+    } else { // 4
+      showSteps[0] = originalSteps[0];
+      showSteps[1] = originalSteps[1];
+      showSteps[2] = originalSteps[2];
+      showSteps[3] = originalSteps[3];
+    }
+    rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
+  }
+
+  function rollingEndedCallback() {
+    log.info("Rolling ended");
+    setDiceStatus(false);
   }
 
   export function getTowerCount(col: number): number[] {
@@ -196,6 +217,18 @@ module game {
         return 100 / n;
       }
     }
+  }
+
+  export function setDiceStatus(b: boolean): void {
+    rolling = b;
+  }
+
+  export function getDiceStatus(): boolean {
+    return rolling;
+  }
+
+  export function getDiceVal(index: number): number {
+    return showSteps[index];
   }
 
   //to-do

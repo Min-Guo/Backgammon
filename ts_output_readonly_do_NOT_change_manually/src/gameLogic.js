@@ -124,6 +124,11 @@ var gameLogic;
             return "";
         }
     }
+    function getOriginalSteps(currentState, role) {
+        var lastTurn = currentState.delta.turns[currentState.delta.turns.length - 1];
+        return lastTurn.originalSteps;
+    }
+    gameLogic.getOriginalSteps = getOriginalSteps;
     /** Start a new turn. Set the original die values. */
     function setOriginalSteps(currentState, role) {
         // We can assume the currentState has been properly initialized with the final board,

@@ -8,6 +8,9 @@ var game;
     game.currentState = null;
     game.moveStart = -1;
     game.curSelectedCol = null;
+    game.showSteps = [0, 0, 0, 0];
+    game.rollingEndedTimeout = null;
+    var rolling = false;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -44,7 +47,7 @@ var game;
         game.currentUpdateUI = params;
         clearAnimationTimeout();
         game.originalState = params.move.stateAfterMove;
-        //currentState.delta = null;    
+        game.currentState = { board: null, delta: null };
         if (isFirstMove()) {
             game.originalState = gameLogic.getInitialState();
             game.currentState.board = angular.copy(game.originalState.board);
@@ -160,9 +163,26 @@ var game;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
+        setDiceStatus(true);
         gameLogic.setOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+        var originalSteps = gameLogic.getOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+        if (originalSteps.length === 2) {
+            game.showSteps[1] = originalSteps[0];
+            game.showSteps[2] = originalSteps[1];
+        }
+        else {
+            game.showSteps[0] = originalSteps[0];
+            game.showSteps[1] = originalSteps[1];
+            game.showSteps[2] = originalSteps[2];
+            game.showSteps[3] = originalSteps[3];
+        }
+        game.rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
     }
     game.rollClicked = rollClicked;
+    function rollingEndedCallback() {
+        log.info("Rolling ended");
+        setDiceStatus(false);
+    }
     function getTowerCount(col) {
         var tc = game.currentState.board[col].count;
         return new Array(tc);
@@ -184,6 +204,18 @@ var game;
         }
     }
     game.getHeight = getHeight;
+    function setDiceStatus(b) {
+        rolling = b;
+    }
+    game.setDiceStatus = setDiceStatus;
+    function getDiceStatus() {
+        return rolling;
+    }
+    game.getDiceStatus = getDiceStatus;
+    function getDiceVal(index) {
+        return game.showSteps[index];
+    }
+    game.getDiceVal = getDiceVal;
     //to-do
     //tower on click highlight
     function selectTower(col) {

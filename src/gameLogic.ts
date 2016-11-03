@@ -142,6 +142,11 @@ module gameLogic {
 		}
 	}
 
+	export function getOriginalSteps(currentState: IState, role: number): Steps {
+		let lastTurn = currentState.delta.turns[currentState.delta.turns.length - 1];
+		return lastTurn.originalSteps;
+	}
+
 	/** Start a new turn. Set the original die values. */
 	export function setOriginalSteps(currentState: IState, role: number): void {
 		// We can assume the currentState has been properly initialized with the final board,

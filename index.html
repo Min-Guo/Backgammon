@@ -49,7 +49,7 @@
             </div>
             <div id="ctrl">
                 <div id="dicewrapper"
-                     ng-click="game.setDiceStatus(); game.setDiceVal()"
+                     ng-click="game.rollClicked();"
                      ng-class="{rollingDice: game.getDiceStatus()}">
                     <div id="cube" 
                          class="show1"
@@ -66,7 +66,7 @@
                     <div ng-repeat="dice in [0, 1, 2, 3]"
                          id="{{'diceVal'+dice}}"
                          ng-class="{spinFour: game.getDiceStatus()}"
-                         style="background-image: url('images/side{{getDiceVal(dice)}}.png')"></div>
+                         style="background-image: url('images/side{{game.getDiceVal(dice)}}.png')"></div>
                 </div>
             </div>
             
