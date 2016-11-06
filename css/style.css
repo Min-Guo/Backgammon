@@ -422,6 +422,7 @@ button {
     }
 }
 
+/*<<<<<<< HEAD
 @media screen and (max-width: 700px) {
     #dicewrapper {
         width:16px;
@@ -466,14 +467,19 @@ button {
         87% { transform: translate3d(0px,-10px,-200px) }
         100% { transform: translate3d(-10px,-10px,-100px) }
     }
-}
+}*/
 
+/*=======
+>>>>>>> temp*/
 
 
 /********from prof.********/
 
 /* To prevent long-press that will bring up copy-paste dialog. */
+/*<<<<<<< HEAD
 
+=======
+>>>>>>> temp*/
 * {
   -webkit-user-select: none;
   -moz-user-select: none;

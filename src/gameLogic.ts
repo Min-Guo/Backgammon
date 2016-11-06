@@ -32,15 +32,32 @@ module DieCombo {
 	}
 }
 
-interface BoardDelta {
+/** The mini-move level delta contains the start and end of this mini-move. */
+interface IMiniMove {
 	start: number;
 	end: number;
 }
 
+/** The turn level delta has info on the original dices, remaining dices, and ordered mini-moves. */
+interface ITurnDelta {
+	originalSteps: Steps; // immutable
+	currentSteps: Steps; // mutable
+	moves: IMiniMove[];
+}
+
+/** The top level delta may contain more than one turn level delta. */
+interface BoardDelta {
+	turns: ITurnDelta[];
+}
+
+/** The top level state contains the final board, and top level delta to reach the board. */
 interface IState {
 	board: Board;
-	steps: Steps;
 	delta: BoardDelta;
+}
+
+interface IEndToStepIndex {
+	[key: number]: number[];
 }
 
 module gameLogic {
@@ -56,27 +73,27 @@ module gameLogic {
 	//7, 9, 14, 25 white
 	/** Returns the initial board. */
 	function getInitialBoard(): Board {
-		let board: Board;
+		let board: Board = Array(27);
 		for (let i = 0; i < 28; i++) {
-			if (i == WHITEHOME || i == WHITEBAR) {
+			if (i === WHITEHOME || i === WHITEBAR) {
 				board[i] = new Tower(i, WHITE, 0);
-			} else if (i == BLACKHOME || i == BLACKBAR) {
+			} else if (i === BLACKHOME || i === BLACKBAR) {
 				board[i] = new Tower(i, BLACK, 0);
-			} else if (i == 2) {
+			} else if (i === 2) {
 				board[i] = new Tower(i, BLACK, 2);
-			} else if (i == 7) {
+			} else if (i === 7) {
 				board[i] = new Tower(i, WHITE, 5);
-			} else if (i == 9) {
+			} else if (i === 9) {
 				board[i] = new Tower(i, WHITE, 3);
-			} else if (i == 13) {
+			} else if (i === 13) {
 				board[i] = new Tower(i, BLACK, 5);
-			} else if (i == 14) {
+			} else if (i === 14) {
 				board[i] = new Tower(i, WHITE, 5);
-			} else if (i == 18) {
+			} else if (i === 18) {
 				board[i] = new Tower(i, BLACK, 3);
-			} else if (i == 20) {
+			} else if (i === 20) {
 				board[i] = new Tower(i, BLACK, 5);
-			} else if (i == 25) {
+			} else if (i === 25) {
 				board[i] = new Tower(i, WHITE, 2);
 			} else {
 				board[i] = new Tower(i, EMPTY, 0);
@@ -86,7 +103,7 @@ module gameLogic {
 	}
 
 	export function getInitialState(): IState {
-		return {board: getInitialBoard(), steps: DieCombo.init(), delta: null};
+		return {board: getInitialBoard(), delta: null};
 	}
 
 	/** If all checkers of one player are in his homeboard, he can bear them off. */
@@ -125,13 +142,76 @@ module gameLogic {
 		}
 	}
 
-	//make it a stateBeforeToss transition, or a IMove?
-	export function toss(stateBeforeToss: IState, roleBeforeToss: number): void {
-		stateBeforeToss.steps = DieCombo.generate();
+	export function getOriginalSteps(currentState: IState, role: number): Steps {
+		let lastTurn = currentState.delta.turns[currentState.delta.turns.length - 1];
+		return lastTurn.originalSteps;
+	}
+
+	/** Start a new turn. Set the original die values. */
+	export function setOriginalSteps(currentState: IState, role: number): void {
+		// We can assume the currentState has been properly initialized with the final board,
+		// while the final delta may or may not be initialized:
+		// if yes, not the first turn; if not, the first turn.
+		if (!currentState.delta) {
+			currentState.delta = {turns: []};
+			let imSteps = DieCombo.generate();
+			let mSteps = angular.copy(imSteps);
+			currentState.delta.turns.push({originalSteps: imSteps, currentSteps: mSteps, moves: null});
+		} else if (shouldRollDicesAgain(currentState, role)) {
+			let imSteps = DieCombo.generate();
+			let mSteps = angular.copy(imSteps);
+			currentState.delta.turns.push({originalSteps: imSteps, currentSteps: mSteps, moves: null});
+		} else {
+			throw new Error("You should not try to roll the dices again, your opponent has a chance to move!");
+		}
+	}
+
+	function setOriginalStepsWithDefault(currentState: IState, role: number, steps: Steps): void {
+		if (!currentState.delta) {
+			currentState.delta = {turns: []};
+			let imSteps = angular.copy(steps);
+			let mSteps = angular.copy(imSteps);
+			currentState.delta.turns.push({originalSteps: imSteps, currentSteps: mSteps, moves: null});
+		} else if (shouldRollDicesAgain(currentState, role)) {
+			let imSteps = angular.copy(steps);
+			let mSteps = angular.copy(imSteps);
+			currentState.delta.turns.push({originalSteps: imSteps, currentSteps: mSteps, moves: null});
+		} else {
+			throw new Error("You should not try to roll the dices again, your opponent has a chance to move!");
+		}
+	}
+
+	/** 
+	 * This function checks the extreme case whether the opponent's home board has been occupied by six doubles.
+	 * And the opponent still has checkers waiting on the bar to enter the board.
+	 * No matter how the dices are rolled, the opponent cannot make a move in this case.
+	 * Therefore it signals the current player to roll the dices legally to start the next turn.
+	 */
+	function isEnemySurelyStuck(board: Board, role: number): boolean {
+		let enemyBar = role === BLACK ? WHITEBAR : BLACKBAR;
+		if (board[enemyBar].count !== 0) {
+			if (role === BLACK) {
+				for (let i = 20; i < 26; i++) { // white home board
+					if (board[i].status !== role || board[i].count === 1) {
+						return false;
+					}
+				}
+				return true;
+			} else {
+				for (let i = 2; i < 8; i++) { // black home board
+					if (board[i].status !== role || board[i].count === 1) {
+						return false;
+					}
+				}
+				return true;
+			}
+		} else {
+			return false;
+		}
 	}
 
 	/** This function simply converts overflow indexes to respective home value. */
-	function getValidPos(start: number, step: number, role: number) {
+	export function getValidPos(start: number, step: number, role: number) {
 		let pos: number;
 		if (role === BLACK) {
 			let tmp = start + step;
@@ -144,9 +224,9 @@ module gameLogic {
 	}
 
 	/** 
-	 * This function models the board result after this move.
-	 * Successful moves modified the board, and return true.
-	 * Unsuccessful moves leave the board unmodified and return false.
+	 * This function models the board result after this mini-move.
+	 * Successful mini-move modifies the board, and returns true.
+	 * Unsuccessful mini-move leaves the board unmodified and returns false.
 	 */
 	function modelMove(board: Board, start: number, step: number, role: number): boolean {
 		if (board[start].status !== role) {
@@ -154,11 +234,13 @@ module gameLogic {
 		}
 		let end = getValidPos(start, step, role);
 		if (role === BLACK && end === BLACKHOME && canBearOff(board, BLACK)) {
-			for (let i = 20; i < start; i++) {
-				if (board[i].status === BLACK) {
-					return false;
+			if (start + step > BLACKHOME - 1) {
+				for (let i = start - 1; i > 19; i--) {
+					if (board[i].status === BLACK) {
+						return false;
+					}
 				}
-			}
+			}			
 			board[start].count -= 1;
 			if (board[start].count === 0) {
 				board[start].status = EMPTY;
@@ -166,9 +248,11 @@ module gameLogic {
 			board[BLACKHOME].count += 1;
 			return true;
 		} else if (role === WHITE && end === WHITEHOME && canBearOff(board, WHITE)) {
-			for (let i = 7; i > start; i--) {
-				if (board[i].status === WHITE) {
-					return false;
+			if (start - step < WHITEHOME + 1) {
+				for (let i = start + 1; i < 8; i++) {
+					if (board[i].status === WHITE) {
+						return false;
+					}
 				}
 			}
 			board[start].count -= 1;
@@ -179,7 +263,7 @@ module gameLogic {
 			return true;
 		} else if (board[end].status !== 1 - role || board[end].count === 1) {
 			board[start].count -= 1;
-			if (board[start].count === 0) {
+			if (board[start].count === 0 && start !== BLACKBAR && start !== WHITEBAR) {
 				board[start].status = EMPTY;
 			}
 			if (board[end].status !== 1 - role) {
@@ -200,23 +284,25 @@ module gameLogic {
 	 * Returns an object, containing reachable Tower tid's as keys, and an array of steps indexes by which to walk from start.
 	 * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [1, 0]} 
 	 */
-	export function startMove(stateBeforeMove: IState, start: number, role: number) {
-		let res = {};
-		if (stateBeforeMove.steps.length === 0) {
+	export function startMove(curBoard: Board, curSteps: Steps, start: number, role: number): IEndToStepIndex {
+		let res: IEndToStepIndex = {};
+		if (curSteps.length === 0) {
 			return res;
-		} else if (stateBeforeMove.steps.length === 2) {
+		} else if (curSteps.length === 2) {
 			let board: Board;
-			let steps = stateBeforeMove.steps;
 			let newStart: number;
 			// 1 -> 2
-			board = angular.copy(stateBeforeMove.board);
+			board = angular.copy(curBoard);
 			newStart = start;
-			for (let i = 0; i < steps.length; i++) {
+			for (let i = 0; i < curSteps.length; i++) {
 				let oldStart = newStart;
-				newStart = getValidPos(oldStart, steps[i], role);
-				let modified = modelMove(board, oldStart, steps[i], role);
+				newStart = getValidPos(oldStart, curSteps[i], role);
+				let modified = modelMove(board, oldStart, curSteps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -224,14 +310,17 @@ module gameLogic {
 				}
 			}			
 			// 2 -> 1
-			board = angular.copy(stateBeforeMove.board);
+			board = angular.copy(curBoard);
 			newStart = start;
-			for (let i = steps.length - 1; i >= 0; i--) {
+			for (let i = curSteps.length - 1; i >= 0; i--) {
 				let oldStart = newStart;
-				newStart = getValidPos(oldStart, steps[i], role);
-				let modified = modelMove(board, oldStart, steps[i], role);
+				newStart = getValidPos(oldStart, curSteps[i], role);
+				let modified = modelMove(board, oldStart, curSteps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -240,17 +329,19 @@ module gameLogic {
 			}
 		} else {
 			let board: Board;
-			let steps = stateBeforeMove.steps;
 			let newStart = start;
 			// 1
 			// 1 -> 2 -> 3 [-> 4]
-			board = angular.copy(stateBeforeMove.board);
-			for (let i = 0; i < steps.length; i++) {
+			board = angular.copy(curBoard);
+			for (let i = 0; i < curSteps.length; i++) {
 				let oldStart = newStart;
-				newStart = getValidPos(oldStart, steps[i], role);
-				let modified = modelMove(board, oldStart, steps[i], role);
+				newStart = getValidPos(oldStart, curSteps[i], role);
+				let modified = modelMove(board, oldStart, curSteps[i], role);
 				if (modified) {
 					//assume an automatic conversion from number to string
+					if (!res[board[newStart].tid]) {
+						res[board[newStart].tid] = [];
+					}
 					res[board[newStart].tid].push(i);
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
@@ -261,234 +352,139 @@ module gameLogic {
 		return res;
 	}
 
-	function checkValidPos(board: Board, start: number, end: number, result: Board, role: number): void {
-		if (role === BLACK) {
-			if (end <= 25) {
-				if (board[end].status === role || (board[end].status === WHITE && board[end].count === 1)) {
-					let tBoard = board[end];
-					result.push(tBoard);
-				} 
-			} else if (end === 26){
-				///if end is 26, home is a reachable position.
-				let tBoard = board[27];
-				result.push(tBoard);
-			} else {
-				///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
-				let fakeStart = start - 1;
-				while (fakeStart > 19) {
-					if (board[fakeStart].status === role) {
-						throw new Error("Must move leftmost checker first!");
-					}
-					fakeStart--;
-				}
-				let tBoard = board[27];
-				result.push(tBoard);
-			} 
+	export function createMove(originalState: IState, currentState: IState, turnIndexBeforeMove: number): IMove {
+		// if (!stateBeforeMove) {
+		// 	stateBeforeMove = getInitialState();
+		// }
+		let oldBoard: Board = originalState.board;
+		if (getWinner(oldBoard) !== '') {
+			throw new Error("Can only make a move if the game is not over!");
 		}
-		if (role === WHITE) {
-			if (end >= 2) {
-				if (board[end].status === role || (board[end].status === BLACK && board[end].count === 1)) {
-					let tBoard = board[end];
-					result.push(tBoard);
-				}
-			} else if (end === 1){
-				///if end is 1, home is a reachable postion.
-				let tBoard = board[0];
-				result.push(tBoard);
-			} else {
-				///home is reachable postion if there is no checker left on its left side. Otherwise, there is no reachable position.
-				let fakeStart = start + 1;
-				while (fakeStart < 8) {
-					if (board[fakeStart].status === role) {
-						throw new Error("Must move leftmost checker first!");
-					}
-					fakeStart++;
-				}
-				let tBoard = board[0];
-				result.push(tBoard);
-			} 
+		if (!currentState.delta) {
+			throw new Error("Please roll the dices to start your turn!");
 		}
-	}
-
-	function bearOffStartMove(stateBeforeMove: IState, start: number, role: number): Board {
-		let board = stateBeforeMove.board;
-		let steps = stateBeforeMove.steps;
-		let bearOffRes: Board;
-		if (steps.length === 1) {
-			if (role === BLACK) {
-				checkValidPos(board, start, start + steps[0], bearOffRes, role);
-			} else {
-				checkValidPos(board, start, start - steps[0], bearOffRes, role);
-			}
+		let last = currentState.delta.turns.length - 1;
+		let lastTurn = currentState.delta.turns[last];
+		let winner = getWinner(currentState.board);
+		let endMatchScores: number[];
+		let turnIndexAfterMove: number;
+		if (winner !== '') {
+			// Game over.
+			turnIndexAfterMove = -1;
+			endMatchScores = winner === "Black" ? [1, 0] : [0, 1];
+		} else if (shouldRollDicesAgain(currentState, turnIndexBeforeMove)) {
+			// Game continues. You should roll the dices again to start a new turn directly.
+			throw new Error("Your opponent is closed out. You should roll the dices again to start a new turn directly.");
+		} else if (lastTurn.currentSteps.length !== 0) {
+			// Game continues. You should complete all available mini-moves within your turn.
+			throw new Error("You should complete all available mini-moves within your turn.");
+		} else {
+			// Game continues. Now it's the opponent's turn.
+			turnIndexAfterMove = 1 - turnIndexBeforeMove;
+			endMatchScores = null;
 		}
-		if (steps.length === 2 && (steps[0] !== steps[1])) {
-			if (role === BLACK) {
-				checkValidPos(board, start, start + steps[0], bearOffRes, role);
-				checkValidPos(board, start, start + steps[1], bearOffRes, role);
-				checkValidPos(board, start, start + steps[0] + start[1], bearOffRes, role);
-			} else {
-				checkValidPos(board, start, start - steps[0], bearOffRes, role);
-				checkValidPos(board, start, start - steps[1], bearOffRes, role);
-				checkValidPos(board, start, start - steps[0] - start[1], bearOffRes, role);
-			}
-		}
-		if (steps.length >= 2 && steps[0] === steps[1]) {
-			let len = steps.length;
-			if (role === BLACK) {
-				for (let i = 2; i <= len; i++) {
-					checkValidPos(board, start, start + i * steps[0], bearOffRes, role);
-				}
-			} else {
-				for (let i = 2; i <= len; i++) {
-					checkValidPos(board, start, start - i * steps[0], bearOffRes, role);
-				}
-			}
-		}
-		return bearOffRes;
+		//let stateAfterMove: IState = angular.copy(currentState); // do we need to copy this?
+		let stateAfterMove: IState = currentState;
+		return {endMatchScores: endMatchScores, 
+				turnIndexAfterMove: turnIndexAfterMove, 
+				stateAfterMove: stateAfterMove};
 	}	
 
 	/**
-	 * This function reacts on the mouse second click or drop event to trigger a move to be created on the original board.
-	 * Param start comes from the mouse first click or drag event, and denotes the starting point of this move.
-	 * Param end comes from the mouse second click or drop event, and denotes the ending point of this move.
+	 * This function reacts on the mouse second click or drop event to trigger a mini-move to be created on the current board.
+	 * Param start comes from the mouse first click or drag event, and denotes the starting point of this mini-move.
+	 * Param end comes from the mouse second click or drop event, and denotes the ending point of this mini-move.
 	 * If |end - start| is indeed a valid step, a trial of modelMove is issued which may modify boardAfterMove.
 	 * When no more step available, players are switched.
 	 */
-	export function createMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): IMove {
-		//assume now that |end-start| appears in steps, and no automatic move relay
-		if (!stateBeforeMove) {
-			stateBeforeMove = getInitialState();
-		}
-		let board = stateBeforeMove.board;
-		let steps = stateBeforeMove.steps;
-		if (getWinner(board) !== "") {
-			throw new Error("One can only make a move if the game is not over!");
-		}
-		let boardAfterMove = angular.copy(board);
-		//if the move exists, process the move on the copy board, and remove the step from the steps
-		let posToStep = startMove(stateBeforeMove, start, roleBeforeMove);
-		if (end in posToStep) {
-			//posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
-			let index = posToStep[end][0];
-			modelMove(boardAfterMove, start, steps[index], roleBeforeMove);
-			steps.splice(index, 1);
+	export function createMiniMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): boolean {
+		// We can assume the stateBeforeMove has been properly initialized with the final board,
+		// while the turns or originalSteps in the current turn may not be initialized (dices not rolled first).
+		let turns = stateBeforeMove.delta.turns;
+		if (!turns) {
+			// throw new Error("You have to roll the dices to start a new turn!");
+			log.info(["You have to roll the dices to start a new turn!"]);
+			return false;
+		} else if (shouldRollDicesAgain(stateBeforeMove, roleBeforeMove)) {
+			// throw new Error("Your opponent is closed out. You can roll the dices to start a new turn again!");
+			log.info(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
+			return false;
+		} else if (turns[turns.length - 1].currentSteps.length === 0) {
+			// Cannot re-roll the dices, and the current turn is complete, must submit the move.
+			log.info(["All mini-moves complete. Please submit your move!"]);
+			return false;
 		} else {
-			//no such value found tossed, must roll back
-			return {endMatchScores: null, turnIndexAfterMove: roleBeforeMove, stateAfterMove: stateBeforeMove};
-		}
-		let endMatchScores: number[];
-		let roleAfterMove: number;
-		let winner = getWinner(boardAfterMove);
-		if (winner !== "") {
-			//Game over.
-			roleAfterMove = -1;
-			endMatchScores = winner === "Black" ? [1, 0] : [0, 1];
-		} else {
-			if (steps.length === 0) {
-				//if no further steps, switch player.
-				roleAfterMove = 1 - roleBeforeMove;
-			} else {
-				//further steps, player unchanged.
-				roleAfterMove = roleBeforeMove;
+			// make a mini-move
+			let curTurn = turns[turns.length - 1];
+			if (getWinner(stateBeforeMove.board) !== "") {
+				log.info(["The game is over. If it's your turn, you can submit this move now!"]);
+				return false;
 			}
-			endMatchScores = null;
+			let posToStep = startMove(stateBeforeMove.board, curTurn.currentSteps, start, roleBeforeMove);
+			if (end in posToStep) {
+				//posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
+				let index = posToStep[end][0];
+				modelMove(stateBeforeMove.board, start, curTurn.currentSteps[index], roleBeforeMove);
+				curTurn.currentSteps.splice(index, 1);
+				if (!curTurn.moves) {
+					curTurn.moves = [];
+				}
+				let oneMiniMove: IMiniMove = {start: start, end: end};
+				curTurn.moves.push(oneMiniMove);
+				return true;
+			} else {
+				//no such value found tossed, not a legal move
+				log.info(["No such move!"]);
+				return false;
+			}
 		}
-		let delta: BoardDelta = {start: start, end: end};
-		let stateAfterMove: IState = {board: boardAfterMove, steps: steps, delta: delta};
-		return {endMatchScores: endMatchScores, turnIndexAfterMove: roleAfterMove, stateAfterMove: stateAfterMove};
 	}
 
-	function moveExist(stateBeforeMove: IState, role: number): boolean {
-		//no move exists for ended game
-		if (role === -1) {
+	/** 
+	 * This function checks whether it is legal to roll the dices again. 
+	 * The only allowed case is when the player has completed the current turn, 
+	 * and the opponent is closed out for moves.
+	 */
+	function shouldRollDicesAgain(state: IState, role: number): boolean {
+		// We can assume the state has at least one turn in the delta
+		let last = state.delta.turns.length - 1;
+		let lastTurn = state.delta.turns[last];
+		if (lastTurn.currentSteps.length !== 0) {
+			return false;
+		} else if (isEnemySurelyStuck(state.board, role)) {
+			return true;
+		} else {
 			return false;
 		}
-
-		let board = stateBeforeMove.board;
-		let steps = stateBeforeMove.steps;
-
-		let stepCombination: number[];
-		let bearTime: boolean = canBearOff(board, role);
-
-		//Valid move always exists when bearoff time
-		if (bearTime) {
-			return true;
-		}
-
-		//for the purpose of this function, stepCombination contains at most two numbers
-		if (steps.length === 1 || steps.length === 3 || steps.length === 4) {
-			stepCombination = [steps[0]];
-		} else if (steps.length === 2) {
-			if (steps[0] !== steps[1]) {
-				//only need to check valid split moves, not sum of split moves
-				stepCombination = [steps[0], steps[1]];
-			} else {
-				stepCombination = [steps[0]];
-			}
-		}
-
-		if (role === BLACK) {
-			if (board[BLACKBAR].count !== 0) {
-				// for (let step of stepCombination) {
-				let moves = startMove(stateBeforeMove, BLACKBAR, BLACK);
-					// if (angular.equals(moves, {})) {
-					// 	return false;
-					// }
-				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-					return true;
-				}
-				// }
-				return false;
-			} else {
-				for (let i = 2; i < 26; i++) {
-					let moves = startMove(stateBeforeMove, i, BLACK);
-					if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-						return true;
-					}
-				}
-				return false;
-			}
-		} else {
-			if (board[WHITEBAR].count !== 0) {
-				// for (let step of stepCombination) {
-				let moves = startMove(stateBeforeMove, WHITEBAR, WHITE);
-					// if (angular.equals(moves, {})) {
-					// 	return false;
-					// }
-				if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-					return true;
-				}
-				// }
-				return false;
-			} else {
-				for (let i = 25; i > 1; i--) {
-					let moves = startMove(stateBeforeMove, i, WHITE);
-					if (Object.keys(moves).length !== 0 && moves.constructor === Object) {
-						return true;
-					}
-				}
-				return false;
-			}
-		}
 	}
 
-  export function checkMoveOk(stateTransition: IStateTransition): void {
-    // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
-    // to verify that the move is OK.
-    let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
-    let stateBeforeMove: IState = stateTransition.stateBeforeMove;
-    let move: IMove = stateTransition.move;
-    if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
-        angular.equals(createInitialMove(), move)) {
-      return;
-    }
-    let deltaValue: BoardDelta = move.stateAfterMove.delta;
-    let start = deltaValue.start;
-    let end = deltaValue.end;
-    let expectedMove = createMove(stateBeforeMove, start, end, turnIndexBeforeMove);
-    if (!angular.equals(move, expectedMove)) {
-      throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
-          ", but got stateTransition=" + angular.toJson(stateTransition, true))
-    }
-  }	
+	export function createInitialMove(): IMove {
+    	return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState()};  
+  	}
+
+	export function checkMoveOk(stateTransition: IStateTransition): void {
+		// We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
+		// to verify that the move is OK.
+		let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
+		let stateBeforeMove: IState = stateTransition.stateBeforeMove;
+		let move: IMove = stateTransition.move;
+		if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
+			angular.equals(createInitialMove(), move)) {
+			return;
+		}
+		let delta: BoardDelta = move.stateAfterMove.delta;
+		let expectedMove: IMove = null;
+		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: null};
+		for (let turn of delta.turns) {
+			setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
+			for (let move of turn.moves) {
+				createMiniMove(tmpState, move.start, move.end, turnIndexBeforeMove);
+			}
+		}
+		expectedMove = createMove(stateBeforeMove, tmpState, turnIndexBeforeMove);
+		if (!angular.equals(move, expectedMove)) {
+		throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
+			", but got stateTransition=" + angular.toJson(stateTransition, true))
+		}
+	}	
 }
