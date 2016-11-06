@@ -11,14 +11,21 @@ module game {
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
   export let animationEndedTimeout: ng.IPromise<any> = null;
-  export let state: IState = null;
+  export let originalState: IState = null;
+  export let currentState: IState = null;
   export let moveStart = -1;
+  export let curSelectedCol: number = null;
+  export let showSteps: number[] = [0, 0, 0, 0];
+  export let rollingEndedTimeout: ng.IPromise<any> = null;
+  let rolling: boolean = false;
+
 
   export function init() {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
-    resizeGameAreaService.setWidthToHeight(1);
+    //resizeGameAreaService.setWidthToHeight(1);
+    originalState = gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
       maxNumberOfPlayers: 2,
@@ -47,13 +54,23 @@ module game {
   export function updateUI(params: IUpdateUI): void {
     log.info("Game got updateUI:", params);
     didMakeMove = false; // Only one move per updateUI
+    currentState = null; // reset
     currentUpdateUI = params;
     clearAnimationTimeout();
-    state = params.move.stateAfterMove;
+    originalState = params.move.stateAfterMove;
+    currentState = {board: null, delta: null};    
     if (isFirstMove()) {
-      state = gameLogic.getInitialState();
-      if (isMyTurn()) makeMove(gameLogic.createInitialMove());
+      originalState = gameLogic.getInitialState();
+      currentState.board = angular.copy(originalState.board);
+      //setInitialTurnIndex();
+      if (isMyTurn()) {
+        makeMove(gameLogic.createInitialMove());
+      }
     } else {
+      currentState.board = angular.copy(originalState.board);
+      // maybe we want to show the original steps by the opponent first
+      // some animation on the originalState.delta.originalSteps needed
+
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
@@ -114,55 +131,137 @@ module game {
   }
 
   export function towerClicked(target: number): void {
-    log.info("Clicked on tower:", target);
+    log.info(["Clicked on tower:", target]);
     if (!isHumanTurn()) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
     if (moveStart !== -1) {
-      let nextMove: IMove = null;
       try {
-        nextMove = gameLogic.createMove(
-          state, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
+        gameLogic.createMiniMove(currentState, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
+        log.info(["Create a move between:", moveStart, target]);
       } catch (e) {
         log.info(["Unable to create a move between:", moveStart, target]);
-        return;
+      } finally { // comment the finally clause if you want the moveStart unchanged
+        moveStart = -1;
       }
-      // Move is legal, make it!
-      makeMove(nextMove);
-      moveStart = -1;
     } else {
       moveStart = target;
+      log.info(["Starting a move from:", moveStart]);
       //to-do startMove(...)
-      return;
     }
   }
 
-  export function rollClicked(): void {
-    log.info("Clicked on roll:");
-    if (!isHumanTurn()) return;
+  export function submitClicked(): void {
+    log.info(["Submit move."]);
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    let steps = DieCombo.generate();
+    let oneMove: IMove = null;
+    try {
+      oneMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
+    } catch (e) {
+      log.info(["Game: Move submission failed."]);
+      return;
+    }
+    // Move is legal, make it!
+    makeMove(oneMove);
+  }
 
+  /**
+   * This function tries to generate a new combination of dies each time the player's turn begins.
+   * It sets the original combination to the local storage of gameLogic.
+   */
+  export function rollClicked(): void {
+    log.info("Clicked on roll:");
+    if (!isMyTurn()) return;
+    if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
+      throw new Error("Throwing the error because URL has '?throwException'");
+    }
+    setDiceStatus(true);    
+    gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+    let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+    if (originalSteps.length === 2) {
+      showSteps[1] = originalSteps[0];
+      showSteps[2] = originalSteps[1];
+    } else { // 4
+      showSteps[0] = originalSteps[0];
+      showSteps[1] = originalSteps[1];
+      showSteps[2] = originalSteps[2];
+      showSteps[3] = originalSteps[3];
+    }
+    rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
+  }
 
-
+  function rollingEndedCallback() {
+    log.info("Rolling ended");
+    setDiceStatus(false);
   }
 
   export function getTowerCount(col: number): number[] {
-    let tc = state.board[col].count;
+    let tc = currentState.board[col].count;
     return new Array(tc);
   }
 
   export function getPlayer(col: number):  string {
-    return 'player' + state.board[col].status;
+    return 'player' + currentState.board[col].status;
+  }
+  
+  export function getHeight(col: number): number {
+    for(let i=0; i < currentState.board.length; i++) {
+      if(currentState.board[i].tid === col) {
+        var n = currentState.board[i].count;
+        if(n < 7) {
+          return 16.66;
+        }
+        return 100 / n;
+      }
+    }
   }
 
-  export function shouldSlowlyAppear(start: number, end: number): boolean {
-    return state.delta &&
-      state.delta.start === start && state.delta.end === end;
+  export function setDiceStatus(b: boolean): void {
+    rolling = b;
   }
+
+  export function getDiceStatus(): boolean {
+    return rolling;
+  }
+
+  export function getDiceVal(index: number): number {
+    return showSteps[index];
+  }
+
+  //to-do
+
+  //tower on click highlight
+  export function selectTower(col: number) {
+    curSelectedCol = col;
+  }
+  export function isActive(col: number) {
+    return curSelectedCol === col;
+  }
+
+
+
+
+
+  // export function isActive(col: number): boolean {
+  //   let tmp = moveStart;
+  //   moveStart = -1;
+  //   return tmp !== -1 && col === tmp;
+  // }
+  
+  // export function shouldSlowlyAppear(start: number, end: number): boolean {
+  //   return state.delta &&
+  //     state.delta.start === start && state.delta.end === end;
+  // }
+
+  // function setInitialTurnIndex(): void {
+  //   if (state && state.currentSteps) return;
+  //   let twoDies = DieCombo.init();
+  //   state.currentSteps = twoDies;
+  //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
+  // }
 }
 
 angular.module('myApp', ['gameServices'])
