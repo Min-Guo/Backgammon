@@ -2,7 +2,7 @@ type Board = Tower[];
 type Steps = number[];
 
 class Tower {
-	//status: 1 for black, 0 for white, -1 for empty
+	//status: 0 for black, 1 for white, -1 for empty
 	constructor(public tid: number,
 				public status: number, 
 				public count: number) {
@@ -65,8 +65,8 @@ module gameLogic {
 	export const BLACKBAR = 1;
 	export const WHITEHOME = 0;
 	export const WHITEBAR = 26;
-	export const BLACK = 1;
-	export const WHITE = 0;
+	export const BLACK = 0;
+	export const WHITE = 1;
 	export const EMPTY = -1;
 
 	//2, 13, 18, 20 black
@@ -147,7 +147,7 @@ module gameLogic {
 		return lastTurn.originalSteps;
 	}
 
-	/** Start a new turn. Set the original die values. */
+	/** Start a new turn. Set the original dice values. */
 	export function setOriginalSteps(currentState: IState, role: number): void {
 		// We can assume the currentState has been properly initialized with the final board,
 		// while the final delta may or may not be initialized:
@@ -166,6 +166,7 @@ module gameLogic {
 		}
 	}
 
+	/** Start a new turn with customized original dice values. */
 	function setOriginalStepsWithDefault(currentState: IState, role: number, steps: Steps): void {
 		if (!currentState.delta) {
 			currentState.delta = {turns: []};
