@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en" ng-app="myApp">
+<head>
+    <meta http-equiv="Content-Type" content="text/html, charset=UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Backgammon</title>
+    <link rel="stylesheet" type="text/css" media="screen" href="css/game.css">
+    <link rel="icon" type="image/jpg" href="">
+    <script src="lib/angular.js"></script>
+    
+    <script src="ts_output_readonly_do_NOT_change_manually/src/game.js"></script>
+    <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
+    <script src="ts_output_readonly_do_NOT_change_manually/src/aiService.js"></script>
+</head>
+<body ng-cloak>
+    <div id="page" ng-controller="myController">    
+        <div id="container">
+            <div id="gameArea">
+                <div class="upper">
+                    <div ng-repeat="col in [14, 15, 16, 17, 18, 19, 26, 20, 21, 22, 23, 24, 25]"
+                         ng-class="{column: col!=26, colActive: isActive(col)}"
+                         class="columnUpper"
+                         id="{{'t'+col}}"
+                         ng-click="selectTower(col)">
+                        <div ng-repeat="piece in getTowerCount(col) track by $index"
+                             ng-class="{
+                                       'player1': getPlayer(col)=='player1', 
+                                       'player0': getPlayer(col)=='player0',
+                                       selectedPiece: isActive(col)&&$last}"
+                             class="piece"
+                             style="top: {{$index * getHeight(col)}}%"></div>
+                    </div>
+                </div>
+                <div class="lower">
+                    <div ng-repeat="col in [13, 12, 11, 10, 9, 8, 1, 7, 6, 5, 4, 3, 2]"
+                         ng-class="{column: col!=1, colActive: isActive(col)}"
+                         class="columnLower"
+                         id="{{'t'+col}}"
+                         ng-click="selectTower(col)">
+                        <div ng-repeat="piece in getTowerCount(col) track by $index"
+                             ng-class="{
+                                       'player1': getPlayer(col)=='player1', 
+                                       'player0': getPlayer(col)=='player0',
+                                       selectedPiece: isActive(col)&&$last}"
+                             class="piece"
+                             style="bottom: {{$index * getHeight(col)}}%"></div>
+                    </div>
+                </div>
+            </div>
+            <div id="ctrl">
+                <div id='t27' 
+                     class="bearOffHome"
+                     ng-repeat="idx in [27]">
+                    <span>{{getHomeCount(idx)}}</span>
+                </div>
+                <div id="dicewrapper"
+                     ng-click="setDiceStatus(); setDiceVal()"
+                     ng-class="{rollingDice: getDiceStatus()}">
+                    <div id="cube" 
+                         class="show1"
+                         ng-class="{newSpinSpeed: getDiceStatus()}">
+                        <div class="top"></div>
+                        <div class="front"></div>
+                        <div class="left"></div>
+                        <div class="back"></div>
+                        <div class="right"></div>
+                        <div class="bottom"></div>
+                      </div>
+                </div>
+                <div id="diceVal">
+                    <div ng-repeat="dice in [0, 1, 2, 3]"
+                         id="{{'diceVal'+dice}}"
+                         ng-class="{spinFour: getDiceStatus()}"
+                         style="background-image: url('images/side{{getDiceVal(dice)}}.png')"></div>
+                </div>
+                <div id='t0'
+                     class="bearOffHome"
+                     ng-repeat="idx in [0]">
+                    <span>{{getHomeCount(idx)}}</span>
+                </div>
+            </div>
+            
+        </div>
+        <div id="init">
+            <button ng-click="initBoard()">Initiate Board</button>        
+        </div>
+    </div>
+    
+    <script>
+        
+        //below imitating controller functions, need to apply game.ts later
+        var myApp = angular
+                .module("myApp", [])
+                .controller("myController", function($scope) {
+                    var newBoard = [
+                        {tid: 0, numPiece: 0, player: 'player0'},
+                        {tid: 1, numPiece: 0, player: 'player1'},
+                        {tid: 2, numPiece: 2, player: 'player1'},
+                        {tid: 3, numPiece: 0, player: null},
+                        {tid: 4, numPiece: 0, player: null},
+                        {tid: 5, numPiece: 0, player: null},
+                        {tid: 6, numPiece: 0, player: null},
+                        {tid: 7, numPiece: 5, player: 'player0'},
+                        {tid: 8, numPiece: 0, player: null},
+                        {tid: 9, numPiece: 3, player: 'player0'},
+                        {tid: 10, numPiece: 0, player: null},
+                        {tid: 11, numPiece: 0, player: null},
+                        {tid: 12, numPiece: 0, player: null},
+                        {tid: 13, numPiece: 5, player: 'player1'},
+                        {tid: 14, numPiece: 5, player: 'player0'},
+                        {tid: 15, numPiece: 0, player: null},
+                        {tid: 16, numPiece: 0, player: null},
+                        {tid: 17, numPiece: 0, player: null},
+                        {tid: 18, numPiece: 3, player: 'player1'},
+                        {tid: 19, numPiece: 0, player: null},
+                        {tid: 20, numPiece: 5, player: 'player1'},
+                        {tid: 21, numPiece: 0, player: null},
+                        {tid: 22, numPiece: 0, player: null},
+                        {tid: 23, numPiece: 0, player: null},
+                        {tid: 24, numPiece: 0, player: null},
+                        {tid: 25, numPiece: 2, player: 'player0'},
+                        {tid: 26, numPiece: 0, player: 'player0'},
+                        {tid: 27, numPiece: 0, player: 'player1'}
+                    ]
+                    
+                    
+                    $scope.newBoard = newBoard;
+                    
+                    
+                    
+                    $scope.selectTower = function(item) {
+                        $scope.selectedCol = item;
+                    };
+                    
+                    $scope.isActive = function(item) {
+                        return $scope.selectedCol === item;
+                    };
+                    
+                    $scope.getTowerCount = function(col) {
+                        for(var i=0; i<newBoard.length; i++) {
+                            if(newBoard[i].tid==col) {
+                                var n = newBoard[i].numPiece;
+                                return new Array(n);
+                            }
+                        }
+                    };
+                    
+                    
+                    $scope.getPlayer = function(col) {
+                        for(var i=0; i<newBoard.length; i++) {
+                            if(newBoard[i].tid==col) {
+                                return newBoard[i].player;
+                            }
+                        }
+                    };
+                    $scope.getHeight = function(col) {
+                        for(var i=0; i<newBoard.length; i++) {
+                            if(newBoard[i].tid==col) {
+                                var n = newBoard[i].numPiece;
+                                if(n<7) {
+                                    return 16.66;
+                                }
+                                return (100 - (16.66 - 100 / n))/n;
+                            }
+                        }
+                    };
+                    
+                    
+                    //add dice functions
+                    var rolling = false;
+                    $scope.setDiceStatus = function() {
+                        if(rolling) {
+                            rolling = false;
+                        } else {
+                            rolling = true;
+                        }
+                    }
+                    $scope.getDiceStatus = function(){
+                        return rolling;
+                    }
+                    
+                    var vals = [0, 0, 0, 0];
+                    $scope.setDiceVal = function(){
+                        val1 = Math.floor(Math.random()*6)+1;
+                        val2 = Math.floor(Math.random()*6)+1;
+                        if (val1 == val2) {
+                            vals = [val1, val1, val1, val1];
+                        } else {
+                            vals = [0, val1, val2, 0];
+                        }
+                    }
+                    
+                    $scope.getDiceVal = function(idx) {
+                        return vals[idx];
+                    }
+                    
+                    $scope.getHomeCount = function(idx) {
+                        return newBoard[idx].numPiece;
+                    }
+                    
+                    
+                    
+                    
+                });
+    </script>
+</body>
+</html>
