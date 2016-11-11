@@ -18,10 +18,10 @@
             <div id="gameArea">
                 <div class="upper">
                     <div ng-repeat="col in [14, 15, 16, 17, 18, 19, 26, 20, 21, 22, 23, 24, 25]"
-                         ng-class="{column: col!=26, colActive: game.isActive(col)}"
+                         ng-class="{column: col!=26, colActive: game.isActive(col), colTargets: game.isInTargets(col)}"
                          class="columnUpper"
                          id="{{'t'+col}}"
-                         ng-click="game.selectTower(col)">
+                         ng-click="game.towerClicked(col)">
                         <div ng-repeat="piece in game.getTowerCount(col) track by $index"
                              ng-class="{
                                        'player1': game.getPlayer(col)=='player1', 
@@ -33,10 +33,10 @@
                 </div>
                 <div class="lower">
                     <div ng-repeat="col in [13, 12, 11, 10, 9, 8, 1, 7, 6, 5, 4, 3, 2]"
-                         ng-class="{column: col!=1, colActive: game.isActive(col)}"
+                         ng-class="{column: col!=1, colActive: game.isActive(col), colTargets: game.isInTargets(col)}"
                          class="columnLower"
                          id="{{'t'+col}}"
-                         ng-click="game.selectTower(col)">
+                         ng-click="game.towerClicked(col)">
                         <div ng-repeat="piece in game.getTowerCount(col) track by $index"
                              ng-class="{
                                        'player1': game.getPlayer(col)=='player1', 

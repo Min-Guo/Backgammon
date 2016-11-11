@@ -1,5 +1,5 @@
 var Tower = (function () {
-    //status: 1 for black, 0 for white, -1 for empty
+    //status: 0 for black, 1 for white, -1 for empty
     function Tower(tid, status, count) {
         this.tid = tid;
         this.status = status;
@@ -38,8 +38,8 @@ var gameLogic;
     gameLogic.BLACKBAR = 1;
     gameLogic.WHITEHOME = 0;
     gameLogic.WHITEBAR = 26;
-    gameLogic.BLACK = 1;
-    gameLogic.WHITE = 0;
+    gameLogic.BLACK = 0;
+    gameLogic.WHITE = 1;
     gameLogic.EMPTY = -1;
     //2, 13, 18, 20 black
     //7, 9, 14, 25 white
@@ -129,7 +129,7 @@ var gameLogic;
         return lastTurn.originalSteps;
     }
     gameLogic.getOriginalSteps = getOriginalSteps;
-    /** Start a new turn. Set the original die values. */
+    /** Start a new turn. Set the original dice values. */
     function setOriginalSteps(currentState, role) {
         // We can assume the currentState has been properly initialized with the final board,
         // while the final delta may or may not be initialized:
@@ -150,6 +150,7 @@ var gameLogic;
         }
     }
     gameLogic.setOriginalSteps = setOriginalSteps;
+    /** Start a new turn with customized original dice values. */
     function setOriginalStepsWithDefault(currentState, role, steps) {
         if (!currentState.delta) {
             currentState.delta = { turns: [] };

@@ -10,6 +10,7 @@ var game;
     game.curSelectedCol = null;
     game.showSteps = [0, 0, 0, 0];
     game.rollingEndedTimeout = null;
+    game.targets = [];
     var rolling = false;
     function init() {
         registerServiceWorker();
@@ -112,6 +113,7 @@ var game;
     }
     function towerClicked(target) {
         log.info(["Clicked on tower:", target]);
+        game.curSelectedCol = target;
         if (!isHumanTurn())
             return;
         if (window.location.search === '?throwException') {
@@ -127,10 +129,20 @@ var game;
             }
             finally {
                 game.moveStart = -1;
+                game.targets.length = 0;
             }
         }
         else {
             game.moveStart = target;
+            var board = game.currentState.board;
+            var last = game.currentState.delta.turns.length - 1;
+            var currentSteps = game.currentState.delta.turns[last].currentSteps;
+            var turnIndex = game.currentUpdateUI.move.turnIndexAfterMove;
+            var keys = Object.keys(gameLogic.startMove(board, currentSteps, game.moveStart, turnIndex));
+            for (var _i = 0, keys_1 = keys; _i < keys_1.length; _i++) {
+                var i = keys_1[_i];
+                game.targets.push(+i);
+            }
             log.info(["Starting a move from:", game.moveStart]);
         }
     }
@@ -199,7 +211,7 @@ var game;
                 if (n < 7) {
                     return 16.66;
                 }
-                return 100 / n;
+                return (100 - (16.66 - 100 / n)) / n;
             }
         }
     }
@@ -218,14 +230,22 @@ var game;
     game.getDiceVal = getDiceVal;
     //to-do
     //tower on click highlight
-    function selectTower(col) {
-        game.curSelectedCol = col;
-    }
-    game.selectTower = selectTower;
+    // export function selectTower(col: number) {
+    //   curSelectedCol = col;
+    // }
     function isActive(col) {
         return game.curSelectedCol === col;
     }
     game.isActive = isActive;
+    function isInTargets(col) {
+        for (var _i = 0, targets_1 = game.targets; _i < targets_1.length; _i++) {
+            var i = targets_1[_i];
+            if (col === i)
+                return true;
+        }
+        return false;
+    }
+    game.isInTargets = isInTargets;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {
