@@ -81,6 +81,15 @@
 .colActive {
     background-color: rgba(0, 0, 0, 0.2);
 }
+
+.colTargets {
+    background-color: rgba(102,153,255, 0.3);
+}
+
+.colTargets:hover {
+    background-color: rgba(102,153,255, 0.5);
+}
+
 .columnUpper {
     width: 7.68%;
     height: 100%;
