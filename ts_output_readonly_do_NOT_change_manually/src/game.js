@@ -7,7 +7,6 @@ var game;
     game.originalState = null;
     game.currentState = null;
     game.moveStart = -1;
-    game.curSelectedCol = null;
     game.showSteps = [0, 0, 0, 0];
     game.rollingEndedTimeout = null;
     game.targets = [];
@@ -113,7 +112,9 @@ var game;
     }
     function towerClicked(target) {
         log.info(["Clicked on tower:", target]);
-        game.curSelectedCol = target;
+        if (game.moveStart === -1 && game.currentUpdateUI.move.turnIndexAfterMove !== game.currentState.board[target].status) {
+            return;
+        }
         if (!isHumanTurn())
             return;
         if (window.location.search === '?throwException') {
@@ -179,8 +180,10 @@ var game;
         gameLogic.setOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
         var originalSteps = gameLogic.getOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
         if (originalSteps.length === 2) {
+            game.showSteps[0] = 0;
             game.showSteps[1] = originalSteps[0];
             game.showSteps[2] = originalSteps[1];
+            game.showSteps[3] = 0;
         }
         else {
             game.showSteps[0] = originalSteps[0];
@@ -228,13 +231,8 @@ var game;
         return game.showSteps[index];
     }
     game.getDiceVal = getDiceVal;
-    //to-do
-    //tower on click highlight
-    // export function selectTower(col: number) {
-    //   curSelectedCol = col;
-    // }
     function isActive(col) {
-        return game.curSelectedCol === col;
+        return game.moveStart === col;
     }
     game.isActive = isActive;
     function isInTargets(col) {

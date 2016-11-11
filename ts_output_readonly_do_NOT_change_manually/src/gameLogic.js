@@ -276,7 +276,8 @@ var gameLogic;
      */
     function startMove(curBoard, curSteps, start, role) {
         var res = {};
-        if (curSteps.length === 0) {
+        var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
+        if ((curBoard[myBar].count !== 0 && start !== myBar) || curSteps.length === 0) {
             return res;
         }
         else if (curSteps.length === 2) {
