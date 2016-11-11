@@ -4,15 +4,19 @@ var game;
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
     game.animationEndedTimeout = null;
-    game.state = null;
+    game.originalState = null;
+    game.currentState = null;
     game.moveStart = -1;
     game.curSelectedCol = null;
+    game.showSteps = [0, 0, 0, 0];
+    game.rollingEndedTimeout = null;
+    var rolling = false;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
         translate.setLanguage('en');
         //resizeGameAreaService.setWidthToHeight(1);
-        game.state = gameLogic.getInitialState();
+        game.originalState = gameLogic.getInitialState();
         moveService.setGame({
             minNumberOfPlayers: 2,
             maxNumberOfPlayers: 2,
@@ -39,16 +43,23 @@ var game;
     function updateUI(params) {
         log.info("Game got updateUI:", params);
         game.didMakeMove = false; // Only one move per updateUI
+        game.currentState = null; // reset
         game.currentUpdateUI = params;
         clearAnimationTimeout();
-        game.state = params.move.stateAfterMove;
+        game.originalState = params.move.stateAfterMove;
+        game.currentState = { board: null, delta: null };
         if (isFirstMove()) {
-            game.state = gameLogic.getInitialState();
-            setInitialTurnIndex();
-            if (isMyTurn())
+            game.originalState = gameLogic.getInitialState();
+            game.currentState.board = angular.copy(game.originalState.board);
+            //setInitialTurnIndex();
+            if (isMyTurn()) {
                 makeMove(gameLogic.createInitialMove());
+            }
         }
         else {
+            game.currentState.board = angular.copy(game.originalState.board);
+            // maybe we want to show the original steps by the opponent first
+            // some animation on the originalState.delta.originalSteps needed
             // We calculate the AI move only after the animation finishes,
             // because if we call aiService now
             // then the animation will be paused until the javascript finishes.
@@ -100,55 +111,91 @@ var game;
             game.currentUpdateUI.yourPlayerIndex === game.currentUpdateUI.move.turnIndexAfterMove; // it's my turn
     }
     function towerClicked(target) {
-        log.info("Clicked on tower:", target);
+        log.info(["Clicked on tower:", target]);
         if (!isHumanTurn())
             return;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
         if (game.moveStart !== -1) {
-            var nextMove = null;
             try {
-                nextMove = gameLogic.createMove(game.state, game.moveStart, target, game.currentUpdateUI.move.turnIndexAfterMove);
+                gameLogic.createMiniMove(game.currentState, game.moveStart, target, game.currentUpdateUI.move.turnIndexAfterMove);
+                log.info(["Create a move between:", game.moveStart, target]);
             }
             catch (e) {
                 log.info(["Unable to create a move between:", game.moveStart, target]);
-                return;
             }
-            // Move is legal, make it!
-            makeMove(nextMove);
-            game.moveStart = -1;
+            finally {
+                game.moveStart = -1;
+            }
         }
         else {
             game.moveStart = target;
-            //to-do startMove(...)
-            return;
+            log.info(["Starting a move from:", game.moveStart]);
         }
     }
     game.towerClicked = towerClicked;
+    function submitClicked() {
+        log.info(["Submit move."]);
+        if (window.location.search === '?throwException') {
+            throw new Error("Throwing the error because URL has '?throwException'");
+        }
+        var oneMove = null;
+        try {
+            oneMove = gameLogic.createMove(game.originalState, game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+        }
+        catch (e) {
+            log.info(["Game: Move submission failed."]);
+            return;
+        }
+        // Move is legal, make it!
+        makeMove(oneMove);
+    }
+    game.submitClicked = submitClicked;
+    /**
+     * This function tries to generate a new combination of dies each time the player's turn begins.
+     * It sets the original combination to the local storage of gameLogic.
+     */
     function rollClicked() {
         log.info("Clicked on roll:");
-        if (!isHumanTurn())
+        if (!isMyTurn())
             return;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
-        var steps = DieCombo.generate();
+        setDiceStatus(true);
+        gameLogic.setOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+        var originalSteps = gameLogic.getOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+        if (originalSteps.length === 2) {
+            game.showSteps[1] = originalSteps[0];
+            game.showSteps[2] = originalSteps[1];
+        }
+        else {
+            game.showSteps[0] = originalSteps[0];
+            game.showSteps[1] = originalSteps[1];
+            game.showSteps[2] = originalSteps[2];
+            game.showSteps[3] = originalSteps[3];
+        }
+        game.rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
     }
     game.rollClicked = rollClicked;
+    function rollingEndedCallback() {
+        log.info("Rolling ended");
+        setDiceStatus(false);
+    }
     function getTowerCount(col) {
-        var tc = game.state.board[col].count;
+        var tc = game.currentState.board[col].count;
         return new Array(tc);
     }
     game.getTowerCount = getTowerCount;
     function getPlayer(col) {
-        return 'player' + game.state.board[col].status;
+        return 'player' + game.currentState.board[col].status;
     }
     game.getPlayer = getPlayer;
     function getHeight(col) {
-        for (var i = 0; i < game.state.board.length; i++) {
-            if (game.state.board[i].tid === col) {
-                var n = game.state.board[i].count;
+        for (var i = 0; i < game.currentState.board.length; i++) {
+            if (game.currentState.board[i].tid === col) {
+                var n = game.currentState.board[i].count;
                 if (n < 7) {
                     return 16.66;
                 }
@@ -157,6 +204,18 @@ var game;
         }
     }
     game.getHeight = getHeight;
+    function setDiceStatus(b) {
+        rolling = b;
+    }
+    game.setDiceStatus = setDiceStatus;
+    function getDiceStatus() {
+        return rolling;
+    }
+    game.getDiceStatus = getDiceStatus;
+    function getDiceVal(index) {
+        return game.showSteps[index];
+    }
+    game.getDiceVal = getDiceVal;
     //to-do
     //tower on click highlight
     function selectTower(col) {
@@ -167,23 +226,6 @@ var game;
         return game.curSelectedCol === col;
     }
     game.isActive = isActive;
-    // export function isActive(col: number): boolean {
-    //   let tmp = moveStart;
-    //   moveStart = -1;
-    //   return tmp !== -1 && col === tmp;
-    // }
-    function shouldSlowlyAppear(start, end) {
-        return game.state.delta &&
-            game.state.delta.start === start && game.state.delta.end === end;
-    }
-    game.shouldSlowlyAppear = shouldSlowlyAppear;
-    function setInitialTurnIndex() {
-        if (game.state && game.state.steps)
-            return;
-        var twoDies = DieCombo.init();
-        game.state.steps = twoDies;
-        game.currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
-    }
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {
