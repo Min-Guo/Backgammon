@@ -17,6 +17,7 @@ module game {
   export let curSelectedCol: number = null;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
+  export let targets: number[] = [];
   let rolling: boolean = false;
 
 
@@ -132,6 +133,7 @@ module game {
 
   export function towerClicked(target: number): void {
     log.info(["Clicked on tower:", target]);
+    curSelectedCol = target;
     if (!isHumanTurn()) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
@@ -144,11 +146,19 @@ module game {
         log.info(["Unable to create a move between:", moveStart, target]);
       } finally { // comment the finally clause if you want the moveStart unchanged
         moveStart = -1;
+        targets.length = 0;
       }
     } else {
       moveStart = target;
+      let board: Board = currentState.board;
+      let last = currentState.delta.turns.length - 1;
+      let currentSteps = currentState.delta.turns[last].currentSteps;
+      let turnIndex = currentUpdateUI.move.turnIndexAfterMove;
+      let keys: String[] = Object.keys(gameLogic.startMove(board, currentSteps, moveStart, turnIndex));
+      for (let i of keys) {
+        targets.push(+ i);
+      }
       log.info(["Starting a move from:", moveStart]);
-      //to-do startMove(...)
     }
   }
 
@@ -208,13 +218,13 @@ module game {
   }
   
   export function getHeight(col: number): number {
-    for(let i=0; i < currentState.board.length; i++) {
+    for(let i = 0; i < currentState.board.length; i++) {
       if(currentState.board[i].tid === col) {
-        var n = currentState.board[i].count;
-        if(n < 7) {
+        let n = currentState.board[i].count;
+        if (n < 7) {
           return 16.66;
         }
-        return 100 / n;
+        return (100 - (16.66 - 100 / n)) / n;
       }
     }
   }
@@ -234,11 +244,18 @@ module game {
   //to-do
 
   //tower on click highlight
-  export function selectTower(col: number) {
-    curSelectedCol = col;
-  }
-  export function isActive(col: number) {
+  // export function selectTower(col: number) {
+  //   curSelectedCol = col;
+  // }
+  export function isActive(col: number): boolean {
     return curSelectedCol === col;
+  }
+
+  export function isInTargets(col: number): boolean {
+    for (let i of targets) {
+      if (col === i) return true;
+    }
+    return false;
   }
 
 
