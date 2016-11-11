@@ -30,7 +30,7 @@
                                        blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                        blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"
-                             style="top: {{$index * game.getHeight(col)}}%"></div>
+                             ng-style="{ 'top': col!=26 ? $index * game.getHeight(col)+'%': (100-16.66-$index * game.getHeight(col))+'%' }"></div>
                     </div>
                 </div>
                 <div class="lower">
@@ -47,7 +47,7 @@
                                        blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                        blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"
-                             style="bottom: {{$index * game.getHeight(col)}}%"></div>
+                             ng-style="{ 'bottom': col!=1 ? $index * game.getHeight(col)+'%': (100-16.66-$index * game.getHeight(col))+'%' }"></div>
                     </div>
                 </div>
             </div>
