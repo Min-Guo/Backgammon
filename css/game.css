@@ -7,11 +7,13 @@
     margin: auto;    
 }
 
+/*
 .eatenPiece {
     -moz-box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
     -webkit-box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
     box-shadow: inset 2px 2px 5px rgba(0, 0, 0, 0.8), 1px 1px 5px rgba(204, 204, 204, 0.8);
 }
+*/
 
 #ctrl {
     position: absolute;
@@ -81,6 +83,14 @@
 .colActive {
     background-color: rgba(0, 0, 0, 0.2);
 }
+.blinkPlayer1 {
+    background-image: url('../images/heart_dark.svg') !important;
+    animation: blink 1.5s linear infinite;
+}
+.blinkPlayer0 {
+    background-image: url('../images/flower_dark.svg') !important;
+    animation: blink 1.5s linear infinite;
+}
 
 .colTargets {
     background-color: rgba(102,153,255, 0.3);
@@ -108,12 +118,11 @@
     width: 75%;
     height: 16.66%;
     margin: auto;
-    border-radius: 50%;
-    
+    border-radius: 50%; 
 }
 
 .selectedPiece {
-    border: 3px solid  #cc9900 !important;
+    border: 3px solid #cc9900 !important;
 }
 
 .piece.player1 {
@@ -159,7 +168,6 @@
     position: absolute;
     left: 14%;
     bottom: 0;
-    
 }
 
 
@@ -236,6 +244,13 @@
 .newSpinSpeed {
     animation: spin 2s infinite linear !important;
 }
+
+@keyframes blink {
+    0% { opacity: 1; }
+    50% { opacity: 0.7; }
+    100% { opacity: 1; }
+}
+
 
 @keyframes roll {
     0% { transform: translate3d(-25px,-20px,-400px) }
@@ -341,7 +356,7 @@
         radial-gradient(
             circle at bottom right,
             #dfdbd6,
-            #ff9999 100%
+            #85e0e0 100%
         );
     -moz-box-shadow: inset 2px 2px 5px rgba(154, 147, 140, 0.5), 1px 1px 5px rgba(255, 255, 255, 1);
     -webkit-box-shadow: inset 2px 2px 5px rgba(154, 147, 140, 0.5), 1px 1px 5px rgba(255, 255, 255, 1);
@@ -354,7 +369,7 @@
         radial-gradient(
             circle at bottom right,
             #dfdbd6,
-            #85e0e0 100%
+            #ff9999 100%
         );
     -moz-box-shadow: inset 2px 2px 5px rgba(154, 147, 140, 0.5), 1px 1px 5px rgba(255, 255, 255, 1);
     -webkit-box-shadow: inset 2px 2px 5px rgba(154, 147, 140, 0.5), 1px 1px 5px rgba(255, 255, 255, 1);
@@ -368,19 +383,33 @@
 
 /****bear off end****/
 
-button {
-    background-color: #4CAF50;
-    color: white;
-    text-align: center;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 4px;
-    border: none;
-    font-size: 14px;
+#confirm {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 60px;
+    top: 60%;
+    width: 100%;
+    height: 6%;
+}
+
+button {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid #cc9900 !important;
+    color: #cc9900;
+    text-align: center;
+    margin: 0 auto;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.8em;
+    width: 80%;
+    display: block;
+    height: 100%;
+}
+
+button:hover {
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 2px solid #e6ac00 !important;
+    color: #e6ac00;
+    transition: all .3s ease-in-out;
 }
 
 @media screen and (max-width: 1000px) {
@@ -474,6 +503,14 @@ button {
         75% { transform: translate3d(10px,-10px,-100px) }
         87% { transform: translate3d(0px,-10px,-200px) }
         100% { transform: translate3d(-10px,-10px,-100px) }
+    }
+    
+    #confirm {
+        height: 10%;
+    }
+    
+    button {
+        font-size: 0.5em;
     }
 }
 

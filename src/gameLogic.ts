@@ -287,7 +287,8 @@ module gameLogic {
 	 */
 	export function startMove(curBoard: Board, curSteps: Steps, start: number, role: number): IEndToStepIndex {
 		let res: IEndToStepIndex = {};
-		if (curSteps.length === 0) {
+		let myBar = role === BLACK ? BLACKBAR : WHITEBAR;
+		if ((curBoard[myBar].count !== 0 && start !== myBar) || curSteps.length === 0) {
 			return res;
 		} else if (curSteps.length === 2) {
 			let board: Board;

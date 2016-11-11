@@ -14,7 +14,6 @@ module game {
   export let originalState: IState = null;
   export let currentState: IState = null;
   export let moveStart = -1;
-  export let curSelectedCol: number = null;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
   export let targets: number[] = [];
@@ -133,7 +132,9 @@ module game {
 
   export function towerClicked(target: number): void {
     log.info(["Clicked on tower:", target]);
-    curSelectedCol = target;
+    if (moveStart === -1 && currentUpdateUI.move.turnIndexAfterMove !== currentState.board[target].status) {
+      return;
+    }
     if (!isHumanTurn()) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
@@ -192,8 +193,10 @@ module game {
     gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
     let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
     if (originalSteps.length === 2) {
+      showSteps[0] = 0;
       showSteps[1] = originalSteps[0];
       showSteps[2] = originalSteps[1];
+      showSteps[3] = 0;
     } else { // 4
       showSteps[0] = originalSteps[0];
       showSteps[1] = originalSteps[1];
@@ -241,14 +244,8 @@ module game {
     return showSteps[index];
   }
 
-  //to-do
-
-  //tower on click highlight
-  // export function selectTower(col: number) {
-  //   curSelectedCol = col;
-  // }
   export function isActive(col: number): boolean {
-    return curSelectedCol === col;
+    return moveStart === col;
   }
 
   export function isInTargets(col: number): boolean {
