@@ -26,7 +26,9 @@
                              ng-class="{
                                        'player1': game.getPlayer(col)=='player1', 
                                        'player0': game.getPlayer(col)=='player0',
-                                       selectedPiece: game.isActive(col)&&$last}"
+                                       selectedPiece: game.isActive(col)&&$last,
+                                       blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
+                                       blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"
                              style="top: {{$index * game.getHeight(col)}}%"></div>
                     </div>
@@ -41,7 +43,9 @@
                              ng-class="{
                                        'player1': game.getPlayer(col)=='player1', 
                                        'player0': game.getPlayer(col)=='player0',
-                                       selectedPiece: game.isActive(col)&&$last}"
+                                       selectedPiece: game.isActive(col)&&$last,
+                                       blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
+                                       blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"
                              style="bottom: {{$index * game.getHeight(col)}}%"></div>
                     </div>
@@ -51,7 +55,7 @@
                 <div id='t27' 
                      class="bearOffHome"
                      ng-repeat="idx in [27]">
-                    <span>{{getHomeCount(idx)}}</span>
+                    <span>{{game.getTowerCount(idx).length}}</span>
                 </div>
                 <div id="dicewrapper"
                      ng-click="game.rollClicked()"
@@ -73,16 +77,15 @@
                          ng-class="{spinFour: game.getDiceStatus()}"
                          style="background-image: url('images/side{{game.getDiceVal(dice)}}.png')"></div>
                 </div>
+                <div id="confirm">
+                    <button ng-click="game.submitClicked()">confirm</button>        
+                </div>
                 <div id='t0'
                      class="bearOffHome"
                      ng-repeat="idx in [0]">
-                    <span>{{getHomeCount(idx)}}</span>
+                    <span>{{game.getTowerCount(idx).length}}</span>
                 </div>
             </div>
-            
-        </div>
-        <div id="init">
-            <button ng-click="initBoard()">Initiate Board</button>        
         </div>
     </div>
 </body>
