@@ -113,7 +113,7 @@
 }
 
 .selectedPiece {
-    border: 3px solid  #cc9900 !important;
+    border: 3px solid #cc9900 !important;
 }
 
 .piece.player1 {
@@ -368,19 +368,33 @@
 
 /****bear off end****/
 
-button {
-    background-color: #4CAF50;
-    color: white;
-    text-align: center;
-    margin: 4px 2px;
-    cursor: pointer;
-    border-radius: 4px;
-    border: none;
-    font-size: 14px;
+#confirm {
     position: absolute;
-    bottom: 0;
-    right: 0;
-    width: 60px;
+    top: 60%;
+    width: 100%;
+    height: 6%;
+}
+
+button {
+    background-color: rgba(255, 255, 255, 0.2);
+    border: 2px solid #cc9900 !important;
+    color: #cc9900;
+    text-align: center;
+    margin: 0 auto;
+    cursor: pointer;
+    border-radius: 5px;
+    border: none;
+    font-size: 0.8em;
+    width: 80%;
+    display: block;
+    height: 100%;
+}
+
+button:hover {
+    background-color: rgba(255, 255, 255, 0.6);
+    border: 2px solid #e6ac00 !important;
+    color: #e6ac00;
+    transition: all .3s ease-in-out;
 }
 
 @media screen and (max-width: 1000px) {
@@ -474,6 +488,14 @@ button {
         75% { transform: translate3d(10px,-10px,-100px) }
         87% { transform: translate3d(0px,-10px,-200px) }
         100% { transform: translate3d(-10px,-10px,-100px) }
+    }
+    
+    #confirm {
+        height: 10%;
+    }
+    
+    button {
+        font-size: 0.5em;
     }
 }
 
