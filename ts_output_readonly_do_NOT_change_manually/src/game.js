@@ -7,6 +7,7 @@ var game;
     game.originalState = null;
     game.currentState = null;
     game.moveStart = -1;
+    game.slowlyAppearCol = -1;
     game.showSteps = [0, 0, 0, 0];
     game.rollingEndedTimeout = null;
     game.targets = [];
@@ -123,6 +124,7 @@ var game;
         if (game.moveStart !== -1) {
             try {
                 gameLogic.createMiniMove(game.currentState, game.moveStart, target, game.currentUpdateUI.move.turnIndexAfterMove);
+                game.slowlyAppearCol = target;
                 log.info(["Create a move between:", game.moveStart, target]);
             }
             catch (e) {
@@ -130,6 +132,7 @@ var game;
             }
             finally {
                 game.moveStart = -1;
+                game.slowlyAppearCol = -1;
                 game.targets.length = 0;
             }
         }
@@ -244,6 +247,15 @@ var game;
         return false;
     }
     game.isInTargets = isInTargets;
+    // export function isActive(col: number): boolean {
+    //   let tmp = moveStart;
+    //   moveStart = -1;
+    //   return tmp !== -1 && col === tmp;
+    // }
+    function shouldSlowlyAppear(col) {
+        return col === game.slowlyAppearCol;
+    }
+    game.shouldSlowlyAppear = shouldSlowlyAppear;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {
