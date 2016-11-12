@@ -74,11 +74,6 @@ var game;
             $timeout.cancel(game.rollingEndedTimeout);
             game.rollingEndedTimeout = null;
         }
-        // Clear checkers slowly appear animation timeout
-        // if (slowlyAppearEndedTimeout) {
-        //   $timeout.cancel(slowlyAppearEndedTimeout);
-        //   slowlyAppearEndedTimeout = null;
-        // }
     }
     function maybeSendComputerMove() {
         if (!isComputerTurn())
