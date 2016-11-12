@@ -10,12 +10,15 @@ module game {
 
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
-  export let animationEndedTimeout: ng.IPromise<any> = null;
+  // export let animationEndedTimeout: ng.IPromise<any> = null;
   export let originalState: IState = null;
   export let currentState: IState = null;
   export let moveStart = -1;
+  export let moveEnd = -1;
+  // export let slowlyAppearCol = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
+  export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
   export let targets: number[] = [];
   let rolling: boolean = false;
 
@@ -74,7 +77,7 @@ module game {
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
-      animationEndedTimeout = $timeout(animationEndedCallback, 500);
+      // animationEndedTimeout = $timeout(animationEndedCallback, 500);
     }
   }
 
@@ -84,9 +87,10 @@ module game {
   }
 
   function clearAnimationTimeout() {
-    if (animationEndedTimeout) {
-      $timeout.cancel(animationEndedTimeout);
-      animationEndedTimeout = null;
+    // Clear rolling dices animation timeout
+    if (rollingEndedTimeout) {
+      $timeout.cancel(rollingEndedTimeout);
+      rollingEndedTimeout = null;
     }
   }
 
@@ -139,15 +143,24 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
+    clearSlowlyAppearTimeout();
     if (moveStart !== -1) {
-      try {
-        gameLogic.createMiniMove(currentState, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
-        log.info(["Create a move between:", moveStart, target]);
-      } catch (e) {
-        log.info(["Unable to create a move between:", moveStart, target]);
-      } finally { // comment the finally clause if you want the moveStart unchanged
-        moveStart = -1;
-        targets.length = 0;
+      if (target === moveStart) {
+        // If mistakenly clicked one checker twice, i.e. moveStart === moveEnd,
+        // no animation shall be displayed on this checker.
+        return;
+      } else {
+        moveEnd = target;        
+        try {
+          gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
+          log.info(["Create a move between:", moveStart, target]);
+        } catch (e) {
+          log.info(["Unable to create a move between:", moveStart, moveEnd]);
+        } finally {
+          moveStart = -1; // comment out this line if you want the moveStart unchanged
+          slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);                      
+          targets.length = 0;
+        }
       }
     } else {
       moveStart = target;
@@ -160,6 +173,14 @@ module game {
         targets.push(+ i);
       }
       log.info(["Starting a move from:", moveStart]);
+    }
+  }
+
+  function clearSlowlyAppearTimeout() {
+    // Clear checkers slowly appear animation timeout
+    if (slowlyAppearEndedTimeout) {
+      $timeout.cancel(slowlyAppearEndedTimeout);
+      slowlyAppearEndedTimeout = null;
     }
   }
 
@@ -254,21 +275,16 @@ module game {
     }
     return false;
   }
-
-
-
-
-
-  // export function isActive(col: number): boolean {
-  //   let tmp = moveStart;
-  //   moveStart = -1;
-  //   return tmp !== -1 && col === tmp;
-  // }
   
-  // export function shouldSlowlyAppear(start: number, end: number): boolean {
-  //   return state.delta &&
-  //     state.delta.start === start && state.delta.end === end;
-  // }
+  export function shouldSlowlyAppear(col: number): boolean {
+    // log.info(["Test should slowly appear:", col === moveEnd]);
+    return col === moveEnd;
+  }
+
+  function slowlyAppearEndedCallback() {
+    log.info("End point slowly appear ended.");
+    moveEnd = -1;
+  }
 
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;

@@ -370,7 +370,7 @@ var gameLogic;
             // Game continues. You should roll the dices again to start a new turn directly.
             throw new Error("Your opponent is closed out. You should roll the dices again to start a new turn directly.");
         }
-        else if (lastTurn.currentSteps.length !== 0) {
+        else if (lastTurn.currentSteps.length !== 0 && moveExist(currentState, turnIndexBeforeMove)) {
             // Game continues. You should complete all available mini-moves within your turn.
             throw new Error("You should complete all available mini-moves within your turn.");
         }
@@ -380,7 +380,7 @@ var gameLogic;
             endMatchScores = null;
         }
         //let stateAfterMove: IState = angular.copy(currentState); // do we need to copy this?
-        var stateAfterMove = currentState;
+        var stateAfterMove = angular.copy(currentState);
         return { endMatchScores: endMatchScores,
             turnIndexAfterMove: turnIndexAfterMove,
             stateAfterMove: stateAfterMove };
@@ -459,6 +459,47 @@ var gameLogic;
             return false;
         }
     }
+    /**
+     * This functions checks whether a mini-move is possible,
+     * given current board, role and remaining steps.
+     */
+    function moveExist(state, role) {
+        //no move exists for ended game
+        if (role === -1) {
+            return false;
+        }
+        var board = state.board;
+        var last = state.delta.turns.length - 1;
+        var currentSteps = state.delta.turns[last].currentSteps;
+        var stepCombination = [];
+        var bearTime = canBearOff(board, role);
+        // valid move always exists when bearoff time
+        if (bearTime) {
+            return true;
+        }
+        //for the purpose of this function, stepCombination contains at most two numbers
+        stepCombination.push(currentSteps[0]); // first element is always included
+        // if different, include the second element
+        if (currentSteps.length === 2 && currentSteps[0] !== currentSteps[1]) {
+            stepCombination.push(currentSteps[1]);
+        }
+        var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
+        var moves = null;
+        if (board[myBar].count !== 0) {
+            moves = startMove(board, stepCombination, myBar, role);
+            if (angular.equals(moves, {})) {
+                return false;
+            }
+        }
+        for (var i = 2; i < 26; i++) {
+            moves = startMove(board, stepCombination, i, role);
+            if (!angular.equals(moves, {})) {
+                return true;
+            }
+        }
+        return false;
+    }
+    gameLogic.moveExist = moveExist;
     function createInitialMove() {
         return { endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState() };
     }
@@ -479,9 +520,12 @@ var gameLogic;
         for (var _i = 0, _a = delta.turns; _i < _a.length; _i++) {
             var turn = _a[_i];
             setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
-            for (var _b = 0, _c = turn.moves; _b < _c.length; _b++) {
-                var move_1 = _c[_b];
-                createMiniMove(tmpState, move_1.start, move_1.end, turnIndexBeforeMove);
+            // this check needed if the player is completely closed out so moves is null			
+            if (turn.moves) {
+                for (var _b = 0, _c = turn.moves; _b < _c.length; _b++) {
+                    var move_1 = _c[_b];
+                    createMiniMove(tmpState, move_1.start, move_1.end, turnIndexBeforeMove);
+                }
             }
         }
         expectedMove = createMove(stateBeforeMove, tmpState, turnIndexBeforeMove);

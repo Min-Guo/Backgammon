@@ -27,6 +27,7 @@
                                        'player1': game.getPlayer(col)=='player1', 
                                        'player0': game.getPlayer(col)=='player0',
                                        selectedPiece: game.isActive(col)&&$last,
+                                       slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
                                        blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                        blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"
@@ -44,6 +45,7 @@
                                        'player1': game.getPlayer(col)=='player1', 
                                        'player0': game.getPlayer(col)=='player0',
                                        selectedPiece: game.isActive(col)&&$last,
+                                       slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
                                        blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                        blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"

@@ -377,7 +377,7 @@ module gameLogic {
 		} else if (shouldRollDicesAgain(currentState, turnIndexBeforeMove)) {
 			// Game continues. You should roll the dices again to start a new turn directly.
 			throw new Error("Your opponent is closed out. You should roll the dices again to start a new turn directly.");
-		} else if (lastTurn.currentSteps.length !== 0) {
+		} else if (lastTurn.currentSteps.length !== 0 && moveExist(currentState, turnIndexBeforeMove)) {
 			// Game continues. You should complete all available mini-moves within your turn.
 			throw new Error("You should complete all available mini-moves within your turn.");
 		} else {
@@ -386,7 +386,7 @@ module gameLogic {
 			endMatchScores = null;
 		}
 		//let stateAfterMove: IState = angular.copy(currentState); // do we need to copy this?
-		let stateAfterMove: IState = currentState;
+		let stateAfterMove: IState = angular.copy(currentState);
 		return {endMatchScores: endMatchScores, 
 				turnIndexAfterMove: turnIndexAfterMove, 
 				stateAfterMove: stateAfterMove};
@@ -460,6 +460,47 @@ module gameLogic {
 		}
 	}
 
+	/** 
+	 * This functions checks whether a mini-move is possible, 
+	 * given current board, role and remaining steps. 
+	 */
+	export function moveExist(state: IState, role: number): boolean {
+		//no move exists for ended game
+		if (role === -1) {
+			return false;
+		}
+		let board = state.board;
+		let last = state.delta.turns.length - 1;
+		let currentSteps = state.delta.turns[last].currentSteps;
+		let stepCombination: number[] = [];
+		let bearTime: boolean = canBearOff(board, role);
+		// valid move always exists when bearoff time
+		if (bearTime) {
+			return true;
+		}
+		//for the purpose of this function, stepCombination contains at most two numbers
+		stepCombination.push(currentSteps[0]); // first element is always included
+		// if different, include the second element
+		if (currentSteps.length === 2 && currentSteps[0] !== currentSteps[1]) {
+			stepCombination.push(currentSteps[1]);
+		}
+		let myBar = role === BLACK ? BLACKBAR : WHITEBAR;
+		let moves: IEndToStepIndex = null;
+		if (board[myBar].count !== 0) {
+			moves = startMove(board, stepCombination, myBar, role);
+			if (angular.equals(moves, {})) {
+				return false;
+			}
+		}
+		for (let i = 2; i < 26; i++) {
+			moves = startMove(board, stepCombination, i, role);
+			if (!angular.equals(moves, {})) {
+				return true;
+			}
+		}
+		return false;
+	}
+
 	export function createInitialMove(): IMove {
     	return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState()};  
   	}
@@ -479,8 +520,11 @@ module gameLogic {
 		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: null};
 		for (let turn of delta.turns) {
 			setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
-			for (let move of turn.moves) {
-				createMiniMove(tmpState, move.start, move.end, turnIndexBeforeMove);
+			// this check needed if the player is completely closed out so moves is null			
+			if (turn.moves) { 
+				for (let move of turn.moves) {
+					createMiniMove(tmpState, move.start, move.end, turnIndexBeforeMove);
+				}
 			}
 		}
 		expectedMove = createMove(stateBeforeMove, tmpState, turnIndexBeforeMove);

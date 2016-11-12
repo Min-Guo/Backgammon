@@ -26,7 +26,8 @@
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
                                        'player0': getPlayer(col)=='player0',
-                                       selectedPiece: isActive(col)&&$last}"
+                                       selectedPiece: isActive(col)&&$last,
+                                       slowlyAppear: isActive(col)&&shouldSlowlyAppear(col)&&$last}"
                              class="piece"
                              style="top: {{$index * getHeight(col)}}%"></div>
                     </div>
@@ -41,7 +42,8 @@
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
                                        'player0': getPlayer(col)=='player0',
-                                       selectedPiece: isActive(col)&&$last}"
+                                       selectedPiece: isActive(col)&&$last,
+                                       slowlyAppear: isActive(col)&&shouldSlowlyAppear(col)&&$last}"
                              class="piece"
                              style="bottom: {{$index * getHeight(col)}}%"></div>
                     </div>
@@ -135,6 +137,9 @@
                     
                     $scope.selectTower = function(item) {
                         $scope.selectedCol = item;
+                        if(newBoard[item].tid == 14) {
+                            newBoard[item].numPiece++;
+                        }
                     };
                     
                     $scope.isActive = function(item) {
@@ -203,7 +208,14 @@
                         return newBoard[idx].numPiece;
                     }
                     
-                    
+                    $scope.shouldSlowlyAppear = function(col) {
+                        if(col == 13 || col == 14) {
+                            console.log(newBoard[col].numPiece);
+                            return true;
+                        } else {
+                            return false;
+                        }
+                    }
                     
                     
                 });

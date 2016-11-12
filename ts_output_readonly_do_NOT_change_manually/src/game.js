@@ -3,12 +3,15 @@ var game;
 (function (game) {
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
-    game.animationEndedTimeout = null;
+    // export let animationEndedTimeout: ng.IPromise<any> = null;
     game.originalState = null;
     game.currentState = null;
     game.moveStart = -1;
+    game.moveEnd = -1;
+    // export let slowlyAppearCol = -1;
     game.showSteps = [0, 0, 0, 0];
     game.rollingEndedTimeout = null;
+    game.slowlyAppearEndedTimeout = null;
     game.targets = [];
     var rolling = false;
     function init() {
@@ -58,12 +61,6 @@ var game;
         }
         else {
             game.currentState.board = angular.copy(game.originalState.board);
-            // maybe we want to show the original steps by the opponent first
-            // some animation on the originalState.delta.originalSteps needed
-            // We calculate the AI move only after the animation finishes,
-            // because if we call aiService now
-            // then the animation will be paused until the javascript finishes.
-            game.animationEndedTimeout = $timeout(animationEndedCallback, 500);
         }
     }
     game.updateUI = updateUI;
@@ -72,9 +69,10 @@ var game;
         maybeSendComputerMove();
     }
     function clearAnimationTimeout() {
-        if (game.animationEndedTimeout) {
-            $timeout.cancel(game.animationEndedTimeout);
-            game.animationEndedTimeout = null;
+        // Clear rolling dices animation timeout
+        if (game.rollingEndedTimeout) {
+            $timeout.cancel(game.rollingEndedTimeout);
+            game.rollingEndedTimeout = null;
         }
     }
     function maybeSendComputerMove() {
@@ -120,17 +118,27 @@ var game;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
+        clearSlowlyAppearTimeout();
         if (game.moveStart !== -1) {
-            try {
-                gameLogic.createMiniMove(game.currentState, game.moveStart, target, game.currentUpdateUI.move.turnIndexAfterMove);
-                log.info(["Create a move between:", game.moveStart, target]);
+            if (target === game.moveStart) {
+                // If mistakenly clicked one checker twice, i.e. moveStart === moveEnd,
+                // no animation shall be displayed on this checker.
+                return;
             }
-            catch (e) {
-                log.info(["Unable to create a move between:", game.moveStart, target]);
-            }
-            finally {
-                game.moveStart = -1;
-                game.targets.length = 0;
+            else {
+                game.moveEnd = target;
+                try {
+                    gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
+                    log.info(["Create a move between:", game.moveStart, target]);
+                }
+                catch (e) {
+                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
+                }
+                finally {
+                    game.moveStart = -1; // comment out this line if you want the moveStart unchanged
+                    game.slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
+                    game.targets.length = 0;
+                }
             }
         }
         else {
@@ -148,6 +156,13 @@ var game;
         }
     }
     game.towerClicked = towerClicked;
+    function clearSlowlyAppearTimeout() {
+        // Clear checkers slowly appear animation timeout
+        if (game.slowlyAppearEndedTimeout) {
+            $timeout.cancel(game.slowlyAppearEndedTimeout);
+            game.slowlyAppearEndedTimeout = null;
+        }
+    }
     function submitClicked() {
         log.info(["Submit move."]);
         if (window.location.search === '?throwException') {
@@ -244,6 +259,15 @@ var game;
         return false;
     }
     game.isInTargets = isInTargets;
+    function shouldSlowlyAppear(col) {
+        // log.info(["Test should slowly appear:", col === moveEnd]);
+        return col === game.moveEnd;
+    }
+    game.shouldSlowlyAppear = shouldSlowlyAppear;
+    function slowlyAppearEndedCallback() {
+        log.info("End point slowly appear ended.");
+        game.moveEnd = -1;
+    }
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {
