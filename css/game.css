@@ -247,7 +247,7 @@
 
 @keyframes blink {
     0% { opacity: 1; }
-    50% { opacity: 0.7; }
+    50% { opacity: 0.9; }
     100% { opacity: 1; }
 }
 
@@ -414,18 +414,18 @@ button:hover {
 }
 
 .slowlyAppear {
-    animation: slowlyAppearAni 0.6s linear;
+    animation: slowlyAppearAni 0.1s linear;
 }
 
 @keyframes slowlyAppearAni {
     from {
-        width: 50%;
-        height: 11.11%;
+        width: 85%;
+        height: 18.66%;
         opacity: 0.3;
     } to {
         width: 75%;
         height: 16.66%;
-        opacity: 0.9;
+        opacity: 1;
     }
 }
 
@@ -508,18 +508,6 @@ button:hover {
     }
     .bottom {
         transform: rotateX( -90deg ) translateZ( 8px );
-    }
-    
-    @keyframes roll {
-        0% { transform: translate3d(-10px,-10px,-100px) }
-        12% { transform: translate3d(0px,0,-25px) }
-        25% { transform: translate3d(10px,-10px,-100px) }
-        37% { transform: translate3d(0px,-10px,-200px) }
-        50% { transform: translate3d(-10px,-10px,-100px) }
-        62% { transform: translate3d(0px,0,-25px) }
-        75% { transform: translate3d(10px,-10px,-100px) }
-        87% { transform: translate3d(0px,-10px,-200px) }
-        100% { transform: translate3d(-10px,-10px,-100px) }
     }
     
     #confirm {
