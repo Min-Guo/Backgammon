@@ -520,7 +520,8 @@ module gameLogic {
 		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: null};
 		for (let turn of delta.turns) {
 			setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
-			if (turn.moves) { // this check needed if the player is completely closed out so moves is null
+			// this check needed if the player is completely closed out so moves is null			
+			if (turn.moves) { 
 				for (let move of turn.moves) {
 					createMiniMove(tmpState, move.start, move.end, turnIndexBeforeMove);
 				}
