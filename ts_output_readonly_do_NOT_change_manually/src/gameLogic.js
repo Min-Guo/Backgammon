@@ -520,6 +520,7 @@ var gameLogic;
         for (var _i = 0, _a = delta.turns; _i < _a.length; _i++) {
             var turn = _a[_i];
             setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
+            // this check needed if the player is completely closed out so moves is null			
             if (turn.moves) {
                 for (var _b = 0, _c = turn.moves; _b < _c.length; _b++) {
                     var move_1 = _c[_b];
