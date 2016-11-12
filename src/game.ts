@@ -14,6 +14,7 @@ module game {
   export let originalState: IState = null;
   export let currentState: IState = null;
   export let moveStart = -1;
+  export let slowlyAppearCol = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
   export let targets: number[] = [];
@@ -142,11 +143,13 @@ module game {
     if (moveStart !== -1) {
       try {
         gameLogic.createMiniMove(currentState, moveStart, target, currentUpdateUI.move.turnIndexAfterMove);
+        slowlyAppearCol = target;
         log.info(["Create a move between:", moveStart, target]);
       } catch (e) {
         log.info(["Unable to create a move between:", moveStart, target]);
       } finally { // comment the finally clause if you want the moveStart unchanged
         moveStart = -1;
+        slowlyAppearCol = -1;
         targets.length = 0;
       }
     } else {
@@ -265,10 +268,9 @@ module game {
   //   return tmp !== -1 && col === tmp;
   // }
   
-  // export function shouldSlowlyAppear(start: number, end: number): boolean {
-  //   return state.delta &&
-  //     state.delta.start === start && state.delta.end === end;
-  // }
+  export function shouldSlowlyAppear(col: number): boolean {
+    return col === slowlyAppearCol;
+  }
 
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;
