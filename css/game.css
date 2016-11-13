@@ -414,7 +414,7 @@ button:hover {
 }
 
 .slowlyAppear {
-    animation: slowlyAppearAni 0.1s linear;
+    animation: slowlyAppearAni 0.2s linear;
 }
 
 @keyframes slowlyAppearAni {
@@ -467,6 +467,14 @@ button:hover {
     background-repeat: no-repeat;
     background-size: 50% 50%;
     background-position: center;
+}
+
+.bearOffCnt0 {
+    color: #527a7a !important;
+}
+
+.bearOffCnt1 {
+    color: #D71A60 !important;
 }
 
 @media screen and (max-width: 1000px) {

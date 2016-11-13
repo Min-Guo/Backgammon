@@ -62,7 +62,7 @@
                                }"
                      class="bearOffHome"
                      ng-click="game.towerClicked(idx)">
-                    <span>{{game.getTowerCount(idx).length}}</span>
+                    <span ng-class="{ bearOffCnt0: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
                 </div>
                 <div id="dicewrapper"
                      ng-click="game.rollClicked()"
@@ -82,7 +82,7 @@
                     <div ng-repeat="dice in [0, 1, 2, 3]"
                          id="{{'diceVal'+dice}}"
                          ng-class="{spinFour: game.getDiceStatus()}"
-                         style="background-image: url('images/side{{game.getDiceVal(dice)}}.png')"></div>
+                         ng-style="{ 'background-image': game.getGrayShowStepsControl(dice) ? 'url(\'images/side' + game.getDiceVal(dice) + '.png\')' : 'url(\'images/side' + game.getDiceVal(dice) + '_gray.png\')' }"></div>
                 </div>
                 <div id="confirm">
                     <button ng-click="game.submitClicked(idx)">confirm</button>        
@@ -95,7 +95,7 @@
                                }"
                      class="bearOffHome"
                      ng-click="game.towerClicked()">
-                    <span>{{game.getTowerCount(idx).length}}</span>
+                    <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
                 </div>
             </div>
         </div>
