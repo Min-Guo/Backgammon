@@ -130,18 +130,18 @@ var game;
                 game.moveEnd = target;
                 var usedValues = gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
                 if (usedValues.length !== 0) {
+                    log.info(["Create a move between:", game.moveStart, game.moveEnd]);
                     game.slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
                     game.targets.length = 0;
                     game.moveStart = -1;
                     setGrayShowStepsControl(usedValues);
-                    log.info(["Create a move between:", game.moveStart, game.moveEnd]);
                 }
                 else {
+                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
                     clearSlowlyAppearTimeout();
                     game.moveEnd = -1;
                     game.moveStart = -1; // comment out this line if you want the moveStart unchanged
                     game.targets.length = 0;
-                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
                 }
             }
         }
@@ -225,7 +225,7 @@ var game;
             game.showSteps[2] = originalSteps[2];
             game.showSteps[3] = originalSteps[3];
         }
-        resetShowStepsControl();
+        resetGrayToNormal(game.showStepsControl);
         game.rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
     }
     game.rollClicked = rollClicked;
@@ -233,10 +233,10 @@ var game;
         log.info("Rolling ended");
         setDiceStatus(false);
     }
-    function resetShowStepsControl() {
-        for (var _i = 0, showStepsControl_1 = game.showStepsControl; _i < showStepsControl_1.length; _i++) {
-            var b = showStepsControl_1[_i];
-            b = true;
+    function resetGrayToNormal(ssc) {
+        for (var i = 0; i < 4; i++) {
+            ssc[i] = true;
+            log.info(ssc[i]);
         }
     }
     function getTowerCount(col) {

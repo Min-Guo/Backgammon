@@ -61,7 +61,7 @@ module game {
     currentUpdateUI = params;
     clearAnimationTimeout();
     originalState = params.move.stateAfterMove;
-    currentState = {board: null, delta: null};    
+    currentState = {board: null, delta: null};
     if (isFirstMove()) {
       originalState = gameLogic.getInitialState();
       currentState.board = angular.copy(originalState.board);
@@ -153,17 +153,17 @@ module game {
         moveEnd = target;        
         let usedValues: number[] = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
         if (usedValues.length !== 0) {
+          log.info(["Create a move between:", moveStart, moveEnd]);                      
           slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
           targets.length = 0;
           moveStart = -1;
           setGrayShowStepsControl(usedValues);
-          log.info(["Create a move between:", moveStart, moveEnd]);            
         } else {
+          log.info(["Unable to create a move between:", moveStart, moveEnd]);                    
           clearSlowlyAppearTimeout();
           moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
           targets.length = 0;
-          log.info(["Unable to create a move between:", moveStart, moveEnd]);          
         }
       }
     } else {
@@ -244,7 +244,7 @@ module game {
       showSteps[2] = originalSteps[2];
       showSteps[3] = originalSteps[3];
     }
-    resetShowStepsControl();
+    resetGrayToNormal(showStepsControl);        
     rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
   }
 
@@ -253,9 +253,10 @@ module game {
     setDiceStatus(false);
   }
 
-  function resetShowStepsControl(): void {
-    for (let b of showStepsControl) {
-      b = true;
+  function resetGrayToNormal(ssc: boolean[]): void {
+    for (let i = 0; i < 4; i++) {
+      ssc[i] = true;
+      log.info(ssc[i]);
     }
   }
 
