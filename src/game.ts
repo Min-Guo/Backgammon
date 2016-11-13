@@ -17,6 +17,7 @@ module game {
   export let moveEnd = -1;
   // export let slowlyAppearCol = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
+  export let showStepsControl: boolean[] = [true, true, true, true];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
   export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
   export let targets: number[] = [];
@@ -150,18 +151,19 @@ module game {
         return;
       } else {
         moveEnd = target;        
-        let modified: boolean = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
-        if (modified) {
+        let usedValues: number[] = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
+        if (usedValues.length !== 0) {
           slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
           targets.length = 0;
           moveStart = -1;
+          setGrayShowStepsControl(usedValues);
           log.info(["Create a move between:", moveStart, moveEnd]);            
         } else {
-          log.info(["Unable to create a move between:", moveStart, moveEnd]);
           clearSlowlyAppearTimeout();
           moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
           targets.length = 0;
+          log.info(["Unable to create a move between:", moveStart, moveEnd]);          
         }
       }
     } else {
@@ -184,6 +186,22 @@ module game {
       $timeout.cancel(slowlyAppearEndedTimeout);
       slowlyAppearEndedTimeout = null;
     }
+  }
+
+  function setGrayShowStepsControl(used: number[]) {
+    outer:
+    for (let value of used) {
+      for (let i = 0; i < 4; i++) {
+        if (showSteps[i] === value && showStepsControl[i] === true) {
+          showStepsControl[i] = false;
+          continue outer;
+        }
+      }
+    }
+  }
+
+  export function getGrayShowStepsControl(index: number): boolean {
+    return showStepsControl[index];
   }
 
   export function submitClicked(): void {
@@ -226,12 +244,19 @@ module game {
       showSteps[2] = originalSteps[2];
       showSteps[3] = originalSteps[3];
     }
+    resetShowStepsControl();
     rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
   }
 
   function rollingEndedCallback() {
     log.info("Rolling ended");
     setDiceStatus(false);
+  }
+
+  function resetShowStepsControl(): void {
+    for (let b of showStepsControl) {
+      b = true;
+    }
   }
 
   export function getTowerCount(col: number): number[] {
