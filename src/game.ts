@@ -8,6 +8,7 @@ interface Translations {
 
 module game {
 
+  export let debug: number = 1; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
   // export let animationEndedTimeout: ng.IPromise<any> = null;
@@ -17,6 +18,7 @@ module game {
   export let moveEnd = -1;
   // export let slowlyAppearCol = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
+  export let showStepsControl: boolean[] = [true, true, true, true];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
   export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
   export let targets: number[] = [];
@@ -27,15 +29,30 @@ module game {
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
     //resizeGameAreaService.setWidthToHeight(1);
-    originalState = gameLogic.getInitialState();
+    originalState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
       maxNumberOfPlayers: 2,
-      checkMoveOk: gameLogic.checkMoveOk,
+      checkMoveOk: debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
       updateUI: updateUI,
       gotMessageFromPlatform: null,
     });
   }
+
+  // export function initBearOff() {
+  //   registerServiceWorker();
+  //   translate.setTranslations(getTranslations());
+  //   translate.setLanguage('en');
+  //   //resizeGameAreaService.setWidthToHeight(1);
+  //   originalState = gameLogic.getBearOffState();
+  //   moveService.setGame({
+  //     minNumberOfPlayers: 2,
+  //     maxNumberOfPlayers: 2,
+  //     checkMoveOk: gameLogic.checkMoveOkBear,
+  //     updateUI: updateUI,
+  //     gotMessageFromPlatform: null,
+  //   });
+  // }
 
   function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
@@ -60,13 +77,15 @@ module game {
     currentUpdateUI = params;
     clearAnimationTimeout();
     originalState = params.move.stateAfterMove;
-    currentState = {board: null, delta: null};    
+    currentState = {board: null, delta: null};
     if (isFirstMove()) {
-      originalState = gameLogic.getInitialState();
+      originalState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
       currentState.board = angular.copy(originalState.board);
       //setInitialTurnIndex();
       if (isMyTurn()) {
-        makeMove(gameLogic.createInitialMove());
+        let firstMove: IMove;
+        firstMove = debug === 1 ? gameLogic.createInitialBearMove() : gameLogic.createInitialMove();
+        makeMove(firstMove);
       }
     } else {
       currentState.board = angular.copy(originalState.board);
@@ -150,14 +169,15 @@ module game {
         return;
       } else {
         moveEnd = target;        
-        let modified: boolean = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
-        if (modified) {
+        let usedValues: number[] = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
+        if (usedValues.length !== 0) {
+          log.info(["Create a move between:", moveStart, moveEnd]);                      
           slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
           targets.length = 0;
           moveStart = -1;
-          log.info(["Create a move between:", moveStart, moveEnd]);            
+          setGrayShowStepsControl(usedValues);
         } else {
-          log.info(["Unable to create a move between:", moveStart, moveEnd]);
+          log.info(["Unable to create a move between:", moveStart, moveEnd]);                    
           clearSlowlyAppearTimeout();
           moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
@@ -184,6 +204,22 @@ module game {
       $timeout.cancel(slowlyAppearEndedTimeout);
       slowlyAppearEndedTimeout = null;
     }
+  }
+
+  function setGrayShowStepsControl(used: number[]) {
+    outer:
+    for (let value of used) {
+      for (let i = 0; i < 4; i++) {
+        if (showSteps[i] === value && showStepsControl[i] === true) {
+          showStepsControl[i] = false;
+          continue outer;
+        }
+      }
+    }
+  }
+
+  export function getGrayShowStepsControl(index: number): boolean {
+    return showStepsControl[index];
   }
 
   export function submitClicked(): void {
@@ -226,12 +262,20 @@ module game {
       showSteps[2] = originalSteps[2];
       showSteps[3] = originalSteps[3];
     }
+    resetGrayToNormal(showStepsControl);        
     rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
   }
 
   function rollingEndedCallback() {
     log.info("Rolling ended");
     setDiceStatus(false);
+  }
+
+  function resetGrayToNormal(ssc: boolean[]): void {
+    for (let i = 0; i < 4; i++) {
+      ssc[i] = true;
+      log.info(ssc[i]);
+    }
   }
 
   export function getTowerCount(col: number): number[] {
