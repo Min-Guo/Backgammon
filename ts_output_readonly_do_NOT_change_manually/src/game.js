@@ -139,6 +139,7 @@ var game;
                     clearSlowlyAppearTimeout();
                     game.moveEnd = -1;
                     game.moveStart = -1; // comment out this line if you want the moveStart unchanged
+                    game.targets.length = 0;
                 }
             }
         }
@@ -269,6 +270,15 @@ var game;
         log.info("End point slowly appear ended.");
         game.moveEnd = -1;
     }
+    function canSomebodyBearOff(home) {
+        var turn = game.currentUpdateUI.move.turnIndexAfterMove;
+        if (home === 0)
+            return turn === gameLogic.WHITE && gameLogic.canBearOff(game.currentState.board, turn);
+        if (home === 27)
+            return turn === gameLogic.BLACK && gameLogic.canBearOff(game.currentState.board, turn);
+        return false;
+    }
+    game.canSomebodyBearOff = canSomebodyBearOff;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {

@@ -22,7 +22,6 @@ module game {
   export let targets: number[] = [];
   let rolling: boolean = false;
 
-
   export function init() {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
@@ -162,6 +161,7 @@ module game {
           clearSlowlyAppearTimeout();
           moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
+          targets.length = 0;
         }
       }
     } else {
@@ -288,6 +288,12 @@ module game {
     moveEnd = -1;
   }
 
+  export function canSomebodyBearOff(home: number): boolean {
+    let turn = currentUpdateUI.move.turnIndexAfterMove;
+    if (home === 0) return turn === gameLogic.WHITE && gameLogic.canBearOff(currentState.board, turn);
+    if (home === 27) return turn === gameLogic.BLACK && gameLogic.canBearOff(currentState.board, turn);
+    return false;
+  }
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;
   //   let twoDies = DieCombo.init();

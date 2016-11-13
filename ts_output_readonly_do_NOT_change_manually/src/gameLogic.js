@@ -112,6 +112,7 @@ var gameLogic;
             return true;
         }
     }
+    gameLogic.canBearOff = canBearOff;
     /** If one player has born off all 15 checkers, he wins. */
     function getWinner(board) {
         if (board[gameLogic.WHITEHOME].count == 15) {
