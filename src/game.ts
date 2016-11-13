@@ -8,6 +8,7 @@ interface Translations {
 
 module game {
 
+  export let debug: number = 1; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
   // export let animationEndedTimeout: ng.IPromise<any> = null;
@@ -28,15 +29,30 @@ module game {
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
     //resizeGameAreaService.setWidthToHeight(1);
-    originalState = gameLogic.getInitialState();
+    originalState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
       maxNumberOfPlayers: 2,
-      checkMoveOk: gameLogic.checkMoveOk,
+      checkMoveOk: debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
       updateUI: updateUI,
       gotMessageFromPlatform: null,
     });
   }
+
+  // export function initBearOff() {
+  //   registerServiceWorker();
+  //   translate.setTranslations(getTranslations());
+  //   translate.setLanguage('en');
+  //   //resizeGameAreaService.setWidthToHeight(1);
+  //   originalState = gameLogic.getBearOffState();
+  //   moveService.setGame({
+  //     minNumberOfPlayers: 2,
+  //     maxNumberOfPlayers: 2,
+  //     checkMoveOk: gameLogic.checkMoveOkBear,
+  //     updateUI: updateUI,
+  //     gotMessageFromPlatform: null,
+  //   });
+  // }
 
   function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
@@ -63,11 +79,13 @@ module game {
     originalState = params.move.stateAfterMove;
     currentState = {board: null, delta: null};
     if (isFirstMove()) {
-      originalState = gameLogic.getInitialState();
+      originalState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
       currentState.board = angular.copy(originalState.board);
       //setInitialTurnIndex();
       if (isMyTurn()) {
-        makeMove(gameLogic.createInitialMove());
+        let firstMove: IMove;
+        firstMove = debug === 1 ? gameLogic.createInitialBearMove() : gameLogic.createInitialMove();
+        makeMove(firstMove);
       }
     } else {
       currentState.board = angular.copy(originalState.board);

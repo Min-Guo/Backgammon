@@ -94,7 +94,7 @@
                                showPiece1: game.getTowerCount(idx).length > 0
                                }"
                      class="bearOffHome"
-                     ng-click="game.towerClicked()">
+                     ng-click="game.towerClicked(idx)">
                     <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
                 </div>
             </div>
