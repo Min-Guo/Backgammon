@@ -82,7 +82,7 @@ module game {
 
   function animationEndedCallback() {
     log.info("Animation ended");
-    //maybeSendComputerMove();
+    maybeSendComputerMove();
   }
 
   function clearAnimationTimeout() {
@@ -93,12 +93,12 @@ module game {
     }
   }
 
-  // function maybeSendComputerMove() {
-  //   if (!isComputerTurn()) return;
-  //   let move = aiService.findComputerMove(currentUpdateUI.move);
-  //   log.info("Computer move: ", move);
-  //   makeMove(move);
-  // }
+  function maybeSendComputerMove() {
+    if (!isComputerTurn()) return;
+    let move = aiService.findComputerMove(currentUpdateUI.move);
+    log.info("Computer move: ", move);
+    makeMove(move);
+  }
 
   function makeMove(move: IMove) {
     if (didMakeMove) { // Only one move per updateUI
