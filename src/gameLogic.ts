@@ -107,7 +107,7 @@ module gameLogic {
 	}
 
 	/** If all checkers of one player are in his homeboard, he can bear them off. */
-	function canBearOff(board: Board, role: number): boolean {
+	export function canBearOff(board: Board, role: number): boolean {
 		if (role === BLACK) {
 			if (board[BLACKBAR].count !== 0) {
 				return false;
