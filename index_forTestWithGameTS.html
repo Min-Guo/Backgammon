@@ -85,7 +85,7 @@
                          ng-style="{ 'background-image': game.getGrayShowStepsControl(dice) ? 'url(\'images/side' + game.getDiceVal(dice) + '.png\')' : 'url(\'images/side' + game.getDiceVal(dice) + '_gray.png\')' }"></div>
                 </div>
                 <div id="confirm">
-                    <button ng-click="game.submitClicked(idx)">confirm</button>        
+                    <button ng-click="game.submitClicked()">confirm</button>        
                 </div>
                 <div id='t0'
                      ng-repeat="idx in [0]"
