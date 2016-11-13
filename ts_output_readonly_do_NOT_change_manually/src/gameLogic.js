@@ -83,10 +83,40 @@ var gameLogic;
         }
         return board;
     }
+    /** Returns the preconfigured bear off board. */
+    function getBearOffBoard() {
+        var board = Array(27);
+        for (var i = 0; i < 28; i++) {
+            if (i === gameLogic.WHITEHOME || i === gameLogic.WHITEBAR) {
+                board[i] = new Tower(i, gameLogic.WHITE, 0);
+            }
+            else if (i === gameLogic.BLACKHOME || i === gameLogic.BLACKBAR) {
+                board[i] = new Tower(i, gameLogic.BLACK, 0);
+            }
+            else if (i >= 2 && i <= 7) {
+                board[i] = new Tower(i, gameLogic.WHITE, 2);
+                if (i === 2)
+                    board[i].count = 5;
+            }
+            else if (i >= 20 && i <= 25) {
+                board[i] = new Tower(i, gameLogic.BLACK, 2);
+                if (i === 25)
+                    board[i].count = 5;
+            }
+            else {
+                board[i] = new Tower(i, gameLogic.EMPTY, 0);
+            }
+        }
+        return board;
+    }
     function getInitialState() {
         return { board: getInitialBoard(), delta: null };
     }
     gameLogic.getInitialState = getInitialState;
+    function getBearOffState() {
+        return { board: getBearOffBoard(), delta: null };
+    }
+    gameLogic.getBearOffState = getBearOffState;
     /** If all checkers of one player are in his homeboard, he can bear them off. */
     function canBearOff(board, role) {
         if (role === gameLogic.BLACK) {
@@ -564,6 +594,10 @@ var gameLogic;
         return { endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState() };
     }
     gameLogic.createInitialMove = createInitialMove;
+    function createInitialBearMove() {
+        return { endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getBearOffState() };
+    }
+    gameLogic.createInitialBearMove = createInitialBearMove;
     function checkMoveOk(stateTransition) {
         // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
         // to verify that the move is OK.
@@ -595,5 +629,36 @@ var gameLogic;
         }
     }
     gameLogic.checkMoveOk = checkMoveOk;
+    function checkMoveOkBear(stateTransition) {
+        // We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
+        // to verify that the move is OK.
+        var turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
+        var stateBeforeMove = stateTransition.stateBeforeMove;
+        var move = stateTransition.move;
+        if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
+            angular.equals(createInitialBearMove(), move)) {
+            return;
+        }
+        var delta = move.stateAfterMove.delta;
+        var expectedMove = null;
+        var tmpState = { board: angular.copy(stateBeforeMove.board), delta: null };
+        for (var _i = 0, _a = delta.turns; _i < _a.length; _i++) {
+            var turn = _a[_i];
+            setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
+            // this check needed if the player is completely closed out so moves is null			
+            if (turn.moves) {
+                for (var _b = 0, _c = turn.moves; _b < _c.length; _b++) {
+                    var move_2 = _c[_b];
+                    createMiniMove(tmpState, move_2.start, move_2.end, turnIndexBeforeMove);
+                }
+            }
+        }
+        expectedMove = createMove(stateBeforeMove, tmpState, turnIndexBeforeMove);
+        if (!angular.equals(move, expectedMove)) {
+            throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
+                ", but got stateTransition=" + angular.toJson(stateTransition, true));
+        }
+    }
+    gameLogic.checkMoveOkBear = checkMoveOkBear;
 })(gameLogic || (gameLogic = {}));
 //# sourceMappingURL=gameLogic.js.map

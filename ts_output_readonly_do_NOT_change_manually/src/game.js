@@ -1,6 +1,7 @@
 ;
 var game;
 (function (game) {
+    game.debug = 1; //0: normal, 1: bear off, ...
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
     // export let animationEndedTimeout: ng.IPromise<any> = null;
@@ -20,16 +21,30 @@ var game;
         translate.setTranslations(getTranslations());
         translate.setLanguage('en');
         //resizeGameAreaService.setWidthToHeight(1);
-        game.originalState = gameLogic.getInitialState();
+        game.originalState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
         moveService.setGame({
             minNumberOfPlayers: 2,
             maxNumberOfPlayers: 2,
-            checkMoveOk: gameLogic.checkMoveOk,
+            checkMoveOk: game.debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
             updateUI: updateUI,
             gotMessageFromPlatform: null,
         });
     }
     game.init = init;
+    // export function initBearOff() {
+    //   registerServiceWorker();
+    //   translate.setTranslations(getTranslations());
+    //   translate.setLanguage('en');
+    //   //resizeGameAreaService.setWidthToHeight(1);
+    //   originalState = gameLogic.getBearOffState();
+    //   moveService.setGame({
+    //     minNumberOfPlayers: 2,
+    //     maxNumberOfPlayers: 2,
+    //     checkMoveOk: gameLogic.checkMoveOkBear,
+    //     updateUI: updateUI,
+    //     gotMessageFromPlatform: null,
+    //   });
+    // }
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             var n = navigator;
@@ -53,11 +68,13 @@ var game;
         game.originalState = params.move.stateAfterMove;
         game.currentState = { board: null, delta: null };
         if (isFirstMove()) {
-            game.originalState = gameLogic.getInitialState();
+            game.originalState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
             game.currentState.board = angular.copy(game.originalState.board);
             //setInitialTurnIndex();
             if (isMyTurn()) {
-                makeMove(gameLogic.createInitialMove());
+                var firstMove = void 0;
+                firstMove = game.debug === 1 ? gameLogic.createInitialBearMove() : gameLogic.createInitialMove();
+                makeMove(firstMove);
             }
         }
         else {
