@@ -435,30 +435,31 @@ module gameLogic {
 	 * Param start comes from the first towerClicked or drag event, and denotes the starting point of this mini-move.
 	 * Param end comes from the second towerClicked or drop event, and denotes the ending point of this mini-move.
 	 * If start-to-end is/are indeed a valid mini-move/s, a trial of modelMove/s is/are issued which may modify boardAfterMove.
-	 * Successful modification returns true, otherwise false.
+	 * The used dice values are stored in the return array. Successful mini-move/s return/s a non-empty array, otherwise an empty one.
 	 */
-	export function createMiniMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): boolean {
+	export function createMiniMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): number[] {
 		// We can assume the stateBeforeMove has been properly initialized with the final board,
 		// while the turns or originalSteps in the current turn may not be initialized (dices not rolled first).
 		let turns = stateBeforeMove.delta.turns;
+		let res: number[] = [];
 		if (!turns) {
 			// throw new Error("You have to roll the dices to start a new turn!");
 			log.info(["You have to roll the dices to start a new turn!"]);
-			return false;
+			return res;
 		} else if (shouldRollDicesAgain(stateBeforeMove, roleBeforeMove)) {
 			// throw new Error("Your opponent is closed out. You can roll the dices to start a new turn again!");
 			log.info(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
-			return false;
+			return res;
 		} else if (turns[turns.length - 1].currentSteps.length === 0) {
 			// Cannot re-roll the dices, and the current turn is complete, must submit the move.
 			log.info(["All mini-moves complete. Please submit your move!"]);
-			return false;
+			return res;
 		} else {
 			// make a mini-move
 			let curTurn = turns[turns.length - 1];
 			if (getWinner(stateBeforeMove.board) !== "") {
 				log.info(["The game is over. If it's your turn, you can submit this move now!"]);
-				return false;
+				return res;
 			}
 			let posToStep = startMove(stateBeforeMove.board, curTurn.currentSteps, start, roleBeforeMove);
 			if (end in posToStep) {
@@ -477,15 +478,16 @@ module gameLogic {
 					curTurn.moves.push(oneMiniMove);
 					deleteBuffer[index] = [];
 					localStart = localEnd;
+					res.push(curTurn.currentSteps[index]);
 				}
 				for (let i = 3; i >= 0; i--) {
 					if (deleteBuffer[i]) curTurn.currentSteps.splice(i, 1);
 				}
-				return true;
+				return res;
 			} else {
 				//no such value found tossed, not a legal move
 				log.info(["No such move!"]);
-				return false;
+				return res;
 			}
 		}
 	}

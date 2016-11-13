@@ -10,6 +10,7 @@ var game;
     game.moveEnd = -1;
     // export let slowlyAppearCol = -1;
     game.showSteps = [0, 0, 0, 0];
+    game.showStepsControl = [true, true, true, true];
     game.rollingEndedTimeout = null;
     game.slowlyAppearEndedTimeout = null;
     game.targets = [];
@@ -127,12 +128,13 @@ var game;
             }
             else {
                 game.moveEnd = target;
-                var modified = gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
-                if (modified) {
+                var usedValues = gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
+                if (usedValues.length !== 0) {
+                    log.info(["Create a move between:", game.moveStart, game.moveEnd]);
                     game.slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
                     game.targets.length = 0;
                     game.moveStart = -1;
-                    log.info(["Create a move between:", game.moveStart, game.moveEnd]);
+                    setGrayShowStepsControl(usedValues);
                 }
                 else {
                     log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
@@ -165,6 +167,21 @@ var game;
             game.slowlyAppearEndedTimeout = null;
         }
     }
+    function setGrayShowStepsControl(used) {
+        outer: for (var _i = 0, used_1 = used; _i < used_1.length; _i++) {
+            var value = used_1[_i];
+            for (var i = 0; i < 4; i++) {
+                if (game.showSteps[i] === value && game.showStepsControl[i] === true) {
+                    game.showStepsControl[i] = false;
+                    continue outer;
+                }
+            }
+        }
+    }
+    function getGrayShowStepsControl(index) {
+        return game.showStepsControl[index];
+    }
+    game.getGrayShowStepsControl = getGrayShowStepsControl;
     function submitClicked() {
         log.info(["Submit move."]);
         if (window.location.search === '?throwException') {
@@ -208,12 +225,19 @@ var game;
             game.showSteps[2] = originalSteps[2];
             game.showSteps[3] = originalSteps[3];
         }
+        resetGrayToNormal(game.showStepsControl);
         game.rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
     }
     game.rollClicked = rollClicked;
     function rollingEndedCallback() {
         log.info("Rolling ended");
         setDiceStatus(false);
+    }
+    function resetGrayToNormal(ssc) {
+        for (var i = 0; i < 4; i++) {
+            ssc[i] = true;
+            log.info(ssc[i]);
+        }
     }
     function getTowerCount(col) {
         var tc = game.currentState.board[col].count;
