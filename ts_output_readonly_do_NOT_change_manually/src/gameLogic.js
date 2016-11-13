@@ -276,51 +276,76 @@ var gameLogic;
         return false;
     }
     /**
-     * This function reflects all reachable positions, given starting position.
-     * From start, all possible moves are assumed from original in order.
-     * Returns an object, containing reachable Tower tid's as keys, and an array of steps indexes by which to walk from start.
-     * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [1, 0]}
+     * This function reflects all reachable positions and how to get there, given starting position.
+     * Returns an object, containing reachable Tower tid's as keys, and an array of dice indices to walk from start in order.
+     * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [0, 1]}.
+     * Multiple paths are reduced to save only one path, so that only {12: [0, 1]} instead of updating to {12: [1, 0]}.
      */
     function startMove(curBoard, curSteps, start, role) {
         var res = {};
         var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
-        if ((curBoard[myBar].count !== 0 && start !== myBar) || curSteps.length === 0) {
+        var board;
+        var newStart = start;
+        var prevEnd;
+        if (curSteps.length === 0) {
             return res;
         }
         else if (curSteps.length === 2) {
-            var board = void 0;
-            var newStart = void 0;
             // 1 -> 2
             board = angular.copy(curBoard);
-            newStart = start;
-            for (var i = 0; i < curSteps.length; i++) {
+            prevEnd = -1;
+            for (var i = 0; i < 2; i++) {
                 var oldStart = newStart;
                 newStart = getValidPos(oldStart, curSteps[i], role);
                 var modified = modelMove(board, oldStart, curSteps[i], role);
                 if (modified) {
-                    //assume an automatic conversion from number to string
+                    // Assume an automatic conversion from number to string.
                     if (!res[board[newStart].tid]) {
                         res[board[newStart].tid] = [];
                     }
+                    // Add all dice indices along the path prior to the current end point.
+                    if (prevEnd !== -1) {
+                        for (var _i = 0, _a = res[board[prevEnd].tid]; _i < _a.length; _i++) {
+                            var s = _a[_i];
+                            res[board[newStart].tid].push(s);
+                        }
+                    }
+                    // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
+                    prevEnd = newStart;
                     if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
                         break;
                     }
                 }
             }
             // 2 -> 1
-            board = angular.copy(curBoard);
             newStart = start;
+            board = angular.copy(curBoard);
+            prevEnd = -1;
             for (var i = curSteps.length - 1; i >= 0; i--) {
                 var oldStart = newStart;
                 newStart = getValidPos(oldStart, curSteps[i], role);
                 var modified = modelMove(board, oldStart, curSteps[i], role);
                 if (modified) {
-                    //assume an automatic conversion from number to string
+                    // Assume an automatic conversion from number to string
                     if (!res[board[newStart].tid]) {
                         res[board[newStart].tid] = [];
                     }
+                    else {
+                        // The first path may have covered this end point.
+                        // In that case, we choose to skip the same end point with different paths.
+                        break;
+                    }
+                    // Add all dice indices along the path prior to the current end point.
+                    if (prevEnd !== -1) {
+                        for (var _b = 0, _c = res[board[prevEnd].tid]; _b < _c.length; _b++) {
+                            var s = _c[_b];
+                            res[board[newStart].tid].push(s);
+                        }
+                    }
+                    // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
+                    prevEnd = newStart;
                     if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
                         break;
                     }
@@ -328,21 +353,29 @@ var gameLogic;
             }
         }
         else {
-            var board = void 0;
-            var newStart = start;
             // 1
             // 1 -> 2 -> 3 [-> 4]
             board = angular.copy(curBoard);
+            prevEnd = -1;
             for (var i = 0; i < curSteps.length; i++) {
                 var oldStart = newStart;
                 newStart = getValidPos(oldStart, curSteps[i], role);
                 var modified = modelMove(board, oldStart, curSteps[i], role);
                 if (modified) {
-                    //assume an automatic conversion from number to string
+                    // Assume an automatic conversion from number to string
                     if (!res[board[newStart].tid]) {
                         res[board[newStart].tid] = [];
                     }
+                    // Add all dice indices along the path prior to the current end point.
+                    if (prevEnd !== -1) {
+                        for (var _d = 0, _e = res[board[prevEnd].tid]; _d < _e.length; _d++) {
+                            var s = _e[_d];
+                            res[board[newStart].tid].push(s);
+                        }
+                    }
+                    // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
+                    prevEnd = newStart;
                     if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
                         break;
                     }
@@ -355,10 +388,13 @@ var gameLogic;
         return res;
     }
     gameLogic.startMove = startMove;
+    /**
+     * This function reacts on the submitClicked to trigger a move to be created.
+     * Param originalState denotes the state before any mini-moves of this move.
+     * Param currentState denotes the state modified from the originalState with sequential mini-moves in this move.
+     * If the game is not over, and the player has completed all mini-moves, and the opponent is not closed out, the player is switched.
+     */
     function createMove(originalState, currentState, turnIndexBeforeMove) {
-        // if (!stateBeforeMove) {
-        // 	stateBeforeMove = getInitialState();
-        // }
         var oldBoard = originalState.board;
         if (getWinner(oldBoard) !== '') {
             throw new Error("Can only make a move if the game is not over!");
@@ -397,11 +433,11 @@ var gameLogic;
     }
     gameLogic.createMove = createMove;
     /**
-     * This function reacts on the mouse second click or drop event to trigger a mini-move to be created on the current board.
-     * Param start comes from the mouse first click or drag event, and denotes the starting point of this mini-move.
-     * Param end comes from the mouse second click or drop event, and denotes the ending point of this mini-move.
-     * If |end - start| is indeed a valid step, a trial of modelMove is issued which may modify boardAfterMove.
-     * When no more step available, players are switched.
+     * This function reacts on the second towerClicked or drop event to trigger a mini-move to be created on the current board.
+     * Param start comes from the first towerClicked or drag event, and denotes the starting point of this mini-move.
+     * Param end comes from the second towerClicked or drop event, and denotes the ending point of this mini-move.
+     * If start-to-end is/are indeed a valid mini-move/s, a trial of modelMove/s is/are issued which may modify boardAfterMove.
+     * Successful modification returns true, otherwise false.
      */
     function createMiniMove(stateBeforeMove, start, end, roleBeforeMove) {
         // We can assume the stateBeforeMove has been properly initialized with the final board,
@@ -431,15 +467,27 @@ var gameLogic;
             }
             var posToStep = startMove(stateBeforeMove.board, curTurn.currentSteps, start, roleBeforeMove);
             if (end in posToStep) {
-                //posToStep[end] is the array of intended steps index, must access first element for the index, hence [0]
-                var index = posToStep[end][0];
-                modelMove(stateBeforeMove.board, start, curTurn.currentSteps[index], roleBeforeMove);
-                curTurn.currentSteps.splice(index, 1);
+                // posToStep[end] is the array of dice indices which form a path, must access in order
+                var indices = posToStep[end]; // possible: [0], [0, 1], [1, 0], [0, 1, 2], [0, 1, 2, 3]
+                var deleteBuffer = {}; // type is just for auxiliary use
                 if (!curTurn.moves) {
                     curTurn.moves = [];
                 }
-                var oneMiniMove = { start: start, end: end };
-                curTurn.moves.push(oneMiniMove);
+                var localStart = start;
+                var localEnd = void 0;
+                for (var _i = 0, indices_1 = indices; _i < indices_1.length; _i++) {
+                    var index = indices_1[_i];
+                    modelMove(stateBeforeMove.board, localStart, curTurn.currentSteps[index], roleBeforeMove);
+                    localEnd = getValidPos(localStart, curTurn.currentSteps[index], roleBeforeMove);
+                    var oneMiniMove = { start: localStart, end: localEnd };
+                    curTurn.moves.push(oneMiniMove);
+                    deleteBuffer[index] = [];
+                    localStart = localEnd;
+                }
+                for (var i = 3; i >= 0; i--) {
+                    if (deleteBuffer[i])
+                        curTurn.currentSteps.splice(i, 1);
+                }
                 return true;
             }
             else {
