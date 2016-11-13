@@ -127,16 +127,18 @@ var game;
             }
             else {
                 game.moveEnd = target;
-                try {
-                    gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
-                    log.info(["Create a move between:", game.moveStart, target]);
-                }
-                catch (e) {
-                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
-                }
-                finally {
-                    game.moveStart = -1; // comment out this line if you want the moveStart unchanged
+                var modified = gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
+                if (modified) {
                     game.slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
+                    game.targets.length = 0;
+                    game.moveStart = -1;
+                    log.info(["Create a move between:", game.moveStart, game.moveEnd]);
+                }
+                else {
+                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
+                    clearSlowlyAppearTimeout();
+                    game.moveEnd = -1;
+                    game.moveStart = -1; // comment out this line if you want the moveStart unchanged
                     game.targets.length = 0;
                 }
             }
@@ -268,6 +270,15 @@ var game;
         log.info("End point slowly appear ended.");
         game.moveEnd = -1;
     }
+    function canSomebodyBearOff(home) {
+        var turn = game.currentUpdateUI.move.turnIndexAfterMove;
+        if (home === 0)
+            return turn === gameLogic.WHITE && gameLogic.canBearOff(game.currentState.board, turn);
+        if (home === 27)
+            return turn === gameLogic.BLACK && gameLogic.canBearOff(game.currentState.board, turn);
+        return false;
+    }
+    game.canSomebodyBearOff = canSomebodyBearOff;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {

@@ -22,7 +22,6 @@ module game {
   export let targets: number[] = [];
   let rolling: boolean = false;
 
-
   export function init() {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
@@ -151,14 +150,17 @@ module game {
         return;
       } else {
         moveEnd = target;        
-        try {
-          gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
-          log.info(["Create a move between:", moveStart, target]);
-        } catch (e) {
+        let modified: boolean = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
+        if (modified) {
+          slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
+          targets.length = 0;
+          moveStart = -1;
+          log.info(["Create a move between:", moveStart, moveEnd]);            
+        } else {
           log.info(["Unable to create a move between:", moveStart, moveEnd]);
-        } finally {
+          clearSlowlyAppearTimeout();
+          moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
-          slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);                      
           targets.length = 0;
         }
       }
@@ -286,6 +288,12 @@ module game {
     moveEnd = -1;
   }
 
+  export function canSomebodyBearOff(home: number): boolean {
+    let turn = currentUpdateUI.move.turnIndexAfterMove;
+    if (home === 0) return turn === gameLogic.WHITE && gameLogic.canBearOff(currentState.board, turn);
+    if (home === 27) return turn === gameLogic.BLACK && gameLogic.canBearOff(currentState.board, turn);
+    return false;
+  }
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;
   //   let twoDies = DieCombo.init();
