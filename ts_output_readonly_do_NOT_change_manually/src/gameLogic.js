@@ -252,6 +252,9 @@ var gameLogic;
             return true;
         }
         else if (board[end].status !== 1 - role || board[end].count === 1) {
+            var myHome = role === gameLogic.BLACK ? gameLogic.BLACKHOME : gameLogic.WHITEHOME;
+            if (end === myHome && !canBearOff(board, role))
+                return false;
             board[start].count -= 1;
             if (board[start].count === 0 && start !== gameLogic.BLACKBAR && start !== gameLogic.WHITEBAR) {
                 board[start].status = gameLogic.EMPTY;
@@ -339,6 +342,9 @@ var gameLogic;
                     if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
                         break;
                     }
+                }
+                else {
+                    break;
                 }
             }
         }

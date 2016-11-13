@@ -127,17 +127,18 @@ var game;
             }
             else {
                 game.moveEnd = target;
-                try {
-                    gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
-                    log.info(["Create a move between:", game.moveStart, target]);
-                }
-                catch (e) {
-                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
-                }
-                finally {
-                    game.moveStart = -1; // comment out this line if you want the moveStart unchanged
+                var modified = gameLogic.createMiniMove(game.currentState, game.moveStart, game.moveEnd, game.currentUpdateUI.move.turnIndexAfterMove);
+                if (modified) {
                     game.slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
                     game.targets.length = 0;
+                    game.moveStart = -1;
+                    log.info(["Create a move between:", game.moveStart, game.moveEnd]);
+                }
+                else {
+                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
+                    clearSlowlyAppearTimeout();
+                    game.moveEnd = -1;
+                    game.moveStart = -1; // comment out this line if you want the moveStart unchanged
                 }
             }
         }
