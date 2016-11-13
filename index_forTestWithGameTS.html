@@ -57,7 +57,8 @@
                 <div id='t27' 
                      ng-repeat="idx in [27]"
                      ng-class="{
-                               shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx)
+                               shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx),
+                               showPiece0: game.getTowerCount(idx).length > 0
                                }"
                      class="bearOffHome"
                      ng-click="game.towerClicked(idx)">
@@ -89,7 +90,8 @@
                 <div id='t0'
                      ng-repeat="idx in [0]"
                      ng-class="{
-                               shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx)
+                               shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx),
+                               showPiece1: game.getTowerCount(idx).length > 0
                                }"
                      class="bearOffHome"
                      ng-click="game.towerClicked()">

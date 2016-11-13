@@ -53,7 +53,8 @@
                 <div id='t27' 
                      ng-repeat="idx in [27]"
                      ng-class="{
-                               shouldPulse0: homeOpen(),
+                               shouldPulse0: yourPlayerIndex == 0 && homeOpen(),
+                               showPiece0: homeCount > 0
                                }"
                      class="bearOffHome"
                      ng-click="towerClicked()">
@@ -83,8 +84,12 @@
                     <button ng-click="game.submitClicked()">confirm</button>        
                 </div>
                 <div id='t0'
-                     class="bearOffHome"
-                     ng-repeat="idx in [0]">
+                     ng-repeat="idx in [0]"
+                     ng-class="{
+                               shouldPulse1: yourPlayerIndex == 1 && homeOpen(),
+                               showPiece1: homeCount > 0
+                               }"
+                     class="bearOffHome">
                     <span>{{getHomeCount(idx)}}</span>
                 </div>
             </div>
@@ -222,9 +227,11 @@
                     }
                     
                     $scope.homeOpen = function() {
-                        return true;
+                        return false;
                     }
                     
+                    $scope.yourPlayerIndex = 1;
+                    $scope.homeCount = 2;
                     
                 });
     </script>
