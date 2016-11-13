@@ -102,8 +102,33 @@ module gameLogic {
 		return board;
 	}
 
+	/** Returns the preconfigured bear off board. */
+	function getBearOffBoard(): Board {
+		let board: Board = Array(27);
+		for (let i = 0; i < 28; i++) {
+			if (i === WHITEHOME || i === WHITEBAR) {
+				board[i] = new Tower(i, WHITE, 0);
+			} else if (i === BLACKHOME || i === BLACKBAR) {
+				board[i] = new Tower(i, BLACK, 0);
+			} else if (i >= 2 && i <= 7) {
+				board[i] = new Tower(i, WHITE, 2);
+				if (i === 2) board[i].count = 5;
+			} else if (i >= 20 && i <= 25) {
+				board[i] = new Tower(i, BLACK, 2);
+				if (i === 25) board[i].count = 5;
+			} else {
+				board[i] = new Tower(i, EMPTY, 0);
+			}
+		}
+		return board;
+	}
+
 	export function getInitialState(): IState {
 		return {board: getInitialBoard(), delta: null};
+	}
+
+	export function getBearOffState(): IState {
+		return {board: getBearOffBoard(), delta: null};
 	}
 
 	/** If all checkers of one player are in his homeboard, he can bear them off. */
@@ -435,30 +460,31 @@ module gameLogic {
 	 * Param start comes from the first towerClicked or drag event, and denotes the starting point of this mini-move.
 	 * Param end comes from the second towerClicked or drop event, and denotes the ending point of this mini-move.
 	 * If start-to-end is/are indeed a valid mini-move/s, a trial of modelMove/s is/are issued which may modify boardAfterMove.
-	 * Successful modification returns true, otherwise false.
+	 * The used dice values are stored in the return array. Successful mini-move/s return/s a non-empty array, otherwise an empty one.
 	 */
-	export function createMiniMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): boolean {
+	export function createMiniMove(stateBeforeMove: IState, start: number, end: number, roleBeforeMove: number): number[] {
 		// We can assume the stateBeforeMove has been properly initialized with the final board,
 		// while the turns or originalSteps in the current turn may not be initialized (dices not rolled first).
 		let turns = stateBeforeMove.delta.turns;
+		let res: number[] = [];
 		if (!turns) {
 			// throw new Error("You have to roll the dices to start a new turn!");
 			log.info(["You have to roll the dices to start a new turn!"]);
-			return false;
+			return res;
 		} else if (shouldRollDicesAgain(stateBeforeMove, roleBeforeMove)) {
 			// throw new Error("Your opponent is closed out. You can roll the dices to start a new turn again!");
 			log.info(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
-			return false;
+			return res;
 		} else if (turns[turns.length - 1].currentSteps.length === 0) {
 			// Cannot re-roll the dices, and the current turn is complete, must submit the move.
 			log.info(["All mini-moves complete. Please submit your move!"]);
-			return false;
+			return res;
 		} else {
 			// make a mini-move
 			let curTurn = turns[turns.length - 1];
 			if (getWinner(stateBeforeMove.board) !== "") {
 				log.info(["The game is over. If it's your turn, you can submit this move now!"]);
-				return false;
+				return res;
 			}
 			let posToStep = startMove(stateBeforeMove.board, curTurn.currentSteps, start, roleBeforeMove);
 			if (end in posToStep) {
@@ -477,15 +503,16 @@ module gameLogic {
 					curTurn.moves.push(oneMiniMove);
 					deleteBuffer[index] = [];
 					localStart = localEnd;
+					res.push(curTurn.currentSteps[index]);
 				}
 				for (let i = 3; i >= 0; i--) {
 					if (deleteBuffer[i]) curTurn.currentSteps.splice(i, 1);
 				}
-				return true;
+				return res;
 			} else {
 				//no such value found tossed, not a legal move
 				log.info(["No such move!"]);
-				return false;
+				return res;
 			}
 		}
 	}
@@ -553,6 +580,10 @@ module gameLogic {
     	return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getInitialState()};  
   	}
 
+	export function createInitialBearMove(): IMove {
+		return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getBearOffState()};
+	}
+
 	export function checkMoveOk(stateTransition: IStateTransition): void {
 		// We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
 		// to verify that the move is OK.
@@ -561,6 +592,35 @@ module gameLogic {
 		let move: IMove = stateTransition.move;
 		if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
 			angular.equals(createInitialMove(), move)) {
+			return;
+		}
+		let delta: BoardDelta = move.stateAfterMove.delta;
+		let expectedMove: IMove = null;
+		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: null};
+		for (let turn of delta.turns) {
+			setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
+			// this check needed if the player is completely closed out so moves is null			
+			if (turn.moves) { 
+				for (let move of turn.moves) {
+					createMiniMove(tmpState, move.start, move.end, turnIndexBeforeMove);
+				}
+			}
+		}
+		expectedMove = createMove(stateBeforeMove, tmpState, turnIndexBeforeMove);
+		if (!angular.equals(move, expectedMove)) {
+		throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
+			", but got stateTransition=" + angular.toJson(stateTransition, true))
+		}
+	}
+
+	export function checkMoveOkBear(stateTransition: IStateTransition): void {
+		// We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
+		// to verify that the move is OK.
+		let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
+		let stateBeforeMove: IState = stateTransition.stateBeforeMove;
+		let move: IMove = stateTransition.move;
+		if (!stateBeforeMove && turnIndexBeforeMove === 0 &&
+			angular.equals(createInitialBearMove(), move)) {
 			return;
 		}
 		let delta: BoardDelta = move.stateAfterMove.delta;

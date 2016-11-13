@@ -78,7 +78,7 @@
                     <div ng-repeat="dice in [0, 1, 2, 3]"
                          id="{{'diceVal'+dice}}"
                          ng-class="{spinFour: getDiceStatus()}"
-                         style="background-image: url('images/side{{getDiceVal(dice)}}.png')"></div>
+                         ng-style="{ 'background-image': getGrayShowStepsControl(dice) ? 'url(\'images/side' + getDiceVal(dice) + '.png\')' : 'url(\'images/side' + getDiceVal(dice) + '_gray.png\')' }"></div>
                 </div>
                 <div id="confirm">
                     <button ng-click="game.submitClicked()">confirm</button>        
@@ -198,7 +198,7 @@
                         return rolling;
                     }
                     
-                    var vals = [0, 0, 0, 0];
+                    var vals = [0, 3, 5, 0];
                     $scope.setDiceVal = function(){
                         val1 = Math.floor(Math.random()*6)+1;
                         val2 = Math.floor(Math.random()*6)+1;
@@ -232,6 +232,9 @@
                     
                     $scope.yourPlayerIndex = 1;
                     $scope.homeCount = 2;
+                    $scope.getGrayShowStepsControl = function(dice) {
+                        return [true, false, true, true][dice];
+                    }
                     
                 });
     </script>
