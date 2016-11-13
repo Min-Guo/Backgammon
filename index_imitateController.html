@@ -51,8 +51,12 @@
             </div>
             <div id="ctrl">
                 <div id='t27' 
+                     ng-repeat="idx in [27]"
+                     ng-class="{
+                               shouldPulse0: homeOpen(),
+                               }"
                      class="bearOffHome"
-                     ng-repeat="idx in [27]">
+                     ng-click="towerClicked()">
                     <span>{{getHomeCount(idx)}}</span>
                 </div>
                 <div id="dicewrapper"
@@ -215,6 +219,10 @@
                         } else {
                             return false;
                         }
+                    }
+                    
+                    $scope.homeOpen = function() {
+                        return true;
                     }
                     
                     
