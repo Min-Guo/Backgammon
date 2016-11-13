@@ -151,15 +151,17 @@ module game {
         return;
       } else {
         moveEnd = target;        
-        try {
-          gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
-          log.info(["Create a move between:", moveStart, target]);
-        } catch (e) {
-          log.info(["Unable to create a move between:", moveStart, moveEnd]);
-        } finally {
-          moveStart = -1; // comment out this line if you want the moveStart unchanged
-          slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);                      
+        let modified: boolean = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
+        if (modified) {
+          slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
           targets.length = 0;
+          moveStart = -1;
+          log.info(["Create a move between:", moveStart, moveEnd]);            
+        } else {
+          log.info(["Unable to create a move between:", moveStart, moveEnd]);
+          clearSlowlyAppearTimeout();
+          moveEnd = -1;
+          moveStart = -1; // comment out this line if you want the moveStart unchanged
         }
       }
     } else {
