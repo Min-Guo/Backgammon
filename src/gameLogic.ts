@@ -233,6 +233,8 @@ module gameLogic {
 		if (board[start].status !== role) {
 			return false;
 		}
+		let myBar = role === BLACK ?  BLACKBAR : WHITEBAR;
+		if (board[myBar].count !== 0 && start !== myBar) return false;
 		let end = getValidPos(start, step, role);
 		if (role === BLACK && end === BLACKHOME && canBearOff(board, BLACK)) {
 			if (start + step > BLACKHOME - 1) {
@@ -266,7 +268,7 @@ module gameLogic {
 			let myHome = role === BLACK ? BLACKHOME : WHITEHOME;
 			if (end === myHome && !canBearOff(board, role)) return false;
 			board[start].count -= 1;
-			if (board[start].count === 0 && start !== BLACKBAR && start !== WHITEBAR) {
+			if (board[start].count === 0 && start !== myBar) {
 				board[start].status = EMPTY;
 			}
 			if (board[end].status !== 1 - role) {

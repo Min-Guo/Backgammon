@@ -221,6 +221,9 @@ var gameLogic;
         if (board[start].status !== role) {
             return false;
         }
+        var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
+        if (board[myBar].count !== 0 && start !== myBar)
+            return false;
         var end = getValidPos(start, step, role);
         if (role === gameLogic.BLACK && end === gameLogic.BLACKHOME && canBearOff(board, gameLogic.BLACK)) {
             if (start + step > gameLogic.BLACKHOME - 1) {
@@ -257,7 +260,7 @@ var gameLogic;
             if (end === myHome && !canBearOff(board, role))
                 return false;
             board[start].count -= 1;
-            if (board[start].count === 0 && start !== gameLogic.BLACKBAR && start !== gameLogic.WHITEBAR) {
+            if (board[start].count === 0 && start !== myBar) {
                 board[start].status = gameLogic.EMPTY;
             }
             if (board[end].status !== 1 - role) {
