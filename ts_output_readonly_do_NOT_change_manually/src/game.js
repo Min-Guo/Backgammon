@@ -1,7 +1,7 @@
 ;
 var game;
 (function (game) {
-    game.debug = 1; //0: normal, 1: bear off, ...
+    game.debug = 0; //0: normal, 1: bear off, ...
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
     // export let animationEndedTimeout: ng.IPromise<any> = null;
