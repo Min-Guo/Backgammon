@@ -107,7 +107,7 @@ module gameLogic {
 	}
 
 	/** If all checkers of one player are in his homeboard, he can bear them off. */
-	function canBearOff(board: Board, role: number): boolean {
+	export function canBearOff(board: Board, role: number): boolean {
 		if (role === BLACK) {
 			if (board[BLACKBAR].count !== 0) {
 				return false;
@@ -263,6 +263,8 @@ module gameLogic {
 			board[WHITEHOME].count += 1;
 			return true;
 		} else if (board[end].status !== 1 - role || board[end].count === 1) {
+			let myHome = role === BLACK ? BLACKHOME : WHITEHOME;
+			if (end === myHome && !canBearOff(board, role)) return false;
 			board[start].count -= 1;
 			if (board[start].count === 0 && start !== BLACKBAR && start !== WHITEBAR) {
 				board[start].status = EMPTY;
@@ -348,6 +350,8 @@ module gameLogic {
 					if (newStart === BLACKHOME || newStart == WHITEHOME) {
 						break;
 					}
+				} else {
+					break;
 				}
 			}
 		}
