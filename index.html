@@ -55,8 +55,13 @@
             </div>
             <div id="ctrl">
                 <div id='t27' 
+                     ng-repeat="idx in [27]"
+                     ng-class="{
+                               shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx),
+                               showPiece0: game.getTowerCount(idx).length > 0
+                               }"
                      class="bearOffHome"
-                     ng-repeat="idx in [27]">
+                     ng-click="game.towerClicked(idx)">
                     <span>{{game.getTowerCount(idx).length}}</span>
                 </div>
                 <div id="dicewrapper"
@@ -80,11 +85,16 @@
                          style="background-image: url('images/side{{game.getDiceVal(dice)}}.png')"></div>
                 </div>
                 <div id="confirm">
-                    <button ng-click="game.submitClicked()">confirm</button>        
+                    <button ng-click="game.submitClicked(idx)">confirm</button>        
                 </div>
                 <div id='t0'
+                     ng-repeat="idx in [0]"
+                     ng-class="{
+                               shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx),
+                               showPiece1: game.getTowerCount(idx).length > 0
+                               }"
                      class="bearOffHome"
-                     ng-repeat="idx in [0]">
+                     ng-click="game.towerClicked()">
                     <span>{{game.getTowerCount(idx).length}}</span>
                 </div>
             </div>
