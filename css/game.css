@@ -462,7 +462,7 @@ button:hover {
     color: #D71A60 !important;
 }
 
-@media screen and (max-width: 1000px) {
+@media screen and (max-width: 1000px), screen and (max-height: 570px) {
     span {
         font-size: .7em;
     }
@@ -522,7 +522,7 @@ button:hover {
     cursor: pointer
 }
 
-@media screen and (max-width: 700px) {
+@media screen and (max-width: 700px), screen and (max-height: 400px) {
     #dicewrapper {
         width:16px;
         height:16px;
