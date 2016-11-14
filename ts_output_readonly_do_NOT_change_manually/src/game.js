@@ -258,15 +258,11 @@ var game;
     }
     game.getPlayer = getPlayer;
     function getHeight(col) {
-        for (var i = 0; i < game.currentState.board.length; i++) {
-            if (game.currentState.board[i].tid === col) {
-                var n = game.currentState.board[i].count;
-                if (n < 7) {
-                    return 16.66;
-                }
-                return (100 - (16.66 - 100 / n)) / n;
-            }
+        var n = game.currentState.board[col].count;
+        if (n < 7) {
+            return 16.66;
         }
+        return (100 - (16.66 - 100 / n)) / n;
     }
     game.getHeight = getHeight;
     function setDiceStatus(b) {

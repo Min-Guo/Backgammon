@@ -31,7 +31,9 @@
                                        blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                        blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"
-                             ng-style="{ 'top': col!=26 && !game.shouldRotate() ? $index * game.getHeight(col)+'%': (100-16.66-$index * game.getHeight(col))+'%' }"></div>
+                             ng-style="{ 'top': game.shouldRotate() ? 
+                                    (col == 26 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
+                                    (col == 26 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
                     </div>
                 </div>
                 <div ng-class="{lower: !game.shouldRotate(), upper: game.shouldRotate()}">
@@ -49,7 +51,9 @@
                                        blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                        blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                              class="piece"
-                             ng-style="{ 'bottom': col!=1 && !game.shouldRotate() ? $index * game.getHeight(col)+'%': (100-16.66-$index * game.getHeight(col))+'%' }"></div>
+                             ng-style="{ 'bottom': game.shouldRotate() ? 
+                                    (col == 1 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
+                                    (col == 1 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
                     </div>
                 </div>
             </div>
