@@ -469,21 +469,21 @@ module gameLogic {
 		let res: number[] = [];
 		if (!turns) {
 			// throw new Error("You have to roll the dices to start a new turn!");
-			log.info(["You have to roll the dices to start a new turn!"]);
+			log.warn(["You have to roll the dices to start a new turn!"]);
 			return res;
 		} else if (shouldRollDicesAgain(stateBeforeMove, roleBeforeMove)) {
 			// throw new Error("Your opponent is closed out. You can roll the dices to start a new turn again!");
-			log.info(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
+			log.warn(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
 			return res;
 		} else if (turns[turns.length - 1].currentSteps.length === 0) {
 			// Cannot re-roll the dices, and the current turn is complete, must submit the move.
-			log.info(["All mini-moves complete. Please submit your move!"]);
+			log.warn(["All mini-moves complete. Please submit your move!"]);
 			return res;
 		} else {
 			// make a mini-move
 			let curTurn = turns[turns.length - 1];
 			if (getWinner(stateBeforeMove.board) !== "") {
-				log.info(["The game is over. If it's your turn, you can submit this move now!"]);
+				log.warn(["The game is over. If it's your turn, you can submit this move now!"]);
 				return res;
 			}
 			let posToStep = startMove(stateBeforeMove.board, curTurn.currentSteps, start, roleBeforeMove);
@@ -500,6 +500,7 @@ module gameLogic {
 					modelMove(stateBeforeMove.board, localStart, curTurn.currentSteps[index], roleBeforeMove);
 					localEnd = getValidPos(localStart, curTurn.currentSteps[index], roleBeforeMove);
 					let oneMiniMove: IMiniMove = {start: localStart, end: localEnd};
+					log.info(["Create a mini-move between: ", localStart, localEnd]);
 					curTurn.moves.push(oneMiniMove);
 					deleteBuffer[index] = [];
 					localStart = localEnd;
@@ -511,7 +512,7 @@ module gameLogic {
 				return res;
 			} else {
 				//no such value found tossed, not a legal move
-				log.info(["No such move!"]);
+				log.warn(["No such move!"]);
 				return res;
 			}
 		}

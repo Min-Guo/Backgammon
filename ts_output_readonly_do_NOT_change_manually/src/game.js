@@ -9,7 +9,6 @@ var game;
     game.currentState = null;
     game.moveStart = -1;
     game.moveEnd = -1;
-    // export let slowlyAppearCol = -1;
     game.showSteps = [0, 0, 0, 0];
     game.showStepsControl = [true, true, true, true];
     game.rollingEndedTimeout = null;
@@ -31,20 +30,6 @@ var game;
         });
     }
     game.init = init;
-    // export function initBearOff() {
-    //   registerServiceWorker();
-    //   translate.setTranslations(getTranslations());
-    //   translate.setLanguage('en');
-    //   //resizeGameAreaService.setWidthToHeight(1);
-    //   originalState = gameLogic.getBearOffState();
-    //   moveService.setGame({
-    //     minNumberOfPlayers: 2,
-    //     maxNumberOfPlayers: 2,
-    //     checkMoveOk: gameLogic.checkMoveOkBear,
-    //     updateUI: updateUI,
-    //     gotMessageFromPlatform: null,
-    //   });
-    // }
     function registerServiceWorker() {
         if ('serviceWorker' in navigator) {
             var n = navigator;
@@ -154,7 +139,7 @@ var game;
                     setGrayShowStepsControl(usedValues);
                 }
                 else {
-                    log.info(["Unable to create a move between:", game.moveStart, game.moveEnd]);
+                    log.warn(["Unable to create a move between:", game.moveStart, game.moveEnd]);
                     clearSlowlyAppearTimeout();
                     game.moveEnd = -1;
                     game.moveStart = -1; // comment out this line if you want the moveStart unchanged
@@ -209,7 +194,8 @@ var game;
             oneMove = gameLogic.createMove(game.originalState, game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
         }
         catch (e) {
-            log.info(["Game: Move submission failed."]);
+            log.warn(["Move submission failed."]);
+            log.warn(e);
             return;
         }
         // Move is legal, make it!
@@ -221,29 +207,36 @@ var game;
      * It sets the original combination to the local storage of gameLogic.
      */
     function rollClicked() {
-        log.info("Clicked on roll:");
+        log.info("Clicked on roll.");
         if (!isMyTurn())
             return;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
-        setDiceStatus(true);
-        gameLogic.setOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
-        var originalSteps = gameLogic.getOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
-        if (originalSteps.length === 2) {
-            game.showSteps[0] = 0;
-            game.showSteps[1] = originalSteps[0];
-            game.showSteps[2] = originalSteps[1];
-            game.showSteps[3] = 0;
+        try {
+            setDiceStatus(true);
+            gameLogic.setOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+            var originalSteps = gameLogic.getOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+            if (originalSteps.length === 2) {
+                game.showSteps[0] = 0;
+                game.showSteps[1] = originalSteps[0];
+                game.showSteps[2] = originalSteps[1];
+                game.showSteps[3] = 0;
+            }
+            else {
+                game.showSteps[0] = originalSteps[0];
+                game.showSteps[1] = originalSteps[1];
+                game.showSteps[2] = originalSteps[2];
+                game.showSteps[3] = originalSteps[3];
+            }
+            log.info(["Dices rolled: ", game.showSteps]);
+            resetGrayToNormal(game.showStepsControl);
+            game.rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
         }
-        else {
-            game.showSteps[0] = originalSteps[0];
-            game.showSteps[1] = originalSteps[1];
-            game.showSteps[2] = originalSteps[2];
-            game.showSteps[3] = originalSteps[3];
+        catch (e) {
+            log.warn(e);
+            setDiceStatus(false);
         }
-        resetGrayToNormal(game.showStepsControl);
-        game.rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
     }
     game.rollClicked = rollClicked;
     function rollingEndedCallback() {
@@ -253,7 +246,6 @@ var game;
     function resetGrayToNormal(ssc) {
         for (var i = 0; i < 4; i++) {
             ssc[i] = true;
-            log.info(ssc[i]);
         }
     }
     function getTowerCount(col) {
@@ -320,6 +312,15 @@ var game;
         return false;
     }
     game.canSomebodyBearOff = canSomebodyBearOff;
+    function shouldRotate() {
+        if (typeof game.currentUpdateUI.playMode !== "number") {
+            return false;
+        }
+        else {
+            return game.currentUpdateUI.playMode === 1;
+        }
+    }
+    game.shouldRotate = shouldRotate;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {

@@ -16,7 +16,6 @@ module game {
   export let currentState: IState = null;
   export let moveStart = -1;
   export let moveEnd = -1;
-  // export let slowlyAppearCol = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let showStepsControl: boolean[] = [true, true, true, true];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
@@ -38,21 +37,6 @@ module game {
       gotMessageFromPlatform: null,
     });
   }
-
-  // export function initBearOff() {
-  //   registerServiceWorker();
-  //   translate.setTranslations(getTranslations());
-  //   translate.setLanguage('en');
-  //   //resizeGameAreaService.setWidthToHeight(1);
-  //   originalState = gameLogic.getBearOffState();
-  //   moveService.setGame({
-  //     minNumberOfPlayers: 2,
-  //     maxNumberOfPlayers: 2,
-  //     checkMoveOk: gameLogic.checkMoveOkBear,
-  //     updateUI: updateUI,
-  //     gotMessageFromPlatform: null,
-  //   });
-  // }
 
   function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
@@ -177,7 +161,7 @@ module game {
           moveStart = -1;
           setGrayShowStepsControl(usedValues);
         } else {
-          log.info(["Unable to create a move between:", moveStart, moveEnd]);                    
+          log.warn(["Unable to create a move between:", moveStart, moveEnd]);                    
           clearSlowlyAppearTimeout();
           moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
@@ -231,7 +215,8 @@ module game {
     try {
       oneMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
     } catch (e) {
-      log.info(["Game: Move submission failed."]);
+      log.warn(["Move submission failed."]);
+      log.warn(e);
       return;
     }
     // Move is legal, make it!
@@ -243,27 +228,33 @@ module game {
    * It sets the original combination to the local storage of gameLogic.
    */
   export function rollClicked(): void {
-    log.info("Clicked on roll:");
+    log.info("Clicked on roll.");
     if (!isMyTurn()) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    setDiceStatus(true);    
-    gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
-    let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
-    if (originalSteps.length === 2) {
-      showSteps[0] = 0;
-      showSteps[1] = originalSteps[0];
-      showSteps[2] = originalSteps[1];
-      showSteps[3] = 0;
-    } else { // 4
-      showSteps[0] = originalSteps[0];
-      showSteps[1] = originalSteps[1];
-      showSteps[2] = originalSteps[2];
-      showSteps[3] = originalSteps[3];
+    try {
+      setDiceStatus(true);    
+      gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+      let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+      if (originalSteps.length === 2) {
+        showSteps[0] = 0;
+        showSteps[1] = originalSteps[0];
+        showSteps[2] = originalSteps[1];
+        showSteps[3] = 0;
+      } else { // 4
+        showSteps[0] = originalSteps[0];
+        showSteps[1] = originalSteps[1];
+        showSteps[2] = originalSteps[2];
+        showSteps[3] = originalSteps[3];
+      }
+      log.info(["Dices rolled: ", showSteps]);
+      resetGrayToNormal(showStepsControl);        
+      rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
+    } catch (e) {
+      log.warn(e);
+      setDiceStatus(false);
     }
-    resetGrayToNormal(showStepsControl);        
-    rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
   }
 
   function rollingEndedCallback() {
@@ -274,7 +265,7 @@ module game {
   function resetGrayToNormal(ssc: boolean[]): void {
     for (let i = 0; i < 4; i++) {
       ssc[i] = true;
-      log.info(ssc[i]);
+      // log.info(ssc[i]);
     }
   }
 
@@ -337,6 +328,14 @@ module game {
     if (home === 0) return turn === gameLogic.WHITE && gameLogic.canBearOff(currentState.board, turn);
     if (home === 27) return turn === gameLogic.BLACK && gameLogic.canBearOff(currentState.board, turn);
     return false;
+  }
+
+  export function shouldRotate(): boolean {
+    if (typeof currentUpdateUI.playMode !== "number") {
+      return false;
+    } else {
+      return currentUpdateUI.playMode === 1;
+    }
   }
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;
