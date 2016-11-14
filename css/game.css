@@ -350,7 +350,7 @@
 }
 
 #t27 {
-    top: 15%;
+    
     background-image:
         radial-gradient(
             circle at bottom right,
@@ -375,9 +375,13 @@
     box-shadow: inset 2px 2px 5px rgba(154, 147, 140, 0.5), 1px 1px 5px rgba(255, 255, 255, 1);
 }
 
+.bearOffRotateTop {
+    top: 15%;
+}
 
-
-
+.bearOffRotateBottom {
+    bottom: 15%;
+}
 
 
 /****bear off end****/
