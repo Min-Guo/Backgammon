@@ -198,6 +198,7 @@ var gameLogic;
             throw new Error("You should not try to roll the dices again, your opponent has a chance to move!");
         }
     }
+    gameLogic.setOriginalStepsWithDefault = setOriginalStepsWithDefault;
     /**
      * This function checks the extreme case whether the opponent's home board has been occupied by six doubles.
      * And the opponent still has checkers waiting on the bar to enter the board.
@@ -310,17 +311,20 @@ var gameLogic;
      * Returns an object, containing reachable Tower tid's as keys, and an array of dice indices to walk from start in order.
      * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [0, 1]}.
      * Multiple paths are reduced to save only one path, so that only {12: [0, 1]} instead of updating to {12: [1, 0]}.
+     * In case of mini-moves of identical effect, the one with a larger dice value is preferred,
+     * which typically occurs at bear off time when two different dices both move the checker to home.
      */
     function startMove(curBoard, curSteps, start, role) {
         var res = {};
         var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
+        var myHome = role === gameLogic.BLACK ? gameLogic.BLACKHOME : gameLogic.WHITEHOME;
         var board;
         var newStart = start;
         var prevEnd;
         if (curSteps.length === 0) {
             return res;
         }
-        else if (curSteps.length === 2) {
+        else if (curSteps.length === 2 && curSteps[0] !== curSteps[1]) {
             // 1 -> 2
             board = angular.copy(curBoard);
             prevEnd = -1;
@@ -334,16 +338,12 @@ var gameLogic;
                         res[board[newStart].tid] = [];
                     }
                     // Add all dice indices along the path prior to the current end point.
-                    if (prevEnd !== -1) {
-                        for (var _i = 0, _a = res[board[prevEnd].tid]; _i < _a.length; _i++) {
-                            var s = _a[_i];
-                            res[board[newStart].tid].push(s);
-                        }
-                    }
+                    if (prevEnd !== -1)
+                        res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
                     // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
                     prevEnd = newStart;
-                    if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
+                    if (newStart === myHome) {
                         break;
                     }
                 }
@@ -363,20 +363,29 @@ var gameLogic;
                     }
                     else {
                         // The first path may have covered this end point.
-                        // In that case, we choose to skip the same end point with different paths.
-                        break;
-                    }
-                    // Add all dice indices along the path prior to the current end point.
-                    if (prevEnd !== -1) {
-                        for (var _b = 0, _c = res[board[prevEnd].tid]; _b < _c.length; _b++) {
-                            var s = _c[_b];
-                            res[board[newStart].tid].push(s);
+                        if (prevEnd === -1 && res[board[newStart].tid].length === 2) {
+                            // The current path is a shorter path, therefore choosing this one, and clear previous path first.
+                            res[board[newStart].tid].length = 0;
+                        }
+                        else {
+                            // The existing path and the current path both have one mini-move, should use the larger one.
+                            // This typical case occurs at bear off time, where two dices both satisfy the mini-move to home position.
+                            var prev = res[board[newStart].tid][0];
+                            if (curSteps[i] > curSteps[prev]) {
+                                res[board[newStart].tid].length = 0;
+                            }
+                            else {
+                                continue;
+                            }
                         }
                     }
+                    // Add all dice indices along the path prior to the current end point.
+                    if (prevEnd !== -1)
+                        res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
                     // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
                     prevEnd = newStart;
-                    if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
+                    if (newStart === myHome) {
                         break;
                     }
                 }
@@ -398,15 +407,15 @@ var gameLogic;
                     }
                     // Add all dice indices along the path prior to the current end point.
                     if (prevEnd !== -1) {
-                        for (var _d = 0, _e = res[board[prevEnd].tid]; _d < _e.length; _d++) {
-                            var s = _e[_d];
+                        for (var _i = 0, _a = res[board[prevEnd].tid]; _i < _a.length; _i++) {
+                            var s = _a[_i];
                             res[board[newStart].tid].push(s);
                         }
                     }
                     // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
                     prevEnd = newStart;
-                    if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
+                    if (newStart === myHome) {
                         break;
                     }
                 }

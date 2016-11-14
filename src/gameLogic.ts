@@ -192,7 +192,7 @@ module gameLogic {
 	}
 
 	/** Start a new turn with customized original dice values. */
-	function setOriginalStepsWithDefault(currentState: IState, role: number, steps: Steps): void {
+	export function setOriginalStepsWithDefault(currentState: IState, role: number, steps: Steps): void {
 		if (!currentState.delta) {
 			currentState.delta = {turns: []};
 			let imSteps = angular.copy(steps);
@@ -313,16 +313,19 @@ module gameLogic {
 	 * Returns an object, containing reachable Tower tid's as keys, and an array of dice indices to walk from start in order.
 	 * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [0, 1]}.
 	 * Multiple paths are reduced to save only one path, so that only {12: [0, 1]} instead of updating to {12: [1, 0]}.
+	 * In case of mini-moves of identical effect, the one with a larger dice value is preferred, 
+	 * which typically occurs at bear off time when two different dices both move the checker to home.
 	 */
 	export function startMove(curBoard: Board, curSteps: Steps, start: number, role: number): IEndToStepIndex {
 		let res: IEndToStepIndex = {};
 		let myBar = role === BLACK ? BLACKBAR : WHITEBAR;
+		let myHome = role === BLACK ? BLACKHOME : WHITEHOME;
 		let board: Board;
 		let newStart = start;
 		let prevEnd: number;		
 		if (curSteps.length === 0) {
 			return res;
-		} else if (curSteps.length === 2) {
+		} else if (curSteps.length === 2 && curSteps[0] !== curSteps[1]) {
 			// 1 -> 2
 			board = angular.copy(curBoard);
 			prevEnd = -1;
@@ -336,15 +339,11 @@ module gameLogic {
 						res[board[newStart].tid] = [];
 					}
 					// Add all dice indices along the path prior to the current end point.
-					if (prevEnd !== -1) {
-						for (let s of res[board[prevEnd].tid]) {
-							res[board[newStart].tid].push(s);
-						}
-					}
+					if (prevEnd !== -1) res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
 					// Add current dice index to the current end point.
 					res[board[newStart].tid].push(i);
 					prevEnd = newStart;
-					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+					if (newStart === myHome) {
 						break;
 					}
 				}
@@ -363,19 +362,26 @@ module gameLogic {
 						res[board[newStart].tid] = [];
 					} else {
 						// The first path may have covered this end point.
-						// In that case, we choose to skip the same end point with different paths.
-						break;
-					}
-					// Add all dice indices along the path prior to the current end point.
-					if (prevEnd !== -1) {
-						for (let s of res[board[prevEnd].tid]) {
-							res[board[newStart].tid].push(s);
+						if (prevEnd === -1 && res[board[newStart].tid].length === 2) {
+							// The current path is a shorter path, therefore choosing this one, and clear previous path first.
+							res[board[newStart].tid].length = 0;
+						} else {
+							// The existing path and the current path both have one mini-move, should use the larger one.
+							// This typical case occurs at bear off time, where two dices both satisfy the mini-move to home position.
+							let prev = res[board[newStart].tid][0];
+							if (curSteps[i] > curSteps[prev]) {
+								res[board[newStart].tid].length = 0;
+							} else {
+								continue;
+							}
 						}
 					}
+					// Add all dice indices along the path prior to the current end point.
+					if (prevEnd !== -1) res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
 					// Add current dice index to the current end point.
 					res[board[newStart].tid].push(i);
 					prevEnd = newStart;
-					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+					if (newStart === myHome) {
 						break;
 					}
 				}
@@ -403,7 +409,7 @@ module gameLogic {
 					// Add current dice index to the current end point.
 					res[board[newStart].tid].push(i);
 					prevEnd = newStart;
-					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+					if (newStart === myHome) {
 						break;
 					}
 				} else {
