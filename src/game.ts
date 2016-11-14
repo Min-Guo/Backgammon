@@ -279,15 +279,11 @@ module game {
   }
   
   export function getHeight(col: number): number {
-    for(let i = 0; i < currentState.board.length; i++) {
-      if(currentState.board[i].tid === col) {
-        let n = currentState.board[i].count;
-        if (n < 7) {
-          return 16.66;
-        }
-        return (100 - (16.66 - 100 / n)) / n;
-      }
+    let n = currentState.board[col].count;
+    if (n < 7) {
+      return 16.66;
     }
+    return (100 - (16.66 - 100 / n)) / n;
   }
 
   export function setDiceStatus(b: boolean): void {
