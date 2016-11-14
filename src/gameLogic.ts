@@ -317,6 +317,7 @@ module gameLogic {
 	export function startMove(curBoard: Board, curSteps: Steps, start: number, role: number): IEndToStepIndex {
 		let res: IEndToStepIndex = {};
 		let myBar = role === BLACK ? BLACKBAR : WHITEBAR;
+		let myHome = role === BLACK ? BLACKHOME : WHITEHOME;
 		let board: Board;
 		let newStart = start;
 		let prevEnd: number;		
@@ -344,7 +345,7 @@ module gameLogic {
 					// Add current dice index to the current end point.
 					res[board[newStart].tid].push(i);
 					prevEnd = newStart;
-					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+					if (newStart === myHome) {
 						break;
 					}
 				}

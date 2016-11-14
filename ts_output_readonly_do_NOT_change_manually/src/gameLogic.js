@@ -314,6 +314,7 @@ var gameLogic;
     function startMove(curBoard, curSteps, start, role) {
         var res = {};
         var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
+        var myHome = role === gameLogic.BLACK ? gameLogic.BLACKHOME : gameLogic.WHITEHOME;
         var board;
         var newStart = start;
         var prevEnd;
@@ -343,7 +344,7 @@ var gameLogic;
                     // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
                     prevEnd = newStart;
-                    if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
+                    if (newStart === myHome) {
                         break;
                     }
                 }
