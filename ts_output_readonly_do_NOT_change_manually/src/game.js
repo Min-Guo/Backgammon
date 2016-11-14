@@ -195,6 +195,7 @@ var game;
         }
         catch (e) {
             log.warn(["Move submission failed."]);
+            log.warn(e);
             return;
         }
         // Move is legal, make it!
@@ -311,6 +312,15 @@ var game;
         return false;
     }
     game.canSomebodyBearOff = canSomebodyBearOff;
+    function shouldRotate() {
+        if (typeof game.currentUpdateUI.playMode !== "number") {
+            return false;
+        }
+        else {
+            return game.currentUpdateUI.playMode === 1;
+        }
+    }
+    game.shouldRotate = shouldRotate;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices'])
     .run(function () {

@@ -216,6 +216,7 @@ module game {
       oneMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
     } catch (e) {
       log.warn(["Move submission failed."]);
+      log.warn(e);
       return;
     }
     // Move is legal, make it!
@@ -327,6 +328,14 @@ module game {
     if (home === 0) return turn === gameLogic.WHITE && gameLogic.canBearOff(currentState.board, turn);
     if (home === 27) return turn === gameLogic.BLACK && gameLogic.canBearOff(currentState.board, turn);
     return false;
+  }
+
+  export function shouldRotate(): boolean {
+    if (typeof currentUpdateUI.playMode !== "number") {
+      return false;
+    } else {
+      return currentUpdateUI.playMode === 1;
+    }
   }
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;
