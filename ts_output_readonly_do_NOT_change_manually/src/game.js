@@ -47,7 +47,7 @@ var game;
     function updateUI(params) {
         log.info("Game got updateUI:", params);
         game.didMakeMove = false; // Only one move per updateUI
-        game.currentState = null; // reset
+        // currentState = null; // reset
         game.currentUpdateUI = params;
         clearAnimationTimeout();
         game.originalState = params.move.stateAfterMove;
@@ -81,7 +81,7 @@ var game;
     function maybeSendComputerMove() {
         if (!isComputerTurn())
             return;
-        var move = aiService.findComputerMove(game.currentUpdateUI.move);
+        var move = aiService.findComputerMove(game.currentUpdateUI.move, game.currentState);
         log.info("Computer move: ", move);
         makeMove(move);
     }

@@ -534,7 +534,7 @@ var gameLogic;
             }
             else {
                 //no such value found tossed, not a legal move
-                log.warn(["No such move!"]);
+                // log.warn(["No such move!"]);
                 return res;
             }
         }
@@ -559,6 +559,7 @@ var gameLogic;
             return false;
         }
     }
+    gameLogic.shouldRollDicesAgain = shouldRollDicesAgain;
     /**
      * This functions checks whether a mini-move is possible,
      * given current board, role and remaining steps.

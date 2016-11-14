@@ -57,7 +57,7 @@ module game {
   export function updateUI(params: IUpdateUI): void {
     log.info("Game got updateUI:", params);
     didMakeMove = false; // Only one move per updateUI
-    currentState = null; // reset
+    // currentState = null; // reset
     currentUpdateUI = params;
     clearAnimationTimeout();
     originalState = params.move.stateAfterMove;
@@ -98,7 +98,7 @@ module game {
 
   function maybeSendComputerMove() {
     if (!isComputerTurn()) return;
-    let move = aiService.findComputerMove(currentUpdateUI.move);
+    let move = aiService.findComputerMove(currentUpdateUI.move, currentState);
     log.info("Computer move: ", move);
     makeMove(move);
   }

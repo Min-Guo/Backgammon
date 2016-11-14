@@ -518,7 +518,7 @@ module gameLogic {
 				return res;
 			} else {
 				//no such value found tossed, not a legal move
-				log.warn(["No such move!"]);
+				// log.warn(["No such move!"]);
 				return res;
 			}
 		}
@@ -529,7 +529,7 @@ module gameLogic {
 	 * The only allowed case is when the player has completed the current turn, 
 	 * and the opponent is closed out for moves.
 	 */
-	function shouldRollDicesAgain(state: IState, role: number): boolean {
+	export function shouldRollDicesAgain(state: IState, role: number): boolean {
 		// We can assume the state has at least one turn in the delta
 		let last = state.delta.turns.length - 1;
 		let lastTurn = state.delta.turns[last];

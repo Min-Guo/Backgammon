@@ -1,7 +1,15 @@
 module aiService {
+  export let originalState: IState = null;
+
   /** Returns the move that the computer player should do for the given state in move. */
-  export function findComputerMove(move: IMove): IMove {
-    return createComputerMove(move,
+  export function findComputerMove(move: IMove, state: IState): IMove {
+    originalState = move.stateAfterMove;
+    let tmpMove: IMove = {
+      endMatchScores: move.endMatchScores, 
+      turnIndexAfterMove: move.turnIndexAfterMove, 
+      stateAfterMove: state // {board: originalState.board, delta: null} haven't rolled dices yet!!!
+    };
+    return createComputerMove(tmpMove,
         // at most 1 second for the AI to choose a move (but might be much quicker)
         {millisecondsLimit: 1000});
   }
@@ -12,88 +20,43 @@ module aiService {
    */
   export function getPossibleMoves(state: IState, turnIndexBeforeMove: number): IMove[] {
     let possibleMoves: IMove[] = [];
-    state.delta = {originalSteps: DieCombo.generate(), moves: null}; // help the computer roll the dies : )
-    let selfBar: number;
-    if (turnIndexBeforeMove === gameLogic.BLACK) {
-      selfBar = gameLogic.BLACKBAR;
-    } else {
-      selfBar = gameLogic.WHITEBAR;
-    }
-
-    // code below applies to every possible move
-    let stateAfterMove: IState = angular.copy(state);
-    gameLogic.currentSteps = angular.copy(state.delta.originalSteps);
-    let board: Board = stateAfterMove.board;
-    let steps: Steps = stateAfterMove.delta.originalSteps;
-    while (gameLogic.currentSteps.length !== 0) {
-      if (board[selfBar].count !== 0) {
-        for (let i = 1; i < 7; i++) {
-          let end = gameLogic.getValidPos(selfBar, i, turnIndexBeforeMove);
-          if (gameLogic.createMiniMove(stateAfterMove, selfBar, end, turnIndexBeforeMove)) {
-            stateAfterMove.delta.moves.push({start: selfBar, end: end});
-            break;
+    while (true) {
+      try {
+        gameLogic.setOriginalSteps(state, turnIndexBeforeMove);
+        let last = state.delta.turns.length - 1;
+        let remainStepsCount = state.delta.turns[last].currentSteps.length;
+        newMiniMove:
+        while (remainStepsCount !== 0) {
+          if (!gameLogic.moveExist(state, turnIndexBeforeMove)) break;
+          if (turnIndexBeforeMove === gameLogic.BLACK) {
+            for (let i = 1; i <= 25; i++) { // start
+              for (let j = 27; j > i; j--) { // end
+                if (j === 26) continue;
+                let usedCount = gameLogic.createMiniMove(state, i, j, turnIndexBeforeMove).length;
+                if (usedCount !== 0) {
+                  remainStepsCount -= usedCount;
+                  continue newMiniMove;
+                }
+              }
+            }
+          } else {
+            for (let i = 26; i >= 2; i--) { // start
+              for (let j = 0; j < i; j++) { // end
+                if (j === 1) continue;
+                let usedCount = gameLogic.createMiniMove(state, i, j, turnIndexBeforeMove).length;
+                if (usedCount !== 0) {
+                  remainStepsCount -= usedCount;
+                  continue newMiniMove;
+                }
+              }
+            }
           }
         }
-
-      } else {
-
+      } catch (e) {
+        break;
       }
     }
-    
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-    let moves: IEndToStepIndex = {};
-    if (turnIndexBeforeMove === gameLogic.BLACK) {
-      for (let i = 1; i < 27; i++) {
-        moves = gameLogic.startMove(state.board, i, gameLogic.BLACK);
-        if (!angular.equals(moves, {})) {
-          try {
-            let ends = Object.keys(moves); //all reachable end positions.
-            let choice = Math.floor(Math.random() * ends.length); //pick one end position.
-            let index = moves[choice][0]; //pick the first step's index in order to reach that end position.
-            let end = gameLogic.getValidPos(i, state.steps[index], turnIndexBeforeMove); //use the step according to its index in steps
-            possibleMoves.push(gameLogic.createMiniMove(state, i, end, turnIndexBeforeMove));
-          } catch (e) {
-            continue;
-          }
-        }
-      }
-    } else {
-      for (let i = 26; i > 1; i--) {
-        moves = gameLogic.startMove(state, i, gameLogic.WHITE);
-        if (!angular.equals(moves, {})) {
-          try {
-            let ends = Object.keys(moves); //all reachable end positions.
-            let choice = Math.floor(Math.random() * ends.length); //pick one end position.
-            let index = moves[choice][0]; //pick the first step's index in order to reach that end position.
-            let end = gameLogic.getValidPos(i, state.steps[index], turnIndexBeforeMove); //use the step according to its index in steps
-            possibleMoves.push(gameLogic.createMiniMove(state, i, end, turnIndexBeforeMove));
-          } catch (e) {
-            continue;
-          }
-        }
-      }
-    }
+    possibleMoves.push(gameLogic.createMove(originalState, state, turnIndexBeforeMove));
     return possibleMoves;
   }
 
