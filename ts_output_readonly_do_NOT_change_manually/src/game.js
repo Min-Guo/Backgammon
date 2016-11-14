@@ -19,7 +19,7 @@ var game;
         registerServiceWorker();
         translate.setTranslations(getTranslations());
         translate.setLanguage('en');
-        //resizeGameAreaService.setWidthToHeight(1);
+        resizeGameAreaService.setWidthToHeight(1.7778);
         game.originalState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
         moveService.setGame({
             minNumberOfPlayers: 2,

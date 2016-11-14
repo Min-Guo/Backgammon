@@ -12,100 +12,99 @@
     <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/aiService.js"></script>
 </head>
-<body ng-cloak>
-    <div id="page">    
-        <div id="container">
-            <div id="gameArea">
-                <div ng-class="{upper: !game.shouldRotate(), lower: game.shouldRotate()}">
-                    <div ng-repeat="col in [14, 15, 16, 17, 18, 19, 26, 20, 21, 22, 23, 24, 25]"
-                         ng-class="{column: col!=26, colActive: game.isActive(col), colTargets: game.isInTargets(col),
-                         columnUpper: !game.shouldRotate(), columnLower: game.shouldRotate()}"
-                         id="{{'t'+col}}"
-                         ng-click="game.towerClicked(col)">
-                        <div ng-repeat="piece in game.getTowerCount(col) track by $index"
-                             ng-class="{
-                                       'player1': game.getPlayer(col)=='player1', 
-                                       'player0': game.getPlayer(col)=='player0',
-                                       selectedPiece: game.isActive(col)&&$last,
-                                       slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
-                                       blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
-                                       blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
-                             class="piece"
-                             ng-style="{ 'top': game.shouldRotate() ? 
-                                    (col == 26 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
-                                    (col == 26 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
-                    </div>
-                </div>
-                <div ng-class="{lower: !game.shouldRotate(), upper: game.shouldRotate()}">
-                    <div ng-repeat="col in [13, 12, 11, 10, 9, 8, 1, 7, 6, 5, 4, 3, 2]"
-                         ng-class="{column: col!=1, colActive: game.isActive(col), colTargets: game.isInTargets(col),
-                         columnLower: !game.shouldRotate(), columnUpper: game.shouldRotate()}"
-                         id="{{'t'+col}}"
-                         ng-click="game.towerClicked(col)">
-                        <div ng-repeat="piece in game.getTowerCount(col) track by $index"
-                             ng-class="{
-                                       'player1': game.getPlayer(col)=='player1', 
-                                       'player0': game.getPlayer(col)=='player0',
-                                       selectedPiece: game.isActive(col)&&$last,
-                                       slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
-                                       blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
-                                       blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
-                             class="piece"
-                             ng-style="{ 'bottom': game.shouldRotate() ? 
-                                    (col == 1 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
-                                    (col == 1 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
-                    </div>
+<body ng-cloak>   
+    <div id="gameArea">
+        <div id="board">
+            <div ng-class="{upper: !game.shouldRotate(), lower: game.shouldRotate()}">
+                <div ng-repeat="col in [14, 15, 16, 17, 18, 19, 26, 20, 21, 22, 23, 24, 25]"
+                     ng-class="{column: col!=26, colActive: game.isActive(col), colTargets: game.isInTargets(col),
+                     columnUpper: !game.shouldRotate(), columnLower: game.shouldRotate()}"
+                     id="{{'t'+col}}"
+                     ng-click="game.towerClicked(col)">
+                    <div ng-repeat="piece in game.getTowerCount(col) track by $index"
+                         ng-class="{
+                                   'player1': game.getPlayer(col)=='player1', 
+                                   'player0': game.getPlayer(col)=='player0',
+                                   selectedPiece: game.isActive(col)&&$last,
+                                   slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
+                                   blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
+                                   blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
+                         class="piece"
+                         ng-style="{ 'top': game.shouldRotate() ? 
+                                (col == 26 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
+                                (col == 26 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
                 </div>
             </div>
-            <div id="ctrl">
-                <div id='t27' 
-                     ng-repeat="idx in [27]"
-                     ng-class="{
-                               bearOffRotateTop: !game.shouldRotate(),
-                               bearOffRotateBottom: game.shouldRotate(),
-                               shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx),
-                               showPiece0: game.getTowerCount(idx).length > 0
-                               }"
-                     class="bearOffHome"
-                     ng-click="game.towerClicked(idx)">
-                    <span ng-class="{ bearOffCnt0: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
-                </div>
-                <div id="dicewrapper"
-                     ng-click="game.rollClicked()"
-                     ng-class="{rollingDice: game.getDiceStatus()}">
-                    <div id="cube" 
-                         class="show1"
-                         ng-class="{newSpinSpeed: game.getDiceStatus()}">
-                        <div class="top"></div>
-                        <div class="front"></div>
-                        <div class="left"></div>
-                        <div class="back"></div>
-                        <div class="right"></div>
-                        <div class="bottom"></div>
-                      </div>
-                </div>
-                <div id="diceVal">
-                    <div ng-repeat="dice in [0, 1, 2, 3]"
-                         id="{{'diceVal'+dice}}"
-                         ng-class="{spinFour: game.getDiceStatus()}"
-                         ng-style="{ 'background-image': game.getGrayShowStepsControl(dice) ? 'url(\'images/side' + game.getDiceVal(dice) + '.png\')' : 'url(\'images/side' + game.getDiceVal(dice) + '_gray.png\')' }"></div>
-                </div>
-                <div id="confirm">
-                    <button ng-click="game.submitClicked()">confirm</button>        
-                </div>
-                <div id='t0'
-                     ng-repeat="idx in [0]"
-                     ng-class="{
-                               bearOffRotateBottom: !game.shouldRotate(),
-                               bearOffRotateTop: game.shouldRotate(),
-                               shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx),
-                               showPiece1: game.getTowerCount(idx).length > 0
-                               }"
-                     class="bearOffHome"
-                     ng-click="game.towerClicked(idx)">
-                    <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+            <div ng-class="{lower: !game.shouldRotate(), upper: game.shouldRotate()}">
+                <div ng-repeat="col in [13, 12, 11, 10, 9, 8, 1, 7, 6, 5, 4, 3, 2]"
+                     ng-class="{column: col!=1, colActive: game.isActive(col), colTargets: game.isInTargets(col),
+                     columnLower: !game.shouldRotate(), columnUpper: game.shouldRotate()}"
+                     id="{{'t'+col}}"
+                     ng-click="game.towerClicked(col)">
+                    <div ng-repeat="piece in game.getTowerCount(col) track by $index"
+                         ng-class="{
+                                   'player1': game.getPlayer(col)=='player1', 
+                                   'player0': game.getPlayer(col)=='player0',
+                                   selectedPiece: game.isActive(col)&&$last,
+                                   slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
+                                   blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
+                                   blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
+                         class="piece"
+                         ng-style="{ 'bottom': game.shouldRotate() ? 
+                                (col == 1 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
+                                (col == 1 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
                 </div>
             </div>
+        </div>
+        <div id="ctrl">
+            <div id='t27' 
+                 ng-repeat="idx in [27]"
+                 ng-class="{
+                           bearOffRotateTop: !game.shouldRotate(),
+                           bearOffRotateBottom: game.shouldRotate(),
+                           shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx),
+                           showPiece0: game.getTowerCount(idx).length > 0
+                           }"
+                 class="bearOffHome"
+                 ng-click="game.towerClicked(idx)">
+                <span ng-class="{ bearOffCnt0: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+            </div>
+            <div id="dicewrapper"
+                 ng-click="game.rollClicked()"
+                 ng-class="{rollingDice: game.getDiceStatus()}">
+                <div id="cube" 
+                     class="show1"
+                     ng-class="{newSpinSpeed: game.getDiceStatus()}">
+                    <div class="top"></div>
+                    <div class="front"></div>
+                    <div class="left"></div>
+                    <div class="back"></div>
+                    <div class="right"></div>
+                    <div class="bottom"></div>
+                  </div>
+            </div>
+            <div id="diceVal">
+                <div ng-repeat="dice in [0, 1, 2, 3]"
+                     id="{{'diceVal'+dice}}"
+                     ng-class="{spinFour: game.getDiceStatus()}"
+                     ng-style="{ 'background-image': game.getGrayShowStepsControl(dice) ? 'url(\'images/side' + game.getDiceVal(dice) + '.png\')' : 'url(\'images/side' + game.getDiceVal(dice) + '_gray.png\')' }"></div>
+            </div>
+            <div id="confirm">
+                <button ng-click="game.submitClicked()">confirm</button>        
+            </div>
+            <div id='t0'
+                 ng-repeat="idx in [0]"
+                 ng-class="{
+                           bearOffRotateBottom: !game.shouldRotate(),
+                           bearOffRotateTop: game.shouldRotate(),
+                           shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx),
+                           showPiece1: game.getTowerCount(idx).length > 0
+                           }"
+                 class="bearOffHome"
+                 ng-click="game.towerClicked(idx)">
+                <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+            </div>
+            <div id="refresh" title="New Game"></div>
         </div>
     </div>
 </body>
