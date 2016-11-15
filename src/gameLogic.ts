@@ -157,7 +157,7 @@ module gameLogic {
 	}
 
 	/** If one player has born off all 15 checkers, he wins. */
-	function getWinner(board: Board): String {
+	export function getWinner(board: Board): String {
 		if (board[WHITEHOME].count == 15) {
 			return "White";
 		} else if (board[BLACKHOME].count == 15) {
@@ -450,6 +450,10 @@ module gameLogic {
 			throw new Error("Your opponent is closed out. You should roll the dices again to start a new turn directly.");
 		} else if (lastTurn.currentSteps.length !== 0 && moveExist(currentState, turnIndexBeforeMove)) {
 			// Game continues. You should complete all available mini-moves within your turn.
+			log.info(["Last turn:", lastTurn]);
+			log.info(["turnIndexBeforeMove: ", turnIndexBeforeMove]);
+			log.info(["currentState: ", currentState]);
+			// There is an unrepeatable bug here. Sometimes AI will go to this path, or maybe I just misclicked? No idea.
 			throw new Error("You should complete all available mini-moves within your turn.");
 		} else {
 			// Game continues. Now it's the opponent's turn.
@@ -508,7 +512,7 @@ module gameLogic {
 					modelMove(stateBeforeMove.board, localStart, curTurn.currentSteps[index], roleBeforeMove);
 					localEnd = getValidPos(localStart, curTurn.currentSteps[index], roleBeforeMove);
 					let oneMiniMove: IMiniMove = {start: localStart, end: localEnd};
-					log.info(["Create a mini-move between: ", localStart, localEnd]);
+					log.info(["Create a mini-move between:", "start", localStart, "end", localEnd]);
 					curTurn.moves.push(oneMiniMove);
 					deleteBuffer[index] = [];
 					localStart = localEnd;
