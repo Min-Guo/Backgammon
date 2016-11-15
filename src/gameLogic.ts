@@ -157,7 +157,7 @@ module gameLogic {
 	}
 
 	/** If one player has born off all 15 checkers, he wins. */
-	function getWinner(board: Board): String {
+	export function getWinner(board: Board): String {
 		if (board[WHITEHOME].count == 15) {
 			return "White";
 		} else if (board[BLACKHOME].count == 15) {
@@ -192,7 +192,7 @@ module gameLogic {
 	}
 
 	/** Start a new turn with customized original dice values. */
-	function setOriginalStepsWithDefault(currentState: IState, role: number, steps: Steps): void {
+	export function setOriginalStepsWithDefault(currentState: IState, role: number, steps: Steps): void {
 		if (!currentState.delta) {
 			currentState.delta = {turns: []};
 			let imSteps = angular.copy(steps);
@@ -255,9 +255,8 @@ module gameLogic {
 	 * Unsuccessful mini-move leaves the board unmodified and returns false.
 	 */
 	function modelMove(board: Board, start: number, step: number, role: number): boolean {
-		if (board[start].status !== role) {
-			return false;
-		}
+		if (board[start].status !== role) return false;
+		if (board[start].count <= 0) return false;
 		let myBar = role === BLACK ?  BLACKBAR : WHITEBAR;
 		if (board[myBar].count !== 0 && start !== myBar) return false;
 		let end = getValidPos(start, step, role);
@@ -313,16 +312,22 @@ module gameLogic {
 	 * Returns an object, containing reachable Tower tid's as keys, and an array of dice indices to walk from start in order.
 	 * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [0, 1]}.
 	 * Multiple paths are reduced to save only one path, so that only {12: [0, 1]} instead of updating to {12: [1, 0]}.
+	 * In case of mini-moves of identical effect, the one with a larger dice value is preferred, 
+	 * which typically occurs at bear off time when two different dices both move the checker to home.
 	 */
 	export function startMove(curBoard: Board, curSteps: Steps, start: number, role: number): IEndToStepIndex {
 		let res: IEndToStepIndex = {};
 		let myBar = role === BLACK ? BLACKBAR : WHITEBAR;
+		let myHome = role === BLACK ? BLACKHOME : WHITEHOME;
 		let board: Board;
 		let newStart = start;
-		let prevEnd: number;		
+		let prevEnd: number;
+		// Guard against empty start location. Normally this won't happen, while in AI it tries every possibility.
+		if (curBoard[start].status !== role || curBoard[start].count <= 0) return res;
+
 		if (curSteps.length === 0) {
 			return res;
-		} else if (curSteps.length === 2) {
+		} else if (curSteps.length === 2 && curSteps[0] !== curSteps[1]) {
 			// 1 -> 2
 			board = angular.copy(curBoard);
 			prevEnd = -1;
@@ -336,15 +341,11 @@ module gameLogic {
 						res[board[newStart].tid] = [];
 					}
 					// Add all dice indices along the path prior to the current end point.
-					if (prevEnd !== -1) {
-						for (let s of res[board[prevEnd].tid]) {
-							res[board[newStart].tid].push(s);
-						}
-					}
+					if (prevEnd !== -1) res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
 					// Add current dice index to the current end point.
 					res[board[newStart].tid].push(i);
 					prevEnd = newStart;
-					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+					if (newStart === myHome) {
 						break;
 					}
 				}
@@ -363,19 +364,26 @@ module gameLogic {
 						res[board[newStart].tid] = [];
 					} else {
 						// The first path may have covered this end point.
-						// In that case, we choose to skip the same end point with different paths.
-						break;
-					}
-					// Add all dice indices along the path prior to the current end point.
-					if (prevEnd !== -1) {
-						for (let s of res[board[prevEnd].tid]) {
-							res[board[newStart].tid].push(s);
+						if (prevEnd === -1 && res[board[newStart].tid].length === 2) {
+							// The current path is a shorter path, therefore choosing this one, and clear previous path first.
+							res[board[newStart].tid].length = 0;
+						} else {
+							// The existing path and the current path both have one mini-move, should use the larger one.
+							// This typical case occurs at bear off time, where two dices both satisfy the mini-move to home position.
+							let prev = res[board[newStart].tid][0];
+							if (curSteps[i] > curSteps[prev]) {
+								res[board[newStart].tid].length = 0;
+							} else {
+								continue;
+							}
 						}
 					}
+					// Add all dice indices along the path prior to the current end point.
+					if (prevEnd !== -1) res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
 					// Add current dice index to the current end point.
 					res[board[newStart].tid].push(i);
 					prevEnd = newStart;
-					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+					if (newStart === myHome) {
 						break;
 					}
 				}
@@ -403,7 +411,7 @@ module gameLogic {
 					// Add current dice index to the current end point.
 					res[board[newStart].tid].push(i);
 					prevEnd = newStart;
-					if (newStart === BLACKHOME || newStart == WHITEHOME) {
+					if (newStart === myHome) {
 						break;
 					}
 				} else {
@@ -442,6 +450,10 @@ module gameLogic {
 			throw new Error("Your opponent is closed out. You should roll the dices again to start a new turn directly.");
 		} else if (lastTurn.currentSteps.length !== 0 && moveExist(currentState, turnIndexBeforeMove)) {
 			// Game continues. You should complete all available mini-moves within your turn.
+			log.info(["Last turn:", lastTurn]);
+			log.info(["turnIndexBeforeMove: ", turnIndexBeforeMove]);
+			log.info(["currentState: ", currentState]);
+			// There is an unrepeatable bug here. Sometimes AI will go to this path, or maybe I just misclicked? No idea.
 			throw new Error("You should complete all available mini-moves within your turn.");
 		} else {
 			// Game continues. Now it's the opponent's turn.
@@ -469,21 +481,21 @@ module gameLogic {
 		let res: number[] = [];
 		if (!turns) {
 			// throw new Error("You have to roll the dices to start a new turn!");
-			log.info(["You have to roll the dices to start a new turn!"]);
+			log.warn(["You have to roll the dices to start a new turn!"]);
 			return res;
 		} else if (shouldRollDicesAgain(stateBeforeMove, roleBeforeMove)) {
 			// throw new Error("Your opponent is closed out. You can roll the dices to start a new turn again!");
-			log.info(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
+			log.warn(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
 			return res;
 		} else if (turns[turns.length - 1].currentSteps.length === 0) {
 			// Cannot re-roll the dices, and the current turn is complete, must submit the move.
-			log.info(["All mini-moves complete. Please submit your move!"]);
+			log.warn(["All mini-moves complete. Please submit your move!"]);
 			return res;
 		} else {
 			// make a mini-move
 			let curTurn = turns[turns.length - 1];
 			if (getWinner(stateBeforeMove.board) !== "") {
-				log.info(["The game is over. If it's your turn, you can submit this move now!"]);
+				log.warn(["The game is over. If it's your turn, you can submit this move now!"]);
 				return res;
 			}
 			let posToStep = startMove(stateBeforeMove.board, curTurn.currentSteps, start, roleBeforeMove);
@@ -500,6 +512,7 @@ module gameLogic {
 					modelMove(stateBeforeMove.board, localStart, curTurn.currentSteps[index], roleBeforeMove);
 					localEnd = getValidPos(localStart, curTurn.currentSteps[index], roleBeforeMove);
 					let oneMiniMove: IMiniMove = {start: localStart, end: localEnd};
+					log.info(["Create a mini-move between:", "start", localStart, "end", localEnd]);
 					curTurn.moves.push(oneMiniMove);
 					deleteBuffer[index] = [];
 					localStart = localEnd;
@@ -511,7 +524,7 @@ module gameLogic {
 				return res;
 			} else {
 				//no such value found tossed, not a legal move
-				log.info(["No such move!"]);
+				// log.warn(["No such move!"]);
 				return res;
 			}
 		}
@@ -522,7 +535,7 @@ module gameLogic {
 	 * The only allowed case is when the player has completed the current turn, 
 	 * and the opponent is closed out for moves.
 	 */
-	function shouldRollDicesAgain(state: IState, role: number): boolean {
+	export function shouldRollDicesAgain(state: IState, role: number): boolean {
 		// We can assume the state has at least one turn in the delta
 		let last = state.delta.turns.length - 1;
 		let lastTurn = state.delta.turns[last];
@@ -563,17 +576,16 @@ module gameLogic {
 		let moves: IEndToStepIndex = null;
 		if (board[myBar].count !== 0) {
 			moves = startMove(board, stepCombination, myBar, role);
-			if (angular.equals(moves, {})) {
-				return false;
+			return !angular.equals(moves, {});
+		} else {
+			for (let i = 2; i < 26; i++) {
+				moves = startMove(board, stepCombination, i, role);
+				if (!angular.equals(moves, {})) {
+					return true;
+				}
 			}
+			return false;
 		}
-		for (let i = 2; i < 26; i++) {
-			moves = startMove(board, stepCombination, i, role);
-			if (!angular.equals(moves, {})) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	export function createInitialMove(): IMove {
