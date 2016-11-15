@@ -16,7 +16,7 @@ module aiService {
   }
 
   /**
-   * Returns all the possible moves for the given state and turnIndexBeforeMove.
+   * Returns one possible move for the given state and turnIndexBeforeMove.
    * Returns an empty array if the game is over.
    */
   export function getPossibleMoves(state: IState, turnIndexBeforeMove: number): IMove[] {

@@ -462,6 +462,10 @@ var gameLogic;
         }
         else if (lastTurn.currentSteps.length !== 0 && moveExist(currentState, turnIndexBeforeMove)) {
             // Game continues. You should complete all available mini-moves within your turn.
+            log.info(["Last turn:", lastTurn]);
+            log.info(["turnIndexBeforeMove: ", turnIndexBeforeMove]);
+            log.info(["currentState: ", currentState]);
+            // There is an unrepeatable bug here. Sometimes AI will go to this path, or maybe I just misclicked? No idea.
             throw new Error("You should complete all available mini-moves within your turn.");
         }
         else {
@@ -525,7 +529,7 @@ var gameLogic;
                     modelMove(stateBeforeMove.board, localStart, curTurn.currentSteps[index], roleBeforeMove);
                     localEnd = getValidPos(localStart, curTurn.currentSteps[index], roleBeforeMove);
                     var oneMiniMove = { start: localStart, end: localEnd };
-                    log.info(["Create a mini-move between: ", localStart, localEnd]);
+                    log.info(["Create a mini-move between:", "start", localStart, "end", localEnd]);
                     curTurn.moves.push(oneMiniMove);
                     deleteBuffer[index] = [];
                     localStart = localEnd;

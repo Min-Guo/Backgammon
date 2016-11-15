@@ -127,6 +127,8 @@ var game;
         }
         if (!isHumanTurn())
             return;
+        if (!game.currentState.delta)
+            return;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }

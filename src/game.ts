@@ -144,6 +144,7 @@ module game {
       return;
     }
     if (!isHumanTurn()) return;
+    if (!currentState.delta) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }

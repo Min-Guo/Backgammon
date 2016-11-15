@@ -13,7 +13,7 @@ var aiService;
     }
     aiService.findComputerMove = findComputerMove;
     /**
-     * Returns all the possible moves for the given state and turnIndexBeforeMove.
+     * Returns one possible move for the given state and turnIndexBeforeMove.
      * Returns an empty array if the game is over.
      */
     function getPossibleMoves(state, turnIndexBeforeMove) {
