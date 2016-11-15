@@ -4,7 +4,7 @@ var game;
     game.debug = 0; //0: normal, 1: bear off, ...
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
-    // export let animationEndedTimeout: ng.IPromise<any> = null;
+    game.animationEndedTimeout = null;
     game.originalState = null;
     game.currentState = null;
     game.moveStart = -1;
@@ -64,6 +64,12 @@ var game;
         }
         else {
             game.currentState.board = angular.copy(game.originalState.board);
+            // maybe we want to show the original steps by the opponent first
+            // some animation on the originalState.delta.originalSteps needed
+            // We calculate the AI move only after the animation finishes,
+            // because if we call aiService now
+            // then the animation will be paused until the javascript finishes.
+            game.animationEndedTimeout = $timeout(animationEndedCallback, 500);
         }
     }
     game.updateUI = updateUI;
