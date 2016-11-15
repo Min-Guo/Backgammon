@@ -155,6 +155,7 @@ var gameLogic;
             return "";
         }
     }
+    gameLogic.getWinner = getWinner;
     function getOriginalSteps(currentState, role) {
         var lastTurn = currentState.delta.turns[currentState.delta.turns.length - 1];
         return lastTurn.originalSteps;
@@ -198,6 +199,7 @@ var gameLogic;
             throw new Error("You should not try to roll the dices again, your opponent has a chance to move!");
         }
     }
+    gameLogic.setOriginalStepsWithDefault = setOriginalStepsWithDefault;
     /**
      * This function checks the extreme case whether the opponent's home board has been occupied by six doubles.
      * And the opponent still has checkers waiting on the bar to enter the board.
@@ -248,9 +250,10 @@ var gameLogic;
      * Unsuccessful mini-move leaves the board unmodified and returns false.
      */
     function modelMove(board, start, step, role) {
-        if (board[start].status !== role) {
+        if (board[start].status !== role)
             return false;
-        }
+        if (board[start].count <= 0)
+            return false;
         var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
         if (board[myBar].count !== 0 && start !== myBar)
             return false;
@@ -310,17 +313,23 @@ var gameLogic;
      * Returns an object, containing reachable Tower tid's as keys, and an array of dice indices to walk from start in order.
      * For example, assuming black and starting from 2, steps[4, 6], returns {6: [0], 8: [1], 12: [0, 1]}.
      * Multiple paths are reduced to save only one path, so that only {12: [0, 1]} instead of updating to {12: [1, 0]}.
+     * In case of mini-moves of identical effect, the one with a larger dice value is preferred,
+     * which typically occurs at bear off time when two different dices both move the checker to home.
      */
     function startMove(curBoard, curSteps, start, role) {
         var res = {};
         var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
+        var myHome = role === gameLogic.BLACK ? gameLogic.BLACKHOME : gameLogic.WHITEHOME;
         var board;
         var newStart = start;
         var prevEnd;
+        // Guard against empty start location. Normally this won't happen, while in AI it tries every possibility.
+        if (curBoard[start].status !== role || curBoard[start].count <= 0)
+            return res;
         if (curSteps.length === 0) {
             return res;
         }
-        else if (curSteps.length === 2) {
+        else if (curSteps.length === 2 && curSteps[0] !== curSteps[1]) {
             // 1 -> 2
             board = angular.copy(curBoard);
             prevEnd = -1;
@@ -334,16 +343,12 @@ var gameLogic;
                         res[board[newStart].tid] = [];
                     }
                     // Add all dice indices along the path prior to the current end point.
-                    if (prevEnd !== -1) {
-                        for (var _i = 0, _a = res[board[prevEnd].tid]; _i < _a.length; _i++) {
-                            var s = _a[_i];
-                            res[board[newStart].tid].push(s);
-                        }
-                    }
+                    if (prevEnd !== -1)
+                        res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
                     // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
                     prevEnd = newStart;
-                    if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
+                    if (newStart === myHome) {
                         break;
                     }
                 }
@@ -363,20 +368,29 @@ var gameLogic;
                     }
                     else {
                         // The first path may have covered this end point.
-                        // In that case, we choose to skip the same end point with different paths.
-                        break;
-                    }
-                    // Add all dice indices along the path prior to the current end point.
-                    if (prevEnd !== -1) {
-                        for (var _b = 0, _c = res[board[prevEnd].tid]; _b < _c.length; _b++) {
-                            var s = _c[_b];
-                            res[board[newStart].tid].push(s);
+                        if (prevEnd === -1 && res[board[newStart].tid].length === 2) {
+                            // The current path is a shorter path, therefore choosing this one, and clear previous path first.
+                            res[board[newStart].tid].length = 0;
+                        }
+                        else {
+                            // The existing path and the current path both have one mini-move, should use the larger one.
+                            // This typical case occurs at bear off time, where two dices both satisfy the mini-move to home position.
+                            var prev = res[board[newStart].tid][0];
+                            if (curSteps[i] > curSteps[prev]) {
+                                res[board[newStart].tid].length = 0;
+                            }
+                            else {
+                                continue;
+                            }
                         }
                     }
+                    // Add all dice indices along the path prior to the current end point.
+                    if (prevEnd !== -1)
+                        res[board[newStart].tid].push(res[board[prevEnd].tid][0]);
                     // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
                     prevEnd = newStart;
-                    if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
+                    if (newStart === myHome) {
                         break;
                     }
                 }
@@ -398,15 +412,15 @@ var gameLogic;
                     }
                     // Add all dice indices along the path prior to the current end point.
                     if (prevEnd !== -1) {
-                        for (var _d = 0, _e = res[board[prevEnd].tid]; _d < _e.length; _d++) {
-                            var s = _e[_d];
+                        for (var _i = 0, _a = res[board[prevEnd].tid]; _i < _a.length; _i++) {
+                            var s = _a[_i];
                             res[board[newStart].tid].push(s);
                         }
                     }
                     // Add current dice index to the current end point.
                     res[board[newStart].tid].push(i);
                     prevEnd = newStart;
-                    if (newStart === gameLogic.BLACKHOME || newStart == gameLogic.WHITEHOME) {
+                    if (newStart === myHome) {
                         break;
                     }
                 }
@@ -448,6 +462,10 @@ var gameLogic;
         }
         else if (lastTurn.currentSteps.length !== 0 && moveExist(currentState, turnIndexBeforeMove)) {
             // Game continues. You should complete all available mini-moves within your turn.
+            log.info(["Last turn:", lastTurn]);
+            log.info(["turnIndexBeforeMove: ", turnIndexBeforeMove]);
+            log.info(["currentState: ", currentState]);
+            // There is an unrepeatable bug here. Sometimes AI will go to this path, or maybe I just misclicked? No idea.
             throw new Error("You should complete all available mini-moves within your turn.");
         }
         else {
@@ -476,24 +494,24 @@ var gameLogic;
         var res = [];
         if (!turns) {
             // throw new Error("You have to roll the dices to start a new turn!");
-            log.info(["You have to roll the dices to start a new turn!"]);
+            log.warn(["You have to roll the dices to start a new turn!"]);
             return res;
         }
         else if (shouldRollDicesAgain(stateBeforeMove, roleBeforeMove)) {
             // throw new Error("Your opponent is closed out. You can roll the dices to start a new turn again!");
-            log.info(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
+            log.warn(["Your opponent is closed out. You can roll the dices to start a new turn again!"]);
             return res;
         }
         else if (turns[turns.length - 1].currentSteps.length === 0) {
             // Cannot re-roll the dices, and the current turn is complete, must submit the move.
-            log.info(["All mini-moves complete. Please submit your move!"]);
+            log.warn(["All mini-moves complete. Please submit your move!"]);
             return res;
         }
         else {
             // make a mini-move
             var curTurn = turns[turns.length - 1];
             if (getWinner(stateBeforeMove.board) !== "") {
-                log.info(["The game is over. If it's your turn, you can submit this move now!"]);
+                log.warn(["The game is over. If it's your turn, you can submit this move now!"]);
                 return res;
             }
             var posToStep = startMove(stateBeforeMove.board, curTurn.currentSteps, start, roleBeforeMove);
@@ -511,6 +529,7 @@ var gameLogic;
                     modelMove(stateBeforeMove.board, localStart, curTurn.currentSteps[index], roleBeforeMove);
                     localEnd = getValidPos(localStart, curTurn.currentSteps[index], roleBeforeMove);
                     var oneMiniMove = { start: localStart, end: localEnd };
+                    log.info(["Create a mini-move between:", "start", localStart, "end", localEnd]);
                     curTurn.moves.push(oneMiniMove);
                     deleteBuffer[index] = [];
                     localStart = localEnd;
@@ -524,7 +543,7 @@ var gameLogic;
             }
             else {
                 //no such value found tossed, not a legal move
-                log.info(["No such move!"]);
+                // log.warn(["No such move!"]);
                 return res;
             }
         }
@@ -549,6 +568,7 @@ var gameLogic;
             return false;
         }
     }
+    gameLogic.shouldRollDicesAgain = shouldRollDicesAgain;
     /**
      * This functions checks whether a mini-move is possible,
      * given current board, role and remaining steps.
@@ -577,17 +597,17 @@ var gameLogic;
         var moves = null;
         if (board[myBar].count !== 0) {
             moves = startMove(board, stepCombination, myBar, role);
-            if (angular.equals(moves, {})) {
-                return false;
-            }
+            return !angular.equals(moves, {});
         }
-        for (var i = 2; i < 26; i++) {
-            moves = startMove(board, stepCombination, i, role);
-            if (!angular.equals(moves, {})) {
-                return true;
+        else {
+            for (var i = 2; i < 26; i++) {
+                moves = startMove(board, stepCombination, i, role);
+                if (!angular.equals(moves, {})) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
     gameLogic.moveExist = moveExist;
     function createInitialMove() {

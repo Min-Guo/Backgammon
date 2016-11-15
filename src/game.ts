@@ -8,15 +8,14 @@ interface Translations {
 
 module game {
 
-  export let debug: number = 1; //0: normal, 1: bear off, ...
+  export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
-  // export let animationEndedTimeout: ng.IPromise<any> = null;
+  export let animationEndedTimeout: ng.IPromise<any> = null;
   export let originalState: IState = null;
   export let currentState: IState = null;
   export let moveStart = -1;
   export let moveEnd = -1;
-  // export let slowlyAppearCol = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let showStepsControl: boolean[] = [true, true, true, true];
   export let rollingEndedTimeout: ng.IPromise<any> = null;
@@ -28,7 +27,7 @@ module game {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
-    //resizeGameAreaService.setWidthToHeight(1);
+    resizeGameAreaService.setWidthToHeight(1.7778);
     originalState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
@@ -38,21 +37,6 @@ module game {
       gotMessageFromPlatform: null,
     });
   }
-
-  // export function initBearOff() {
-  //   registerServiceWorker();
-  //   translate.setTranslations(getTranslations());
-  //   translate.setLanguage('en');
-  //   //resizeGameAreaService.setWidthToHeight(1);
-  //   originalState = gameLogic.getBearOffState();
-  //   moveService.setGame({
-  //     minNumberOfPlayers: 2,
-  //     maxNumberOfPlayers: 2,
-  //     checkMoveOk: gameLogic.checkMoveOkBear,
-  //     updateUI: updateUI,
-  //     gotMessageFromPlatform: null,
-  //   });
-  // }
 
   function registerServiceWorker() {
     if ('serviceWorker' in navigator) {
@@ -73,7 +57,7 @@ module game {
   export function updateUI(params: IUpdateUI): void {
     log.info("Game got updateUI:", params);
     didMakeMove = false; // Only one move per updateUI
-    currentState = null; // reset
+    // currentState = null; // reset
     currentUpdateUI = params;
     clearAnimationTimeout();
     originalState = params.move.stateAfterMove;
@@ -95,13 +79,13 @@ module game {
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
-      // animationEndedTimeout = $timeout(animationEndedCallback, 500);
+      animationEndedTimeout = $timeout(animationEndedCallback, 500);
     }
   }
 
   function animationEndedCallback() {
     log.info("Animation ended");
-    //maybeSendComputerMove();
+    maybeSendComputerMove();
   }
 
   function clearAnimationTimeout() {
@@ -112,12 +96,14 @@ module game {
     }
   }
 
-  // function maybeSendComputerMove() {
-  //   if (!isComputerTurn()) return;
-  //   let move = aiService.findComputerMove(currentUpdateUI.move);
-  //   log.info("Computer move: ", move);
-  //   makeMove(move);
-  // }
+  function maybeSendComputerMove() {
+    if (!isComputerTurn()) return;
+    if (currentUpdateUI.move.turnIndexAfterMove === -1) return;
+    let move = aiService.findComputerMove(currentUpdateUI.move, currentState);
+    //showOriginalSteps(originalState.delta.turns[0].originalSteps); // need further work    
+    log.info("Computer move: ", move);
+    makeMove(move);
+  }
 
   function makeMove(move: IMove) {
     if (didMakeMove) { // Only one move per updateUI
@@ -158,6 +144,7 @@ module game {
       return;
     }
     if (!isHumanTurn()) return;
+    if (!currentState.delta) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
@@ -177,7 +164,7 @@ module game {
           moveStart = -1;
           setGrayShowStepsControl(usedValues);
         } else {
-          log.info(["Unable to create a move between:", moveStart, moveEnd]);                    
+          log.warn(["Unable to create a move between:", moveStart, moveEnd]);                    
           clearSlowlyAppearTimeout();
           moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
@@ -231,7 +218,8 @@ module game {
     try {
       oneMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
     } catch (e) {
-      log.info(["Game: Move submission failed."]);
+      log.warn(["Move submission failed."]);
+      log.warn(e);
       return;
     }
     // Move is legal, make it!
@@ -243,27 +231,37 @@ module game {
    * It sets the original combination to the local storage of gameLogic.
    */
   export function rollClicked(): void {
-    log.info("Clicked on roll:");
+    log.info("Clicked on roll.");
     if (!isMyTurn()) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    setDiceStatus(true);    
-    gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
-    let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
-    if (originalSteps.length === 2) {
-      showSteps[0] = 0;
-      showSteps[1] = originalSteps[0];
-      showSteps[2] = originalSteps[1];
-      showSteps[3] = 0;
-    } else { // 4
-      showSteps[0] = originalSteps[0];
-      showSteps[1] = originalSteps[1];
-      showSteps[2] = originalSteps[2];
-      showSteps[3] = originalSteps[3];
+    try {
+      setDiceStatus(true);    
+      gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+      let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
+      showOriginalSteps(originalSteps);
+      log.info(["Dices rolled: ", showSteps]);
+      resetGrayToNormal(showStepsControl);        
+      rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
+    } catch (e) {
+      log.warn(e);
+      setDiceStatus(false);
     }
-    resetGrayToNormal(showStepsControl);        
-    rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
+  }
+
+  function showOriginalSteps(steps: number[]): void {
+      if (steps.length === 2) {
+        showSteps[0] = 0;
+        showSteps[1] = steps[0];
+        showSteps[2] = steps[1];
+        showSteps[3] = 0;
+      } else { // 4
+        showSteps[0] = steps[0];
+        showSteps[1] = steps[1];
+        showSteps[2] = steps[2];
+        showSteps[3] = steps[3];
+      }
   }
 
   function rollingEndedCallback() {
@@ -274,7 +272,7 @@ module game {
   function resetGrayToNormal(ssc: boolean[]): void {
     for (let i = 0; i < 4; i++) {
       ssc[i] = true;
-      log.info(ssc[i]);
+      // log.info(ssc[i]);
     }
   }
 
@@ -288,15 +286,11 @@ module game {
   }
   
   export function getHeight(col: number): number {
-    for(let i = 0; i < currentState.board.length; i++) {
-      if(currentState.board[i].tid === col) {
-        let n = currentState.board[i].count;
-        if (n < 7) {
-          return 16.66;
-        }
-        return (100 - (16.66 - 100 / n)) / n;
-      }
+    let n = currentState.board[col].count;
+    if (n < 7) {
+      return 16.66;
     }
+    return (100 - (16.66 - 100 / n)) / n;
   }
 
   export function setDiceStatus(b: boolean): void {
@@ -337,6 +331,14 @@ module game {
     if (home === 0) return turn === gameLogic.WHITE && gameLogic.canBearOff(currentState.board, turn);
     if (home === 27) return turn === gameLogic.BLACK && gameLogic.canBearOff(currentState.board, turn);
     return false;
+  }
+
+  export function shouldRotate(): boolean {
+    if (typeof currentUpdateUI.playMode !== "number") {
+      return false;
+    } else {
+      return currentUpdateUI.playMode === 1;
+    }
   }
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;
