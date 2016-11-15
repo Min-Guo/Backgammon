@@ -11,7 +11,7 @@ module game {
   export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
-  // export let animationEndedTimeout: ng.IPromise<any> = null;
+  export let animationEndedTimeout: ng.IPromise<any> = null;
   export let originalState: IState = null;
   export let currentState: IState = null;
   export let moveStart = -1;
@@ -57,7 +57,7 @@ module game {
   export function updateUI(params: IUpdateUI): void {
     log.info("Game got updateUI:", params);
     didMakeMove = false; // Only one move per updateUI
-    currentState = null; // reset
+    // currentState = null; // reset
     currentUpdateUI = params;
     clearAnimationTimeout();
     originalState = params.move.stateAfterMove;
@@ -79,7 +79,7 @@ module game {
       // We calculate the AI move only after the animation finishes,
       // because if we call aiService now
       // then the animation will be paused until the javascript finishes.
-      // animationEndedTimeout = $timeout(animationEndedCallback, 500);
+      animationEndedTimeout = $timeout(animationEndedCallback, 500);
     }
   }
 
@@ -98,7 +98,7 @@ module game {
 
   function maybeSendComputerMove() {
     if (!isComputerTurn()) return;
-    let move = aiService.findComputerMove(currentUpdateUI.move);
+    let move = aiService.findComputerMove(currentUpdateUI.move, currentState);
     log.info("Computer move: ", move);
     makeMove(move);
   }

@@ -249,9 +249,10 @@ var gameLogic;
      * Unsuccessful mini-move leaves the board unmodified and returns false.
      */
     function modelMove(board, start, step, role) {
-        if (board[start].status !== role) {
+        if (board[start].status !== role)
             return false;
-        }
+        if (board[start].count <= 0)
+            return false;
         var myBar = role === gameLogic.BLACK ? gameLogic.BLACKBAR : gameLogic.WHITEBAR;
         if (board[myBar].count !== 0 && start !== myBar)
             return false;
@@ -321,6 +322,9 @@ var gameLogic;
         var board;
         var newStart = start;
         var prevEnd;
+        // Guard against empty start location. Normally this won't happen, while in AI it tries every possibility.
+        if (curBoard[start].status !== role || curBoard[start].count <= 0)
+            return res;
         if (curSteps.length === 0) {
             return res;
         }
@@ -534,7 +538,7 @@ var gameLogic;
             }
             else {
                 //no such value found tossed, not a legal move
-                log.warn(["No such move!"]);
+                // log.warn(["No such move!"]);
                 return res;
             }
         }
@@ -559,6 +563,7 @@ var gameLogic;
             return false;
         }
     }
+    gameLogic.shouldRollDicesAgain = shouldRollDicesAgain;
     /**
      * This functions checks whether a mini-move is possible,
      * given current board, role and remaining steps.
@@ -587,17 +592,17 @@ var gameLogic;
         var moves = null;
         if (board[myBar].count !== 0) {
             moves = startMove(board, stepCombination, myBar, role);
-            if (angular.equals(moves, {})) {
-                return false;
-            }
+            return !angular.equals(moves, {});
         }
-        for (var i = 2; i < 26; i++) {
-            moves = startMove(board, stepCombination, i, role);
-            if (!angular.equals(moves, {})) {
-                return true;
+        else {
+            for (var i = 2; i < 26; i++) {
+                moves = startMove(board, stepCombination, i, role);
+                if (!angular.equals(moves, {})) {
+                    return true;
+                }
             }
+            return false;
         }
-        return false;
     }
     gameLogic.moveExist = moveExist;
     function createInitialMove() {

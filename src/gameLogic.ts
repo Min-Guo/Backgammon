@@ -255,9 +255,8 @@ module gameLogic {
 	 * Unsuccessful mini-move leaves the board unmodified and returns false.
 	 */
 	function modelMove(board: Board, start: number, step: number, role: number): boolean {
-		if (board[start].status !== role) {
-			return false;
-		}
+		if (board[start].status !== role) return false;
+		if (board[start].count <= 0) return false;
 		let myBar = role === BLACK ?  BLACKBAR : WHITEBAR;
 		if (board[myBar].count !== 0 && start !== myBar) return false;
 		let end = getValidPos(start, step, role);
@@ -322,7 +321,10 @@ module gameLogic {
 		let myHome = role === BLACK ? BLACKHOME : WHITEHOME;
 		let board: Board;
 		let newStart = start;
-		let prevEnd: number;		
+		let prevEnd: number;
+		// Guard against empty start location. Normally this won't happen, while in AI it tries every possibility.
+		if (curBoard[start].status !== role || curBoard[start].count <= 0) return res;
+
 		if (curSteps.length === 0) {
 			return res;
 		} else if (curSteps.length === 2 && curSteps[0] !== curSteps[1]) {
@@ -518,7 +520,7 @@ module gameLogic {
 				return res;
 			} else {
 				//no such value found tossed, not a legal move
-				log.warn(["No such move!"]);
+				// log.warn(["No such move!"]);
 				return res;
 			}
 		}
@@ -529,7 +531,7 @@ module gameLogic {
 	 * The only allowed case is when the player has completed the current turn, 
 	 * and the opponent is closed out for moves.
 	 */
-	function shouldRollDicesAgain(state: IState, role: number): boolean {
+	export function shouldRollDicesAgain(state: IState, role: number): boolean {
 		// We can assume the state has at least one turn in the delta
 		let last = state.delta.turns.length - 1;
 		let lastTurn = state.delta.turns[last];
@@ -570,17 +572,16 @@ module gameLogic {
 		let moves: IEndToStepIndex = null;
 		if (board[myBar].count !== 0) {
 			moves = startMove(board, stepCombination, myBar, role);
-			if (angular.equals(moves, {})) {
-				return false;
+			return !angular.equals(moves, {});
+		} else {
+			for (let i = 2; i < 26; i++) {
+				moves = startMove(board, stepCombination, i, role);
+				if (!angular.equals(moves, {})) {
+					return true;
+				}
 			}
+			return false;
 		}
-		for (let i = 2; i < 26; i++) {
-			moves = startMove(board, stepCombination, i, role);
-			if (!angular.equals(moves, {})) {
-				return true;
-			}
-		}
-		return false;
 	}
 
 	export function createInitialMove(): IMove {
