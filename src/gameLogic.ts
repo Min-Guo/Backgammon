@@ -157,7 +157,7 @@ module gameLogic {
 	}
 
 	/** If one player has born off all 15 checkers, he wins. */
-	function getWinner(board: Board): String {
+	export function getWinner(board: Board): String {
 		if (board[WHITEHOME].count == 15) {
 			return "White";
 		} else if (board[BLACKHOME].count == 15) {

@@ -155,6 +155,7 @@ var gameLogic;
             return "";
         }
     }
+    gameLogic.getWinner = getWinner;
     function getOriginalSteps(currentState, role) {
         var lastTurn = currentState.delta.turns[currentState.delta.turns.length - 1];
         return lastTurn.originalSteps;

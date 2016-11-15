@@ -98,7 +98,9 @@ module game {
 
   function maybeSendComputerMove() {
     if (!isComputerTurn()) return;
+    if (currentUpdateUI.move.turnIndexAfterMove === -1) return;
     let move = aiService.findComputerMove(currentUpdateUI.move, currentState);
+    //showOriginalSteps(originalState.delta.turns[0].originalSteps); // need further work    
     log.info("Computer move: ", move);
     makeMove(move);
   }
@@ -237,17 +239,7 @@ module game {
       setDiceStatus(true);    
       gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
       let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
-      if (originalSteps.length === 2) {
-        showSteps[0] = 0;
-        showSteps[1] = originalSteps[0];
-        showSteps[2] = originalSteps[1];
-        showSteps[3] = 0;
-      } else { // 4
-        showSteps[0] = originalSteps[0];
-        showSteps[1] = originalSteps[1];
-        showSteps[2] = originalSteps[2];
-        showSteps[3] = originalSteps[3];
-      }
+      showOriginalSteps(originalSteps);
       log.info(["Dices rolled: ", showSteps]);
       resetGrayToNormal(showStepsControl);        
       rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
@@ -255,6 +247,20 @@ module game {
       log.warn(e);
       setDiceStatus(false);
     }
+  }
+
+  function showOriginalSteps(steps: number[]): void {
+      if (steps.length === 2) {
+        showSteps[0] = 0;
+        showSteps[1] = steps[0];
+        showSteps[2] = steps[1];
+        showSteps[3] = 0;
+      } else { // 4
+        showSteps[0] = steps[0];
+        showSteps[1] = steps[1];
+        showSteps[2] = steps[2];
+        showSteps[3] = steps[3];
+      }
   }
 
   function rollingEndedCallback() {

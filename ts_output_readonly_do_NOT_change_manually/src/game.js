@@ -87,7 +87,10 @@ var game;
     function maybeSendComputerMove() {
         if (!isComputerTurn())
             return;
+        if (game.currentUpdateUI.move.turnIndexAfterMove === -1)
+            return;
         var move = aiService.findComputerMove(game.currentUpdateUI.move, game.currentState);
+        //showOriginalSteps(originalState.delta.turns[0].originalSteps); // need further work    
         log.info("Computer move: ", move);
         makeMove(move);
     }
@@ -223,18 +226,7 @@ var game;
             setDiceStatus(true);
             gameLogic.setOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
             var originalSteps = gameLogic.getOriginalSteps(game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
-            if (originalSteps.length === 2) {
-                game.showSteps[0] = 0;
-                game.showSteps[1] = originalSteps[0];
-                game.showSteps[2] = originalSteps[1];
-                game.showSteps[3] = 0;
-            }
-            else {
-                game.showSteps[0] = originalSteps[0];
-                game.showSteps[1] = originalSteps[1];
-                game.showSteps[2] = originalSteps[2];
-                game.showSteps[3] = originalSteps[3];
-            }
+            showOriginalSteps(originalSteps);
             log.info(["Dices rolled: ", game.showSteps]);
             resetGrayToNormal(game.showStepsControl);
             game.rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
@@ -245,6 +237,20 @@ var game;
         }
     }
     game.rollClicked = rollClicked;
+    function showOriginalSteps(steps) {
+        if (steps.length === 2) {
+            game.showSteps[0] = 0;
+            game.showSteps[1] = steps[0];
+            game.showSteps[2] = steps[1];
+            game.showSteps[3] = 0;
+        }
+        else {
+            game.showSteps[0] = steps[0];
+            game.showSteps[1] = steps[1];
+            game.showSteps[2] = steps[2];
+            game.showSteps[3] = steps[3];
+        }
+    }
     function rollingEndedCallback() {
         log.info("Rolling ended");
         setDiceStatus(false);
