@@ -84,7 +84,7 @@ var game;
     game.updateUI = updateUI;
     function animationEndedCallback() {
         log.info("Animation ended");
-        maybeSendComputerMove();
+        //maybeSendComputerMove();
     }
     function clearAnimationTimeout() {
         // Clear rolling dices animation timeout
@@ -93,13 +93,12 @@ var game;
             game.rollingEndedTimeout = null;
         }
     }
-    function maybeSendComputerMove() {
-        if (!isComputerTurn())
-            return;
-        var move = aiService.findComputerMove(game.currentUpdateUI.move);
-        log.info("Computer move: ", move);
-        makeMove(move);
-    }
+    // function maybeSendComputerMove() {
+    //   if (!isComputerTurn()) return;
+    //   let move = aiService.findComputerMove(currentUpdateUI.move);
+    //   log.info("Computer move: ", move);
+    //   makeMove(move);
+    // }
     function makeMove(move) {
         if (game.didMakeMove) {
             return;
