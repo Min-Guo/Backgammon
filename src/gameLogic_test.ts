@@ -1,8 +1,8 @@
 describe("In Backgammon", function() {
   let OK = true;
   let ILLEGAL = false;
-  let BLACK_TURN = 1;
-  let WHITE_TURN = 0;
+  let BLACK_TURN = 0;
+  let WHITE_TURN = 1;
   let NO_ONE_TURN = -1;
   let BLACK_WIN_SCORES = [1, 0];
   let WHITE_WIN_SCORES = [0, 1];
