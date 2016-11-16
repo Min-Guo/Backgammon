@@ -673,7 +673,7 @@ var gameLogic;
                 }
             }
         }
-        expectedMove = createMove(stateBeforeMove, move.stateAfterMove, turnIndexBeforeMove);
+        expectedMove = createMove(stateBeforeMove, tmpState, turnIndexBeforeMove);
         if (!angular.equals(move, expectedMove)) {
             throw new Error("Expected move=" + angular.toJson(expectedMove, true) +
                 ", but got stateTransition=" + angular.toJson(stateTransition, true));
