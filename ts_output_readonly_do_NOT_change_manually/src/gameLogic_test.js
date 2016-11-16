@@ -37,12 +37,12 @@ describe("In Backgammon", function () {
         new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
     function expectStateTransition(isOk, stateTransition) {
         if (isOk) {
-            gameLogic.checkMoveOkBear(stateTransition);
+            gameLogic.checkMoveOk(stateTransition);
         }
         else {
             var didThrowException = false;
             try {
-                gameLogic.checkMoveOkBear(stateTransition);
+                gameLogic.checkMoveOk(stateTransition);
             }
             catch (e) {
                 didThrowException = true;
