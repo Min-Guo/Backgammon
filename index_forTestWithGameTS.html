@@ -63,7 +63,8 @@
                            bearOffRotateTop: !game.shouldRotate(),
                            bearOffRotateBottom: game.shouldRotate(),
                            shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx),
-                           showPiece0: game.getTowerCount(idx).length > 0
+                           showPiece0: game.getTowerCount(idx).length > 0,
+                           homeOpen0: game.isInTargets(idx)
                            }"
                  class="bearOffHome"
                  ng-click="game.towerClicked(idx)">
@@ -98,7 +99,8 @@
                            bearOffRotateBottom: !game.shouldRotate(),
                            bearOffRotateTop: game.shouldRotate(),
                            shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx),
-                           showPiece1: game.getTowerCount(idx).length > 0
+                           showPiece1: game.getTowerCount(idx).length > 0,
+                           homeOpen1: game.isInTargets(idx)
                            }"
                  class="bearOffHome"
                  ng-click="game.towerClicked(idx)">

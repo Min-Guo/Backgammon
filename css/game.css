@@ -319,7 +319,6 @@
     width: 30%;
     border-radius: 50%;
     left: 5%;
-
 }
 
 .bearOffHome span {
@@ -416,25 +415,32 @@ button:hover {
 
 .shouldPulse0 {
     cursor: pointer;
-    border: 2px solid #339966;
     animation: pulse0 1.5s infinite;
 }
 
 .shouldPulse1 {
     cursor: pointer;
-    border: 2px solid #cc6699;
+    
     animation: pulse1 1.5s infinite;
+}
+
+.homeOpen0 {
+    border: 2px solid #339966;
+}
+
+.homeOpen1 {
+    border: 2px solid #cc6699;
 }
 
 @keyframes pulse0 {
     0%   { box-shadow: 0 0 0 0 rgba(0, 102, 0, 0.4); }
-    70%  { box-shadow: 0 0 0 10px rgba(0, 102, 0, 0); }
+    70%  { box-shadow: 0 0 0 12px rgba(0, 102, 0, 0); }
     100% { box-shadow: 0 0 0 0 rgba(0, 102, 0, 0); }
 }
 
 @keyframes pulse1 {
     0%   { box-shadow: 0 0 0 0 rgba(153, 0, 51, 0.4); }
-    70%  { box-shadow: 0 0 0 10px rgba(153, 0, 51, 0); }
+    70%  { box-shadow: 0 0 0 12px rgba(153, 0, 51, 0); }
     100% { box-shadow: 0 0 0 0 rgba(153, 0, 51, 0); }
 }
 
@@ -518,8 +524,8 @@ button:hover {
     right: 5%;
     background-image: url('../images/refresh.svg');
     background-size: contain;
-    background-repeat: no-repeat;;
-    cursor: pointer
+    background-repeat: no-repeat;
+    cursor: pointer;
 }
 
 @media screen and (max-width: 700px), screen and (max-height: 400px) {
