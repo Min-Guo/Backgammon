@@ -104,19 +104,6 @@ describe("In Backgammon", function() {
   }
 
 
-//   it("Initial move", function() {
-//     expectStateTransition(OK, {
-//       turnIndexBeforeMove: BLACK_TURN,
-//       stateBeforeMove: null,
-//       move: {
-//         turnIndexAfterMove: BLACK_TURN,
-//         endMatchScores: NO_ONE_WINS,
-//         stateAfterMove: {board: INITIAL_BOARD, delta: null}
-//       },
-//       numberOfPlayers: null
-//     });
-//   });
-
    it("PLacing BLACK on the empty position is legal.", function() {
     let boardBeforeMove: Tower[] = INITIAL_BOARD;
     let boardAfterMove: Tower[] = 
