@@ -30,9 +30,12 @@
                                    blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                    blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                          class="piece"
-                         ng-style="{ 'top': game.shouldRotate() ? 
-                                (col == 26 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
-                                (col == 26 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
+                         ng-style="
+                                   !game.shouldRotate() && col == 26 && {'bottom': $index * game.getHeight(col)+'%'} ||
+                                   !game.shouldRotate() && col != 26 && {'top': $index * game.getHeight(col)+'%'} ||
+                                   game.shouldRotate() && col == 26 && {'top': $index * game.getHeight(col)+'%'} ||
+                                   game.shouldRotate() && col != 26 && {'bottom': $index * game.getHeight(col)+'%'}
+                                   "></div>
                 </div>
             </div>
             <div ng-class="{lower: !game.shouldRotate(), upper: game.shouldRotate()}">
@@ -50,26 +53,30 @@
                                    blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                    blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
                          class="piece"
-                         ng-style="{ 'bottom': game.shouldRotate() ? 
-                                (col == 1 ? $index * game.getHeight(col)+'%' : (100-16.66-$index * game.getHeight(col))+'%') : 
-                                (col == 1 ? (100-16.66-$index * game.getHeight(col))+'%' : $index * game.getHeight(col)+'%') }"></div>
+                         ng-style="!game.shouldRotate() && col == 1 && {'top': $index * game.getHeight(col)+'%'} ||
+                                   !game.shouldRotate() && col != 1 && {'bottom': $index * game.getHeight(col)+'%'} ||
+                                   game.shouldRotate() && col == 1 && {'bottom': $index * game.getHeight(col)+'%'} ||
+                                   game.shouldRotate() && col != 1 && {'top': $index * game.getHeight(col)+'%'}
+                                   "></div>
                 </div>
             </div>
         </div>
         <div id="ctrl">
-            <div id='t27' 
-                 ng-repeat="idx in [27]"
-                 ng-class="{
-                           bearOffRotateTop: !game.shouldRotate(),
-                           bearOffRotateBottom: game.shouldRotate(),
-                           shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx),
-                           showPiece0: game.getTowerCount(idx).length > 0,
-                           homeOpen0: game.isInTargets(idx)
-                           }"
-                 class="bearOffHome"
-                 ng-click="game.towerClicked(idx)">
-                <span ng-class="{ bearOffCnt0: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+            <div class="bearOffHome"
+                 ng-class="{bearOffRotateTop: !game.shouldRotate(),
+                           bearOffRotateBottom: game.shouldRotate()}">
+                <div id='t27' 
+                     ng-repeat="idx in [27]"
+                     ng-class="{
+                               shouldPulse0: game.currentUpdateUI.yourPlayerIndex == 0 && game.canSomebodyBearOff(idx),
+                               showPiece0: game.getTowerCount(idx).length > 0,
+                               homeOpen0: game.isInTargets(idx)
+                               }"
+                     ng-click="game.towerClicked(idx)">
+                    <span ng-class="{ bearOffCnt0: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+                </div>
             </div>
+            
             <div id="dicewrapper"
                  ng-click="game.rollClicked()"
                  ng-class="{rollingDice: game.getDiceStatus()}">
@@ -93,18 +100,20 @@
             <div id="confirm">
                 <button ng-click="game.submitClicked()">confirm</button>        
             </div>
-            <div id='t0'
-                 ng-repeat="idx in [0]"
-                 ng-class="{
-                           bearOffRotateBottom: !game.shouldRotate(),
-                           bearOffRotateTop: game.shouldRotate(),
-                           shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx),
-                           showPiece1: game.getTowerCount(idx).length > 0,
-                           homeOpen1: game.isInTargets(idx)
-                           }"
-                 class="bearOffHome"
-                 ng-click="game.towerClicked(idx)">
-                <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+            <div class="bearOffHome"
+                 ng-class="{bearOffRotateBottom: !game.shouldRotate(),
+                           bearOffRotateTop: game.shouldRotate()}">
+                <div id='t0'
+                     ng-repeat="idx in [0]"
+                     ng-class="{
+                               shouldPulse1: game.currentUpdateUI.yourPlayerIndex == 1 && game.canSomebodyBearOff(idx),
+                               showPiece1: game.getTowerCount(idx).length > 0,
+                               homeOpen1: game.isInTargets(idx)
+                               }"
+                     class="bearOffHome"
+                     ng-click="game.towerClicked(idx)">
+                    <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+                </div>
             </div>
             <div id="refresh" title="New Game"></div>
         </div>
