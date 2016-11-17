@@ -73,13 +73,7 @@ describe("In Backgammon", function () {
             }
         }
     }
-    function expectMove(isBearOffTime, isOk, turnIndexBeforeMove, boardBeforeMove, boardAfterMove, start, end, turns, 
-        // originalSteps: Steps,
-        // currentStepsBeforeMove: number[],
-        // currentStepsAfterMove: number[],
-        turnIndexAfterMove, endMatchScores) {
-        // // let moves: IMiniMove[] = [{start: start, end: end}]; 
-        // let turnsAfterMove: ITurnDelta[] = [{originalSteps: originalSteps, currentSteps: currentStepsAfterMove, moves: moves}];
+    function expectMove(isBearOffTime, isOk, turnIndexBeforeMove, boardBeforeMove, turns, boardAfterMove, turnIndexAfterMove, endMatchScores) {
         var stateTransition = {
             turnIndexBeforeMove: turnIndexBeforeMove,
             stateBeforeMove: boardBeforeMove ? { board: boardBeforeMove, delta: null } : null,
@@ -92,6 +86,18 @@ describe("In Backgammon", function () {
         };
         expectStateTransition(isBearOffTime, isOk, stateTransition);
     }
+    it("Initial move", function () {
+        expectStateTransition(OK, {
+            turnIndexBeforeMove: BLACK_TURN,
+            stateBeforeMove: null,
+            move: {
+                turnIndexAfterMove: BLACK_TURN,
+                endMatchScores: NO_ONE_WINS,
+                stateAfterMove: { board: INITIAL_BOARD, delta: null }
+            },
+            numberOfPlayers: null
+        });
+    });
     it("PLacing BLACK on the empty position is legal.", function () {
         var boardBeforeMove = INITIAL_BOARD;
         var boardAfterMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
@@ -108,15 +114,8 @@ describe("In Backgammon", function () {
             new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
             new Tower(24, NO_ONE_TURN, 0), new Tower(25, WHITE_TURN, 2),
             new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
-        var turnsAfterMove = [{ originalSteps: [5, 6], currentSteps: [], moves: [{ start: 2, end: 8 }, { start: 8, end: 13 }] }];
-        debugger;
-        expectStateTransition(NO_BEAROFF, OK, {
-            turnIndexBeforeMove: BLACK_TURN,
-            stateBeforeMove: { board: boardBeforeMove, delta: null },
-            move: { turnIndexAfterMove: WHITE_TURN, endMatchScores: NO_ONE_WINS,
-                stateAfterMove: { board: boardAfterMove, delta: { turns: turnsAfterMove } } },
-            numberOfPlayers: 2
-        });
+        var turns = [{ originalSteps: [5, 6], currentSteps: [], moves: [{ start: 2, end: 8 }, { start: 8, end: 13 }] }];
+        expectMove(OK, BLACK_TURN, boardBeforeMove, turns, boardAfterMove, WHITE_TURN, NO_ONE_WINS);
     });
     it("PLacing BLACK on the position where only one WHITE is legal.", function () {
         var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
