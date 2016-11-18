@@ -608,7 +608,7 @@ module gameLogic {
 		}
 		let delta: BoardDelta = move.stateAfterMove.delta;
 		let expectedMove: IMove = null;
-		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: null};
+		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: stateBeforeMove.delta};
 		for (let turn of delta.turns) {
 			setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
 			// this check needed if the player is completely closed out so moves is null			
