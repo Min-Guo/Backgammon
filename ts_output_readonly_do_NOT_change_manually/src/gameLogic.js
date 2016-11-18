@@ -630,7 +630,7 @@ var gameLogic;
         }
         var delta = move.stateAfterMove.delta;
         var expectedMove = null;
-        var tmpState = { board: angular.copy(stateBeforeMove.board), delta: stateBeforeMove.delta };
+        var tmpState = { board: angular.copy(stateBeforeMove.board), delta: null };
         for (var _i = 0, _a = delta.turns; _i < _a.length; _i++) {
             var turn = _a[_i];
             setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
