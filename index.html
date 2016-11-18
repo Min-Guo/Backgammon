@@ -7,6 +7,7 @@
     <link rel="stylesheet" type="text/css" media="screen" href="css/game.css">
     <link rel="icon" type="image/jpg" href="images/icon2.png">
     <script src="lib/angular.js"></script>
+    <script src="lib/angular-animate.js"></script>
     <script src="lib/turnBasedServices.3.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/game.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
@@ -26,10 +27,9 @@
                                    'player1': game.getPlayer(col)=='player1', 
                                    'player0': game.getPlayer(col)=='player0',
                                    selectedPiece: game.isActive(col)&&$last,
-                                   slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
                                    blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                    blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
-                         class="piece"
+                         class="piece animate"
                          ng-style="
                                    !game.shouldRotate() && col == 26 && {'bottom': $index * game.getHeight(col)+'%'} ||
                                    !game.shouldRotate() && col != 26 && {'top': $index * game.getHeight(col)+'%'} ||
@@ -49,10 +49,9 @@
                                    'player1': game.getPlayer(col)=='player1', 
                                    'player0': game.getPlayer(col)=='player0',
                                    selectedPiece: game.isActive(col)&&$last,
-                                   slowlyAppear: game.shouldSlowlyAppear(col)&&$last,
                                    blinkPlayer1: game.currentUpdateUI.yourPlayerIndex == 1 && game.getPlayer(col)=='player1',
                                    blinkPlayer0: game.currentUpdateUI.yourPlayerIndex == 0 && game.getPlayer(col)=='player0'}"
-                         class="piece"
+                         class="piece animate"
                          ng-style="!game.shouldRotate() && col == 1 && {'top': $index * game.getHeight(col)+'%'} ||
                                    !game.shouldRotate() && col != 1 && {'bottom': $index * game.getHeight(col)+'%'} ||
                                    game.shouldRotate() && col == 1 && {'bottom': $index * game.getHeight(col)+'%'} ||
@@ -73,7 +72,8 @@
                                homeOpen0: game.isInTargets(idx)
                                }"
                      ng-click="game.towerClicked(idx)">
-                    <span ng-class="{ bearOffCnt0: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+                    <span ng-class="{ bearOffCnt0: game.getTowerCount(idx).length > 0 }">
+                        {{game.getTowerCount(idx).length != 15 ? game.getTowerCount(idx).length : "Winner!"}}</span>
                 </div>
             </div>
             
@@ -112,11 +112,21 @@
                                }"
                      class="bearOffHome"
                      ng-click="game.towerClicked(idx)">
-                    <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">{{game.getTowerCount(idx).length}}</span>
+                    <span ng-class="{ bearOffCnt1: game.getTowerCount(idx).length > 0 }">
+                        {{game.getTowerCount(idx).length != 15 ? game.getTowerCount(idx).length : "Winner!"}}</span>
                 </div>
             </div>
             <div id="refresh" title="New Game"></div>
         </div>
+        
+        <div id="alert"
+                 ng-if="game.getTowerCount(0).length==15 || game.getTowerCount(27).length==15">
+            <div class="blur">
+            </div>
+            <div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
+            <h2>Game Over<br><br> Winner: {{game.currentUpdateUI.yourPlayerIndex == 1 ? "Red" : "Blue" }} </h2>
+        </div>
+    
     </div>
 </body>
 </html>

@@ -332,7 +332,7 @@ var game;
     }
     game.shouldRotate = shouldRotate;
 })(game || (game = {}));
-angular.module('myApp', ['gameServices'])
+angular.module('myApp', ['gameServices', 'ngAnimate'])
     .run(function () {
     $rootScope['game'] = game;
     game.init();

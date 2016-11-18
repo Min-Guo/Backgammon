@@ -418,19 +418,39 @@ button:hover {
     transition: all .3s ease-in-out;
 }
 
+
 .slowlyAppear {
     animation: slowlyAppearAni 0.5s linear;
+}
+.slowlyDisappear {
+    animation: slowlyDisappearAni 0.5s linear;
+}
+
+
+.animate.ng-enter {
+    animation: slowlyAppearAni 0.6s linear;
+}
+.animate.ng-leave {
+    animation: slowlyDisappearAni 0.5s linear;
 }
 
 @keyframes slowlyAppearAni {
     from {
         width: 82%;
         height: 18.22%;
-        opacity: 0.2;
+        opacity: 0;
     } to {
         width: 75%;
         height: 16.66%;
         opacity: 1;
+    }
+}
+
+@keyframes slowlyDisappearAni {
+    from {
+        opacity: 1;
+    } to {
+        opacity: 0;
     }
 }
 
@@ -537,6 +557,44 @@ button:hover {
     }
 }
 
+
+#alert {
+    position: absolute;
+    width: 45%;
+    height: 40%;
+    top: 30%;
+    left: 20%;
+    box-shadow:0px 2px 2px rgba(0,0,0,0.1);
+    border-radius:3px;
+    color:gray;
+    text-align: center;
+}
+
+.blur {
+    filter:blur(5px);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background:rgba(255,255,255,0.8);
+}
+
+#alert h2 {
+    position: absolute;
+    left: 0;
+    top: 20%;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+.closebtn {
+    position: absolute;
+    right: 4%;
+    top: 3%;
+    z-index: 5;
+    cursor: pointer;
+}
+
 #refresh {
     position: absolute;
     width: 18%;
@@ -589,9 +647,18 @@ button:hover {
     button {
         font-size: 0.5em;
     }
+    
+    #alert h2 {
+        font-size: 0.9em;
+    }
 }
 
 
+@media screen and (max-width: 400px), screen and (max-height: 200px) {
+    #alert h2 {
+        font-size: 0.5em;
+    }
+}
 
 /********from prof.********/
 
@@ -614,3 +681,4 @@ button:hover {
 }
 
 /********END********/
+
