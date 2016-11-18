@@ -8,7 +8,7 @@ interface Translations {
 
 module game {
 
-  export let debug: number = 1; //0: normal, 1: bear off, ...
+  export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
   export let animationEndedTimeout: ng.IPromise<any> = null;
@@ -348,7 +348,7 @@ module game {
   // }
 }
 
-angular.module('myApp', ['gameServices'])
+angular.module('myApp', ['gameServices', 'ngAnimate'])
   .run(function () {
     $rootScope['game'] = game;
     game.init();

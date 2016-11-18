@@ -1,7 +1,7 @@
 ;
 var game;
 (function (game) {
-    game.debug = 1; //0: normal, 1: bear off, ...
+    game.debug = 0; //0: normal, 1: bear off, ...
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
     game.animationEndedTimeout = null;
@@ -332,7 +332,7 @@ var game;
     }
     game.shouldRotate = shouldRotate;
 })(game || (game = {}));
-angular.module('myApp', ['gameServices'])
+angular.module('myApp', ['gameServices', 'ngAnimate'])
     .run(function () {
     $rootScope['game'] = game;
     game.init();
