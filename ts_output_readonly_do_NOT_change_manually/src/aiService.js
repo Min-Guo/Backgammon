@@ -7,7 +7,7 @@ var aiService;
         var tmpMove = {
             endMatchScores: move.endMatchScores,
             turnIndexAfterMove: move.turnIndexAfterMove,
-            stateAfterMove: state // {board: originalState.board, delta: null} haven't rolled dices yet!!!
+            stateAfterMove: { board: angular.copy(state.board), delta: null } // {board: originalState.board, delta: null} haven't rolled dices yet!!!
         };
         return createComputerMove(tmpMove);
     }

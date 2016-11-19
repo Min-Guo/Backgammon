@@ -83,6 +83,7 @@ var gameLogic;
         }
         return board;
     }
+    gameLogic.getInitialBoard = getInitialBoard;
     /** Returns the preconfigured bear off board. */
     function getBearOffBoard() {
         var board = Array(27);
@@ -109,6 +110,7 @@ var gameLogic;
         }
         return board;
     }
+    gameLogic.getBearOffBoard = getBearOffBoard;
     function getInitialState() {
         return { board: getInitialBoard(), delta: null };
     }
@@ -462,9 +464,9 @@ var gameLogic;
         }
         else if (lastTurn.currentSteps.length !== 0 && moveExist(currentState, turnIndexBeforeMove)) {
             // Game continues. You should complete all available mini-moves within your turn.
-            log.info(["Last turn:", lastTurn]);
-            log.info(["turnIndexBeforeMove: ", turnIndexBeforeMove]);
-            log.info(["currentState: ", currentState]);
+            // log.info(["Last turn:", lastTurn]);
+            // log.info(["turnIndexBeforeMove: ", turnIndexBeforeMove]);
+            // log.info(["currentState: ", currentState]);
             // There is an unrepeatable bug here. Sometimes AI will go to this path, or maybe I just misclicked? No idea.
             throw new Error("You should complete all available mini-moves within your turn.");
         }
@@ -638,7 +640,10 @@ var gameLogic;
             if (turn.moves) {
                 for (var _b = 0, _c = turn.moves; _b < _c.length; _b++) {
                     var move_1 = _c[_b];
-                    createMiniMove(tmpState, move_1.start, move_1.end, turnIndexBeforeMove);
+                    var usedValues = createMiniMove(tmpState, move_1.start, move_1.end, turnIndexBeforeMove);
+                    if (usedValues.length === 0) {
+                        throw new Error("Expected mini-move failed at " + angular.toJson(move_1, true));
+                    }
                 }
             }
         }
@@ -669,7 +674,10 @@ var gameLogic;
             if (turn.moves) {
                 for (var _b = 0, _c = turn.moves; _b < _c.length; _b++) {
                     var move_2 = _c[_b];
-                    createMiniMove(tmpState, move_2.start, move_2.end, turnIndexBeforeMove);
+                    var usedValues = createMiniMove(tmpState, move_2.start, move_2.end, turnIndexBeforeMove);
+                    if (usedValues.length === 0) {
+                        throw new Error("Expected mini-move failed at " + angular.toJson(move_2, true));
+                    }
                 }
             }
         }
