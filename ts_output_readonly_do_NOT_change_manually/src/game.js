@@ -5,6 +5,14 @@ var game;
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
     game.animationEndedTimeout = null;
+    // export let board: Board = null;
+    game.turns = []; // We collect all the turns, which have all the mini-moves.
+    game.lastHumanMove = null; // We don't animate moves we just made.
+    game.remainingTurns = [];
+    game.remainingMiniMoves = [];
+    game.turnAnimationInterval = null;
+    game.checkerAnimationInterval = null;
+    game.recRollingEndedTimeout = null;
     game.originalState = null;
     game.currentState = null;
     game.moveStart = -1;
@@ -20,7 +28,8 @@ var game;
         translate.setTranslations(getTranslations());
         translate.setLanguage('en');
         resizeGameAreaService.setWidthToHeight(1.7778);
-        game.originalState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
+        // board = debug === 1 ? gameLogic.getBearOffBoard() : gameLogic.getInitialBoard();
+        game.currentState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
         moveService.setGame({
             minNumberOfPlayers: 2,
             maxNumberOfPlayers: 2,
@@ -44,17 +53,89 @@ var game;
     function getTranslations() {
         return {};
     }
+    function setCheckerAnimationInterval() {
+        advanceToNextCheckerAnimation();
+        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 600);
+    }
+    function clearCheckerAnimationInterval() {
+        if (game.checkerAnimationInterval) {
+            $interval.cancel(game.checkerAnimationInterval);
+            game.checkerAnimationInterval = null;
+        }
+    }
+    function advanceToNextCheckerAnimation() {
+        if (game.remainingMiniMoves.length == 0) {
+            clearCheckerAnimationInterval();
+            return;
+        }
+        var miniMove = game.remainingMiniMoves.shift();
+        var usedValues = gameLogic.createMiniMove(game.currentState, miniMove.start, miniMove.end, game.currentUpdateUI.turnIndexBeforeMove);
+        setGrayShowStepsControl(usedValues);
+        if (game.remainingMiniMoves.length === 0 && game.remainingTurns.length === 0) {
+            clearCheckerAnimationInterval();
+            clearTurnAnimationInterval();
+            // Checking we got to the final correct board
+            var expectedBoard = game.currentUpdateUI.move.stateAfterMove.board;
+            if (!angular.equals(game.currentState.board, expectedBoard)) {
+                throw new Error("Animations ended in a different board: expected="
+                    + angular.toJson(expectedBoard, true) + " actual after animations="
+                    + angular.toJson(game.currentState.board, true));
+            }
+            game.currentState.delta = null;
+            // Save previous move end state in originalState.
+            game.originalState = angular.copy(game.currentState);
+        }
+    }
+    function setTurnAnimationInterval() {
+        advanceToNextTurnAnimation();
+        game.turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
+    }
+    function clearTurnAnimationInterval() {
+        if (game.turnAnimationInterval) {
+            $interval.cancel(game.turnAnimationInterval);
+            game.turnAnimationInterval = null;
+        }
+    }
+    function advanceToNextTurnAnimation() {
+        if (game.remainingTurns.length == 0) {
+            clearTurnAnimationInterval();
+            clearRecRollingAnimationTimeout();
+            // Save previous move end state in originalState.
+            game.originalState = angular.copy(game.currentState);
+            maybeSendComputerMove();
+            return;
+        }
+        clearCheckerAnimationInterval();
+        var turn = game.remainingTurns.shift();
+        game.remainingMiniMoves = turn.moves;
+        // roll dices animation
+        clearRecRollingAnimationTimeout();
+        setDiceStatus(true);
+        gameLogic.setOriginalStepsWithDefault(game.currentState, game.currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
+        showOriginalSteps(turn.originalSteps);
+        resetGrayToNormal(game.showStepsControl);
+        game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
+    }
+    function recRollingEndedCallBack() {
+        setDiceStatus(false);
+        setCheckerAnimationInterval();
+    }
+    function clearRecRollingAnimationTimeout() {
+        if (game.recRollingEndedTimeout) {
+            $timeout.cancel(game.recRollingEndedTimeout);
+            game.recRollingEndedTimeout = null;
+        }
+    }
     function updateUI(params) {
         log.info("Game got updateUI:", params);
         game.didMakeMove = false; // Only one move per updateUI
-        // currentState = null; // reset
         game.currentUpdateUI = params;
-        clearAnimationTimeout();
-        game.originalState = params.move.stateAfterMove;
-        game.currentState = { board: null, delta: null };
+        game.originalState = null;
+        var shouldAnimate = !game.lastHumanMove || !angular.equals(params.move.stateAfterMove, game.lastHumanMove.stateAfterMove);
+        // clearAnimationTimeout();
+        clearTurnAnimationInterval();
         if (isFirstMove()) {
-            game.originalState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
-            game.currentState.board = angular.copy(game.originalState.board);
+            game.currentState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
             //setInitialTurnIndex();
             if (isMyTurn()) {
                 var firstMove = void 0;
@@ -62,23 +143,30 @@ var game;
                 makeMove(firstMove);
             }
         }
+        else if (!shouldAnimate) {
+            game.currentState.board = angular.copy(params.move.stateAfterMove.board);
+            game.currentState.delta = null;
+            setTurnAnimationInterval();
+        }
         else {
-            game.currentState.board = angular.copy(game.originalState.board);
-            // maybe we want to show the original steps by the opponent first
-            // some animation on the originalState.delta.originalSteps needed
-            // We calculate the AI move only after the animation finishes,
-            // because if we call aiService now
-            // then the animation will be paused until the javascript finishes.
-            game.animationEndedTimeout = $timeout(animationEndedCallback, 500);
+            if (!params.stateBeforeMove) {
+                game.currentState.board = game.debug === 1 ? gameLogic.getBearOffBoard() : gameLogic.getInitialBoard();
+            }
+            else {
+                game.currentState.board = angular.copy(params.stateBeforeMove.board);
+            }
+            game.currentState.delta = null;
+            // currentState = {board: angular.copy(params.stateBeforeMove.board), delta: null};
+            if (params.move.stateAfterMove.delta) {
+                game.remainingTurns = angular.copy(params.move.stateAfterMove.delta.turns);
+            }
+            setTurnAnimationInterval();
         }
     }
     game.updateUI = updateUI;
     function animationEndedCallback() {
-        log.info("Animation ended");
-        maybeSendComputerMove();
     }
-    function clearAnimationTimeout() {
-        // Clear rolling dices animation timeout
+    function clearRollingAnimationTimeout() {
         if (game.rollingEndedTimeout) {
             $timeout.cancel(game.rollingEndedTimeout);
             game.rollingEndedTimeout = null;
@@ -200,17 +288,16 @@ var game;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
-        var oneMove = null;
+        // let oneMove: IMove = null;
         try {
-            oneMove = gameLogic.createMove(game.originalState, game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
+            game.lastHumanMove = gameLogic.createMove(game.originalState, game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
         }
         catch (e) {
-            log.warn(["Move submission failed."]);
-            log.warn(e);
+            log.warn(["Move submission failed.", e]);
             return;
         }
         // Move is legal, make it!
-        makeMove(oneMove);
+        makeMove(game.lastHumanMove);
     }
     game.submitClicked = submitClicked;
     /**
@@ -305,7 +392,6 @@ var game;
     }
     game.isInTargets = isInTargets;
     function shouldSlowlyAppear(col) {
-        // log.info(["Test should slowly appear:", col === moveEnd]);
         return col === game.moveEnd;
     }
     game.shouldSlowlyAppear = shouldSlowlyAppear;

@@ -7,7 +7,7 @@ module aiService {
     let tmpMove: IMove = {
       endMatchScores: move.endMatchScores, 
       turnIndexAfterMove: move.turnIndexAfterMove, 
-      stateAfterMove: state // {board: originalState.board, delta: null} haven't rolled dices yet!!!
+      stateAfterMove: {board: angular.copy(state.board), delta: null} // {board: originalState.board, delta: null} haven't rolled dices yet!!!
     };
     return createComputerMove(tmpMove
         // at most 1 second for the AI to choose a move (but might be much quicker)
