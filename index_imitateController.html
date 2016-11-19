@@ -7,15 +7,17 @@
     <link rel="stylesheet" type="text/css" media="screen" href="css/game.css">
     <link rel="icon" type="image/jpg" href="">
     <script src="lib/angular.js"></script>
-    
+    <script src="lib/angular-animate.js"></script>
+    <script src="lib/turnBasedServices.3.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/game.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/gameLogic.js"></script>
     <script src="ts_output_readonly_do_NOT_change_manually/src/aiService.js"></script>
+    
 </head>
 <body ng-cloak>
     <div id="page" ng-controller="myController">    
-        <div id="container">
-            <div id="gameArea">
+        <div id="gameArea">
+            <div id="board">
                 <div class="upper">
                     <div ng-repeat="col in [14, 15, 16, 17, 18, 19, 26, 20, 21, 22, 23, 24, 25]"
                          ng-class="{column: col!=26, colActive: isActive(col)}"
@@ -26,9 +28,8 @@
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
                                        'player0': getPlayer(col)=='player0',
-                                       selectedPiece: isActive(col)&&$last,
-                                       slowlyAppear: isActive(col)&&shouldSlowlyAppear(col)&&$last}"
-                             class="piece"
+                                       selectedPiece: isActive(col)&&$last}"
+                             class="piece animate"
                              style="top: {{$index * getHeight(col)}}%"></div>
                     </div>
                 </div>
@@ -42,23 +43,24 @@
                              ng-class="{
                                        'player1': getPlayer(col)=='player1', 
                                        'player0': getPlayer(col)=='player0',
-                                       selectedPiece: isActive(col)&&$last,
-                                       slowlyAppear: isActive(col)&&shouldSlowlyAppear(col)&&$last}"
-                             class="piece"
+                                       selectedPiece: isActive(col)&&$last}"
+                             class="piece animate"
                              style="bottom: {{$index * getHeight(col)}}%"></div>
                     </div>
                 </div>
             </div>
             <div id="ctrl">
-                <div id='t27' 
-                     ng-repeat="idx in [27]"
-                     ng-class="{
-                               shouldPulse0: yourPlayerIndex == 0 && homeOpen(),
-                               showPiece0: homeCount > 0
-                               }"
-                     class="bearOffHome"
-                     ng-click="towerClicked()">
-                    <span>{{getHomeCount(idx)}}</span>
+                <div class="bearOffHome">
+                    <div id='t27' 
+                         ng-repeat="idx in [27]"
+                         ng-class="{
+                                   shouldPulse0: yourPlayerIndex == 0 && homeOpen(),
+                                   showPiece0: homeCount > 0
+                                   }"
+                         class="bearOffHome"
+                         ng-click="towerClicked()">
+                        <span>{{getHomeCount(idx)}}</span>
+                    </div>
                 </div>
                 <div id="dicewrapper"
                      ng-click="setDiceStatus(); setDiceVal()"
@@ -83,14 +85,16 @@
                 <div id="confirm">
                     <button ng-click="game.submitClicked()">confirm</button>        
                 </div>
-                <div id='t0'
-                     ng-repeat="idx in [0]"
-                     ng-class="{
-                               shouldPulse1: yourPlayerIndex == 1 && homeOpen(),
-                               showPiece1: homeCount > 0
-                               }"
-                     class="bearOffHome">
-                    <span>{{getHomeCount(idx)}}</span>
+                <div class="bearOffHome">
+                    <div id='t0'
+                         ng-repeat="idx in [0]"
+                         ng-class="{
+                                   shouldPulse1: yourPlayerIndex == 1 && homeOpen(),
+                                   showPiece1: homeCount > 0
+                                   }"
+                         class="bearOffHome">
+                        <span>{{getHomeCount(idx)}}</span>
+                    </div>
                 </div>
             </div>
             
@@ -106,7 +110,7 @@
         
         //below imitating controller functions, need to apply game.ts later
         var myApp = angular
-                .module("myApp", [])
+                .module("myApp", ['ngAnimate'])
                 .controller("myController", function($scope) {
                     var newBoard = [
                         {tid: 0, numPiece: 0, player: 'player0'},
@@ -146,8 +150,9 @@
                     
                     $scope.selectTower = function(item) {
                         $scope.selectedCol = item;
-                        if(newBoard[item].tid == 14) {
-                            newBoard[item].numPiece++;
+                        if(newBoard[item].tid == 13) {
+                            newBoard[13].numPiece--;
+                            newBoard[7].numPiece++;
                         }
                     };
                     
