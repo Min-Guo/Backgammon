@@ -79,10 +79,10 @@
             
             <div id="dicewrapper"
                  ng-click="game.rollClicked()"
-                 ng-class="{rollingDice: game.getDiceStatus()}">
+                 ng-class="{rollingDice: game.rolling}">
                 <div id="cube" 
                      class="show1"
-                     ng-class="{newSpinSpeed: game.getDiceStatus()}">
+                     ng-class="{newSpinSpeed: game.rolling}">
                     <div class="top"></div>
                     <div class="front"></div>
                     <div class="left"></div>
@@ -94,7 +94,7 @@
             <div id="diceVal">
                 <div ng-repeat="dice in [0, 1, 2, 3]"
                      id="{{'diceVal'+dice}}"
-                     ng-class="{spinFour: game.getDiceStatus()}"
+                     ng-class="{spinFour: game.rolling}"
                      ng-style="{ 'background-image': game.getGrayShowStepsControl(dice) ? 'url(\'images/side' + game.getDiceVal(dice) + '.png\')' : 'url(\'images/side' + game.getDiceVal(dice) + '_gray.png\')' }"></div>
             </div>
             <div id="confirm">
