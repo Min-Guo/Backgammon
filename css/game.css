@@ -143,12 +143,18 @@
 
 .columnUpper .piece {
     position: absolute;
-    left: 14%;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
 }
 
 .columnLower .piece {
     position: absolute;
-    left: 14%;
+    margin-left: auto;
+    margin-right: auto;
+    left: 0;
+    right: 0;
 }
 
 
@@ -314,12 +320,10 @@
 /******bear off******/
 .bearOffHome {
     position: absolute;
-    height: 8%;
-    background: gray;
-    width: 30%;
+    height: 10%;
+    width: 40%;
     border-radius: 50%;
     left: 5%;
-
 }
 
 .bearOffHome span {
@@ -332,7 +336,15 @@
 }
 
 #t27 {
-    
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    position: absolute;
+    margin: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    top: 0;
     background-image:
         radial-gradient(
             circle at bottom right,
@@ -345,7 +357,15 @@
 }
 
 #t0 {
-    bottom: 15%;
+    width: 80%;
+    height: 80%;
+    border-radius: 50%;
+    position: absolute;
+    margin: auto;
+    right: 0;
+    left: 0;
+    bottom: 0;
+    top: 0;
     background-image:
         radial-gradient(
             circle at bottom right,
@@ -398,15 +418,27 @@ button:hover {
     transition: all .3s ease-in-out;
 }
 
+
 .slowlyAppear {
-    animation: slowlyAppearAni 0.3s linear;
+    animation: slowlyAppearAni 0.5s linear;
+}
+.slowlyDisappear {
+    animation: slowlyDisappearAni 0.5s linear;
+}
+
+
+.animate.ng-enter {
+    animation: slowlyAppearAni 0.6s linear;
+}
+.animate.ng-leave {
+    animation: slowlyDisappearAni 0.5s linear;
 }
 
 @keyframes slowlyAppearAni {
     from {
-        width: 85%;
-        height: 18.66%;
-        opacity: 0.3;
+        width: 82%;
+        height: 18.22%;
+        opacity: 0;
     } to {
         width: 75%;
         height: 16.66%;
@@ -414,27 +446,42 @@ button:hover {
     }
 }
 
+@keyframes slowlyDisappearAni {
+    from {
+        opacity: 1;
+    } to {
+        opacity: 0;
+    }
+}
+
 .shouldPulse0 {
     cursor: pointer;
-    border: 2px solid #339966;
     animation: pulse0 1.5s infinite;
 }
 
 .shouldPulse1 {
     cursor: pointer;
-    border: 2px solid #cc6699;
+    
     animation: pulse1 1.5s infinite;
+}
+
+.homeOpen0 {
+    border: 2px solid #339966;
+}
+
+.homeOpen1 {
+    border: 2px solid #cc6699;
 }
 
 @keyframes pulse0 {
     0%   { box-shadow: 0 0 0 0 rgba(0, 102, 0, 0.4); }
-    70%  { box-shadow: 0 0 0 10px rgba(0, 102, 0, 0); }
+    70%  { box-shadow: 0 0 0 12px rgba(0, 102, 0, 0); }
     100% { box-shadow: 0 0 0 0 rgba(0, 102, 0, 0); }
 }
 
 @keyframes pulse1 {
     0%   { box-shadow: 0 0 0 0 rgba(153, 0, 51, 0.4); }
-    70%  { box-shadow: 0 0 0 10px rgba(153, 0, 51, 0); }
+    70%  { box-shadow: 0 0 0 12px rgba(153, 0, 51, 0); }
     100% { box-shadow: 0 0 0 0 rgba(153, 0, 51, 0); }
 }
 
@@ -510,6 +557,44 @@ button:hover {
     }
 }
 
+
+#alert {
+    position: absolute;
+    width: 45%;
+    height: 40%;
+    top: 30%;
+    left: 20%;
+    box-shadow:0px 2px 2px rgba(0,0,0,0.1);
+    border-radius:3px;
+    color:gray;
+    text-align: center;
+}
+
+.blur {
+    filter:blur(5px);
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background:rgba(255,255,255,0.8);
+}
+
+#alert h2 {
+    position: absolute;
+    left: 0;
+    top: 20%;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+}
+
+.closebtn {
+    position: absolute;
+    right: 4%;
+    top: 3%;
+    z-index: 5;
+    cursor: pointer;
+}
+
 #refresh {
     position: absolute;
     width: 18%;
@@ -518,8 +603,8 @@ button:hover {
     right: 5%;
     background-image: url('../images/refresh.svg');
     background-size: contain;
-    background-repeat: no-repeat;;
-    cursor: pointer
+    background-repeat: no-repeat;
+    cursor: pointer;
 }
 
 @media screen and (max-width: 700px), screen and (max-height: 400px) {
@@ -562,9 +647,18 @@ button:hover {
     button {
         font-size: 0.5em;
     }
+    
+    #alert h2 {
+        font-size: 0.9em;
+    }
 }
 
 
+@media screen and (max-width: 400px), screen and (max-height: 200px) {
+    #alert h2 {
+        font-size: 0.5em;
+    }
+}
 
 /********from prof.********/
 
@@ -587,3 +681,4 @@ button:hover {
 }
 
 /********END********/
+

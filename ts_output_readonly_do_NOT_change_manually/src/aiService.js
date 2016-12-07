@@ -7,7 +7,7 @@ var aiService;
         var tmpMove = {
             endMatchScores: move.endMatchScores,
             turnIndexAfterMove: move.turnIndexAfterMove,
-            stateAfterMove: state // {board: originalState.board, delta: null} haven't rolled dices yet!!!
+            stateAfterMove: { board: angular.copy(state.board), delta: null } // {board: originalState.board, delta: null} haven't rolled dices yet!!!
         };
         return createComputerMove(tmpMove);
     }
@@ -61,6 +61,15 @@ var aiService;
             }
         }
         possibleMoves.push(gameLogic.createMove(aiService.originalState, state, turnIndexBeforeMove));
+        var movesAfter = state.delta.turns;
+        var movesPos = state.delta.turns[0].moves;
+        if (movesPos.length == 1) {
+            log.info("Create AI a mini-move between:", "start", movesPos[0].start, "end", movesPos[0].end);
+        }
+        else {
+            log.info("Create AI a mini-move between:", "start", movesPos[0].start, "end", movesPos[0].end);
+            log.info("Create AI a mini-move between:", "start", movesPos[1].start, "end", movesPos[1].end);
+        }
         return possibleMoves;
     }
     aiService.getPossibleMoves = getPossibleMoves;
