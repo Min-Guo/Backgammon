@@ -1,4 +1,12 @@
 ;
+// interface ICommunityMatch extends IStateTransition {
+//   matchName: string;
+//   playerIdToProposal: IProposals; 
+// }
+// interface ChatMsg {
+//   chat: string;
+//   fromPlayer: IPlayerInfo;
+// }
 var game;
 (function (game) {
     game.debug = 0; //0: normal, 1: bear off, ...
