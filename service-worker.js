@@ -2,11 +2,11 @@
 
 // The files we want to cache
 var urlsToCache = [
-  'https://Min-Guo.github.io/Backgammon/dist/index.min.html',
+  // 'https://Min-Guo.github.io/Backgammon/dist/index.min.html',
 
   // Same list as in Gruntfile.js (for AppCache)
-  'https://Min-Guo.github.io/Backgammon/dist/js/everything.min.js',
-  'https://Min-Guo.github.io/Backgammon/dist/css/everything.min.css',
+  // 'https://Min-Guo.github.io/Backgammon/dist/js/everything.min.js',
+  // 'https://Min-Guo.github.io/Backgammon/dist/css/everything.min.css',
 ];
 var CACHE_NAME = 'cache-v<REPLACE_WITH_DATE_IN_GRUNT>';
 
