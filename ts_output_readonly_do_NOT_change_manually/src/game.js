@@ -20,6 +20,10 @@ var game;
     // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
     game.targets = [];
     game.rolling = false;
+    // For community games.
+    game.playerIdToProposal = null;
+    game.proposals = null; // ?
+    game.yourPlayerInfo = null;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -133,6 +137,9 @@ var game;
         game.didMakeMove = false; // Only one move per updateUI
         game.currentUpdateUI = params;
         game.originalState = null;
+        game.proposals = null;
+        game.playerIdToProposal = null;
+        game.yourPlayerInfo = null;
         var shouldAnimate = !game.lastHumanMove || !angular.equals(params.move.stateAfterMove, game.lastHumanMove.stateAfterMove);
         clearTurnAnimationInterval();
         if (isFirstMove()) {
@@ -165,7 +172,29 @@ var game;
         }
     }
     game.updateUI = updateUI;
-    function communityUI(params) {
+    function communityUI(communityUI) {
+        log.info("Game got communityUI:", communityUI);
+        // If only proposals changed, then do NOT call updateUI. Then update proposals.
+        var nextUpdateUI = {
+            playersInfo: [],
+            playMode: communityUI.yourPlayerIndex,
+            move: communityUI.move,
+            numberOfPlayers: communityUI.numberOfPlayers,
+            stateBeforeMove: communityUI.stateBeforeMove,
+            turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
+            yourPlayerIndex: communityUI.yourPlayerIndex,
+        };
+        if (angular.equals(game.yourPlayerInfo, communityUI.yourPlayerInfo) &&
+            game.currentUpdateUI && angular.equals(game.currentUpdateUI, nextUpdateUI)) {
+        }
+        else {
+            // Things changed, so call updateUI.
+            updateUI(nextUpdateUI);
+        }
+        // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
+        game.yourPlayerInfo = communityUI.yourPlayerInfo;
+        game.playerIdToProposal = communityUI.playerIdToProposal;
+        game.didMakeMove = !!game.playerIdToProposal[communityUI.yourPlayerInfo.playerId];
     }
     game.communityUI = communityUI;
     function clearRollingAnimationTimeout() {
@@ -189,7 +218,9 @@ var game;
             return;
         }
         game.didMakeMove = true;
-        moveService.makeMove(move);
+        if (!game.proposals) {
+            moveService.makeMove(move);
+        }
     }
     function isFirstMove() {
         return !game.currentUpdateUI.move.stateAfterMove;
@@ -399,7 +430,22 @@ var game;
     //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
     // }
     function getStateForOgImage() {
-        return '';
+        if (!game.currentUpdateUI || !game.currentUpdateUI.move) {
+            log.warn("Got stateForOgImage without currentUpdateUI!");
+            return;
+        }
+        var state = game.currentUpdateUI.move.stateAfterMove;
+        if (!state)
+            return '';
+        var board = state.board;
+        if (!board)
+            return '';
+        var boardStr = '';
+        for (var i = 0; i < 28; i++) {
+            var color = board[i].status == 0 ? " black " : board[i].status == 1 ? " white " : " empty ";
+            boardStr += "#" + board[i].tid + color + board[i].count + "\n";
+        }
+        return boardStr;
     }
     game.getStateForOgImage = getStateForOgImage;
 })(game || (game = {}));
