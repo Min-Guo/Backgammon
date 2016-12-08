@@ -6,6 +6,16 @@ interface Translations {
     [index: string]: SupportedLanguages;
 }
 
+// interface ICommunityMatch extends IStateTransition {
+//   matchName: string;
+//   playerIdToProposal: IProposals; 
+// }
+
+// interface ChatMsg {
+//   chat: string;
+//   fromPlayer: IPlayerInfo;
+// }
+
 module game {
   export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
