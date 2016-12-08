@@ -872,88 +872,43 @@ describe("In Backgammon", function () {
             numberOfPlayers: 2
         });
     });
-    //------------------> If extrme case happened on WHITE's turn (delta == null), setOriginalStepsWithDefault will set delta and exit <---------
-    // it("extreme case test.", function() {
-    //   let boardBeforeMove: Tower[] = 
-    //       [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
-    //         new Tower(2, WHITE_TURN, 4), new Tower(3, WHITE_TURN, 2),
-    //         new Tower(4, WHITE_TURN, 2), new Tower(5, WHITE_TURN, 2),
-    //         new Tower(6, WHITE_TURN, 2), new Tower(7, WHITE_TURN, 2),
-    //         new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
-    //         new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
-    //         new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
-    //         new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
-    //         new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
-    //         new Tower(18, NO_ONE_TURN, 0), new Tower(19, BLACK_TURN, 3),
-    //         new Tower(20, BLACK_TURN, 2), new Tower(21, BLACK_TURN, 2),
-    //         new Tower(22, BLACK_TURN, 2), new Tower(23, BLACK_TURN, 2),
-    //         new Tower(24, BLACK_TURN, 2), new Tower(25, BLACK_TURN, 2),
-    //         new Tower(26, WHITE_TURN, 1), new Tower(27, BLACK_TURN, 0)];
-    //   let boardAfterMove: Tower[] = 
-    //       [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
-    //         new Tower(2, WHITE_TURN, 4), new Tower(3, WHITE_TURN, 2),
-    //         new Tower(4, WHITE_TURN, 2), new Tower(5, WHITE_TURN, 2),
-    //         new Tower(6, WHITE_TURN, 2), new Tower(7, WHITE_TURN, 2),
-    //         new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
-    //         new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
-    //         new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
-    //         new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
-    //         new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
-    //         new Tower(18, NO_ONE_TURN, 0), new Tower(19, BLACK_TURN, 1),
-    //         new Tower(20, BLACK_TURN, 3), new Tower(21, BLACK_TURN, 3),
-    //         new Tower(22, BLACK_TURN, 2), new Tower(23, BLACK_TURN, 1),
-    //         new Tower(24, BLACK_TURN, 2), new Tower(25, BLACK_TURN, 1),
-    //         new Tower(26, WHITE_TURN, 1), new Tower(27, BLACK_TURN, 2)];
-    //   let turnsAfterMove: ITurnDelta[] = [{originalSteps: [1, 2], currentSteps: [], moves:[{start: 19, end: 20}, {start: 19, end: 21}]},
-    //    {originalSteps: [5, 3], currentSteps: [1, 3], moves:[{start: 25, end: 27}, {start: 23, end: 27}]}];
-    //   debugger
-    //   expectStateTransition(NO_BEAROFF, OK, {
-    //     turnIndexBeforeMove: BLACK_TURN,
-    //     stateBeforeMove: {board: boardBeforeMove, delta: {turns:[]}},
-    //      move: { turnIndexAfterMove: WHITE_TURN, endMatchScores: NO_ONE_WINS,
-    //        stateAfterMove: {board: boardAfterMove, delta: {turns: turnsAfterMove}}},
-    //        numberOfPlayers: 2
-    //   });
-    // });
-    // it("No moveExist for ended game.", function() {
-    //   let boardBeforeMove: Tower[] = 
-    //       [new Tower(0, WHITE_TURN, 4), new Tower(1, BLACK_TURN, 0),
-    //         new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 2),
-    //         new Tower(4, WHITE_TURN, 4), new Tower(5, WHITE_TURN, 5),
-    //         new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
-    //         new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
-    //         new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
-    //         new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
-    //         new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
-    //         new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
-    //         new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
-    //         new Tower(20, NO_ONE_TURN, 0), new Tower(21, NO_ONE_TURN, 0),
-    //         new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
-    //         new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
-    //         new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 15)];
-    //   let boardAfterMove: Tower[] = 
-    //       [new Tower(0, WHITE_TURN, 6), new Tower(1, BLACK_TURN, 0),
-    //         new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 2),
-    //         new Tower(4, WHITE_TURN, 2), new Tower(5, WHITE_TURN, 5),
-    //         new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
-    //         new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
-    //         new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
-    //         new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
-    //         new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
-    //         new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
-    //         new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
-    //         new Tower(20, NO_ONE_TURN, 0), new Tower(21, NO_ONE_TURN, 0),
-    //         new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
-    //         new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
-    //         new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 15)];
-    //   let turnsAfterMove: ITurnDelta[] = [{originalSteps: [4, 5], currentSteps: [], moves:[{start: 2, end: 0}, {start: 2, end: 0}]}];
-    //   expectStateTransition(NO_BEAROFF, ILLEGAL, {
-    //     turnIndexBeforeMove: NO_ONE_TURN,
-    //     stateBeforeMove: {board: boardBeforeMove, delta: null},
-    //      move: { turnIndexAfterMove: BLACK_TURN, endMatchScores: BLACK_WIN_SCORES,
-    //        stateAfterMove: {board: boardAfterMove, delta: {turns: turnsAfterMove}}},
-    //        numberOfPlayers: 2
-    //   });
-    // });        
+    it("Should complete all mini move.", function () {
+        var boardBeforeMove = [new Tower(0, WHITE_TURN, 13), new Tower(1, BLACK_TURN, 0),
+            new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 2),
+            new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+            new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
+            new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+            new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+            new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+            new Tower(20, BLACK_TURN, 5), new Tower(21, BLACK_TURN, 2),
+            new Tower(22, BLACK_TURN, 3), new Tower(23, NO_ONE_TURN, 0),
+            new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
+            new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 5)];
+        var boardAfterMove = [new Tower(0, WHITE_TURN, 14), new Tower(1, BLACK_TURN, 0),
+            new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 1),
+            new Tower(4, NO_ONE_TURN, 0), new Tower(5, NO_ONE_TURN, 0),
+            new Tower(6, NO_ONE_TURN, 0), new Tower(7, NO_ONE_TURN, 0),
+            new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+            new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+            new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+            new Tower(20, BLACK_TURN, 5), new Tower(21, BLACK_TURN, 2),
+            new Tower(22, BLACK_TURN, 3), new Tower(23, NO_ONE_TURN, 0),
+            new Tower(24, NO_ONE_TURN, 0), new Tower(25, NO_ONE_TURN, 0),
+            new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 5)];
+        var turnsAfterMove = [{ originalSteps: [3, 6], currentSteps: [6], moves: [{ start: 3, end: 0 }] }];
+        expectStateTransition(NO_BEAROFF, ILLEGAL, {
+            turnIndexBeforeMove: WHITE_TURN,
+            stateBeforeMove: { board: boardBeforeMove, delta: null },
+            move: { turnIndexAfterMove: BLACK_TURN, endMatchScores: NO_ONE_WINS,
+                stateAfterMove: { board: boardAfterMove, delta: { turns: turnsAfterMove } } },
+            numberOfPlayers: 2
+        });
+    });
 });
 //# sourceMappingURL=gameLogic_test.js.map
