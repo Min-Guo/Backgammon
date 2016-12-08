@@ -418,14 +418,14 @@ button:hover {
     transition: all .3s ease-in-out;
 }
 
-
+/*
 .slowlyAppear {
     animation: slowlyAppearAni 0.5s linear;
 }
 .slowlyDisappear {
     animation: slowlyDisappearAni 0.5s linear;
 }
-
+*/
 
 .animate.ng-enter {
     animation: slowlyAppearAni 0.6s linear;
