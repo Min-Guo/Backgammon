@@ -11,15 +11,13 @@ module game {
   export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
-  export let animationEndedTimeout: ng.IPromise<any> = null;
-  // export let board: Board = null;
-  export let turns: ITurnDelta[] = []; // We collect all the turns, which have all the mini-moves.
   export let lastHumanMove: IMove = null; // We don't animate moves we just made.
   export let remainingTurns: ITurnDelta[] = [];
   export let remainingMiniMoves: IMiniMove[] = [];
   export let turnAnimationInterval: ng.IPromise<any> = null;
   export let checkerAnimationInterval: ng.IPromise<any> = null;
   export let recRollingEndedTimeout: ng.IPromise<any> = null;
+  export let rollingEndedTimeout: ng.IPromise<any> = null;
 
   export let originalState: IState = null;
   export let currentState: IState = null;
@@ -27,25 +25,24 @@ module game {
   export let moveEnd = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let showStepsControl: boolean[] = [true, true, true, true];
-  export let rollingEndedTimeout: ng.IPromise<any> = null;
-  export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
+  // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
   export let targets: number[] = [];
-  let rolling: boolean = false;
+  export let rolling: boolean = false;
 
   export function init() {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
     translate.setLanguage('en');
     resizeGameAreaService.setWidthToHeight(1.7778);
-    // board = debug === 1 ? gameLogic.getBearOffBoard() : gameLogic.getInitialBoard();
-
     currentState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
     moveService.setGame({
       minNumberOfPlayers: 2,
       maxNumberOfPlayers: 2,
       checkMoveOk: debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
       updateUI: updateUI,
-      gotMessageFromPlatform: null,
+      // gotMessageFromPlatform: null,
+      communityUI: communityUI, 
+      getStateForOgImage: getStateForOgImage,
     });
   }
 
@@ -89,6 +86,7 @@ module game {
     if (remainingMiniMoves.length === 0 && remainingTurns.length === 0) {
       clearCheckerAnimationInterval();
       clearTurnAnimationInterval();
+      clearRecRollingAnimationTimeout();
       // Checking we got to the final correct board
       let expectedBoard = currentUpdateUI.move.stateAfterMove.board;
       if (!angular.equals(currentState.board, expectedBoard)) {
@@ -96,9 +94,11 @@ module game {
           + angular.toJson(expectedBoard, true) + " actual after animations=" 
           + angular.toJson(currentState.board, true));
       }
-      currentState.delta = null;
       // Save previous move end state in originalState.
       originalState = angular.copy(currentState);
+      // Reset currentState.delta to include only data from the current turn.
+      currentState.delta = null;
+      maybeSendComputerMove();
     }
   }
 
@@ -120,23 +120,24 @@ module game {
       clearRecRollingAnimationTimeout();
       // Save previous move end state in originalState.
       originalState = angular.copy(currentState);
+      currentState.delta = null;
       maybeSendComputerMove();
       return;
     }
     clearCheckerAnimationInterval();
     let turn = remainingTurns.shift();
-    remainingMiniMoves = turn.moves;
+    remainingMiniMoves = turn.moves || [];
     // roll dices animation
     clearRecRollingAnimationTimeout();
-    setDiceStatus(true);
+    rolling = true;
     gameLogic.setOriginalStepsWithDefault(currentState, currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
-    showOriginalSteps(turn.originalSteps);
     resetGrayToNormal(showStepsControl);
+    showOriginalSteps(turn.originalSteps);
     recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
   }
 
   function recRollingEndedCallBack() {
-    setDiceStatus(false);
+    rolling = false;
     setCheckerAnimationInterval();
   }
 
@@ -153,11 +154,10 @@ module game {
     currentUpdateUI = params;
     originalState = null;
     let shouldAnimate = !lastHumanMove || !angular.equals(params.move.stateAfterMove, lastHumanMove.stateAfterMove);
-    // clearAnimationTimeout();
     clearTurnAnimationInterval();
     if (isFirstMove()) {
       currentState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
-      //setInitialTurnIndex();
+      // setInitialTurnIndex();
       if (isMyTurn()) {
         let firstMove: IMove;
         firstMove = debug === 1 ? gameLogic.createInitialBearMove() : gameLogic.createInitialMove();
@@ -182,7 +182,7 @@ module game {
     }
   }
 
-  function animationEndedCallback() {
+  export function communityUI(params: ICommunityUI): void {
 
   }
 
@@ -245,7 +245,6 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    clearSlowlyAppearTimeout();
     if (moveStart !== -1) {
       if (target === moveStart) {
         // If mistakenly clicked one checker twice, i.e. moveStart === moveEnd,
@@ -256,13 +255,11 @@ module game {
         let usedValues: number[] = gameLogic.createMiniMove(currentState, moveStart, moveEnd, currentUpdateUI.move.turnIndexAfterMove);
         if (usedValues.length !== 0) {
           log.info(["Create a move between:", moveStart, moveEnd]);                      
-          slowlyAppearEndedTimeout = $timeout(slowlyAppearEndedCallback, 600);
           targets.length = 0;
           moveStart = -1;
           setGrayShowStepsControl(usedValues);
         } else {
           log.warn(["Unable to create a move between:", moveStart, moveEnd]);                    
-          clearSlowlyAppearTimeout();
           moveEnd = -1;
           moveStart = -1; // comment out this line if you want the moveStart unchanged
           targets.length = 0;
@@ -279,14 +276,6 @@ module game {
         targets.push(+ i);
       }
       log.info(["Starting a move from:", moveStart]);
-    }
-  }
-
-  function clearSlowlyAppearTimeout() {
-    // Clear checkers slowly appear animation timeout
-    if (slowlyAppearEndedTimeout) {
-      $timeout.cancel(slowlyAppearEndedTimeout);
-      slowlyAppearEndedTimeout = null;
     }
   }
 
@@ -311,7 +300,6 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
-    // let oneMove: IMove = null;
     try {
       lastHumanMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
     } catch (e) {
@@ -333,7 +321,7 @@ module game {
       throw new Error("Throwing the error because URL has '?throwException'");
     }
     try {
-      setDiceStatus(true);    
+      rolling = true;
       gameLogic.setOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
       let originalSteps = gameLogic.getOriginalSteps(currentState, currentUpdateUI.move.turnIndexAfterMove);
       showOriginalSteps(originalSteps);
@@ -342,7 +330,7 @@ module game {
       rollingEndedTimeout = $timeout(rollingEndedCallback, 500);
     } catch (e) {
       log.warn(e);
-      setDiceStatus(false);
+      rolling = false;
     }
   }
 
@@ -362,7 +350,7 @@ module game {
 
   function rollingEndedCallback() {
     log.info("Rolling ended");
-    setDiceStatus(false);
+    rolling = false;
   }
 
   function resetGrayToNormal(ssc: boolean[]): void {
@@ -388,14 +376,6 @@ module game {
     return (100 - (16.66 - 100 / n)) / n;
   }
 
-  export function setDiceStatus(b: boolean): void {
-    rolling = b;
-  }
-
-  export function getDiceStatus(): boolean {
-    return rolling;
-  }
-
   export function getDiceVal(index: number): number {
     return showSteps[index];
   }
@@ -411,15 +391,6 @@ module game {
     return false;
   }
   
-  export function shouldSlowlyAppear(col: number): boolean {
-    return col === moveEnd;
-  }
-
-  function slowlyAppearEndedCallback() {
-    log.info("End point slowly appear ended.");
-    moveEnd = -1;
-  }
-
   export function canSomebodyBearOff(home: number): boolean {
     let turn = currentUpdateUI.move.turnIndexAfterMove;
     if (home === 0) return turn === gameLogic.WHITE && gameLogic.canBearOff(currentState.board, turn);
@@ -434,12 +405,17 @@ module game {
       return currentUpdateUI.playMode === 1;
     }
   }
+
   // function setInitialTurnIndex(): void {
   //   if (state && state.currentSteps) return;
   //   let twoDies = DieCombo.init();
   //   state.currentSteps = twoDies;
   //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
   // }
+
+  export function getStateForOgImage(): string {
+    return '';
+  }
 }
 
 angular.module('myApp', ['gameServices', 'ngAnimate'])
