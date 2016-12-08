@@ -600,7 +600,7 @@ module gameLogic {
 		return {endMatchScores: null, turnIndexAfterMove: 0, stateAfterMove: getBearOffState()};
 	}
 
-	export function checkMoveOk(stateTransition: IStateTransition): void {
+	export function checkMoveOk(stateTransition: IStateTransition, testDelta?: BoardDelta): void {
 		// We can assume that turnIndexBeforeMove and stateBeforeMove are legal, and we need
 		// to verify that the move is OK.
 		let turnIndexBeforeMove = stateTransition.turnIndexBeforeMove;
@@ -612,7 +612,7 @@ module gameLogic {
 		}
 		let delta: BoardDelta = move.stateAfterMove.delta;
 		let expectedMove: IMove = null;
-		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: null};
+		let tmpState: IState = {board: angular.copy(stateBeforeMove.board), delta: testDelta};
 		for (let turn of delta.turns) {
 			setOriginalStepsWithDefault(tmpState, turnIndexBeforeMove, turn.originalSteps);
 			// this check needed if the player is completely closed out so moves is null			

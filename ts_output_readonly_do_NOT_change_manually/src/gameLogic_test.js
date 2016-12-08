@@ -37,7 +37,7 @@ describe("In Backgammon", function () {
         new Tower(22, NO_ONE_TURN, 0), new Tower(23, NO_ONE_TURN, 0),
         new Tower(24, NO_ONE_TURN, 0), new Tower(25, WHITE_TURN, 2),
         new Tower(26, WHITE_TURN, 0), new Tower(27, BLACK_TURN, 0)];
-    function expectStateTransition(isBearOffTime, isOk, stateTransition) {
+    function expectStateTransition(isBearOffTime, isOk, stateTransition, testDelta) {
         if (isBearOffTime) {
             if (isOk) {
                 gameLogic.checkMoveOkBear(stateTransition);
@@ -57,12 +57,12 @@ describe("In Backgammon", function () {
         }
         else {
             if (isOk) {
-                gameLogic.checkMoveOk(stateTransition);
+                gameLogic.checkMoveOk(stateTransition, testDelta);
             }
             else {
                 var didThrowException = false;
                 try {
-                    gameLogic.checkMoveOk(stateTransition);
+                    gameLogic.checkMoveOk(stateTransition, testDelta);
                 }
                 catch (e) {
                     didThrowException = true;
@@ -73,7 +73,7 @@ describe("In Backgammon", function () {
             }
         }
     }
-    function expectMove(isBearOffTime, isOk, turnIndexBeforeMove, boardBeforeMove, boardAfterMove, start, end, turns, 
+    function expectMove(testDelta, isBearOffTime, isOk, turnIndexBeforeMove, boardBeforeMove, boardAfterMove, start, end, turns, 
         // originalSteps: Steps,
         // currentStepsBeforeMove: number[],
         // currentStepsAfterMove: number[],
@@ -90,7 +90,7 @@ describe("In Backgammon", function () {
             },
             numberOfPlayers: null
         };
-        expectStateTransition(isBearOffTime, isOk, stateTransition);
+        expectStateTransition(isBearOffTime, isOk, stateTransition, testDelta);
     }
     it("PLacing BLACK on the empty position is legal.", function () {
         var boardBeforeMove = INITIAL_BOARD;
@@ -241,7 +241,7 @@ describe("In Backgammon", function () {
                 stateAfterMove: { board: INITIAL_BOARD, delta: null }
             },
             numberOfPlayers: null
-        });
+        }, null);
     });
     it("Moving other BLACK is illegal while BLACK_BAR is not empty.", function () {
         var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 1),
@@ -909,6 +909,54 @@ describe("In Backgammon", function () {
                 stateAfterMove: { board: boardAfterMove, delta: { turns: turnsAfterMove } } },
             numberOfPlayers: 2
         });
+    });
+    it("White extreme case.", function () {
+        var boardBeforeMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+            new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 1),
+            new Tower(4, WHITE_TURN, 2), new Tower(5, WHITE_TURN, 4),
+            new Tower(6, WHITE_TURN, 3), new Tower(7, WHITE_TURN, 4),
+            new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+            new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+            new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+            new Tower(20, BLACK_TURN, 5), new Tower(21, BLACK_TURN, 2),
+            new Tower(22, BLACK_TURN, 2), new Tower(23, BLACK_TURN, 2),
+            new Tower(24, BLACK_TURN, 2), new Tower(25, BLACK_TURN, 2),
+            new Tower(26, WHITE_TURN, 1), new Tower(27, BLACK_TURN, 0)];
+        var boardAfterMove = [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+            new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 1),
+            new Tower(4, WHITE_TURN, 2), new Tower(5, WHITE_TURN, 4),
+            new Tower(6, WHITE_TURN, 3), new Tower(7, WHITE_TURN, 4),
+            new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+            new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+            new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+            new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+            new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+            new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+            new Tower(20, BLACK_TURN, 5), new Tower(21, BLACK_TURN, 1),
+            new Tower(22, BLACK_TURN, 3), new Tower(23, BLACK_TURN, 2),
+            new Tower(24, BLACK_TURN, 1), new Tower(25, BLACK_TURN, 3),
+            new Tower(26, WHITE_TURN, 3), new Tower(27, BLACK_TURN, 0)];
+        var turnsAfterMove = [{ originalSteps: [5, 2], currentSteps: [], moves: [{ start: 21, end: 26 }, { start: 24, end: 26 }] }];
+        var testTurn = [{ originalSteps: [5, 2], currentSteps: [5, 2], moves: null }];
+        var numberOfTimesCalledRandom = 0;
+        Math.random = function () {
+            numberOfTimesCalledRandom++;
+            if (numberOfTimesCalledRandom == 1)
+                return 0.7;
+            if (numberOfTimesCalledRandom == 2)
+                return 0.2;
+        };
+        debugger;
+        expectStateTransition(NO_BEAROFF, OK, {
+            turnIndexBeforeMove: BLACK_TURN,
+            stateBeforeMove: { board: boardBeforeMove, delta: { turns: null } },
+            move: { turnIndexAfterMove: WHITE_TURN, endMatchScores: NO_ONE_WINS,
+                stateAfterMove: { board: boardAfterMove, delta: { turns: turnsAfterMove } } },
+            numberOfPlayers: 2
+        }, { turns: testTurn });
     });
 });
 //# sourceMappingURL=gameLogic_test.js.map
