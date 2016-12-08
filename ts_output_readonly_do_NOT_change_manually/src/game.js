@@ -20,6 +20,10 @@ var game;
     // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
     game.targets = [];
     game.rolling = false;
+    // For community games.
+    game.playerIdToProposal = null;
+    game.proposals = null; // ?
+    game.yourPlayerInfo = null;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -31,7 +35,9 @@ var game;
             maxNumberOfPlayers: 2,
             checkMoveOk: game.debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
             updateUI: updateUI,
-            gotMessageFromPlatform: null,
+            // gotMessageFromPlatform: null,
+            communityUI: communityUI,
+            getStateForOgImage: getStateForOgImage,
         });
     }
     game.init = init;
@@ -101,18 +107,19 @@ var game;
             clearRecRollingAnimationTimeout();
             // Save previous move end state in originalState.
             game.originalState = angular.copy(game.currentState);
+            game.currentState.delta = null;
             maybeSendComputerMove();
             return;
         }
         clearCheckerAnimationInterval();
         var turn = game.remainingTurns.shift();
-        game.remainingMiniMoves = turn.moves;
+        game.remainingMiniMoves = turn.moves || [];
         // roll dices animation
         clearRecRollingAnimationTimeout();
         game.rolling = true;
         gameLogic.setOriginalStepsWithDefault(game.currentState, game.currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
-        showOriginalSteps(turn.originalSteps);
         resetGrayToNormal(game.showStepsControl);
+        showOriginalSteps(turn.originalSteps);
         game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
     }
     function recRollingEndedCallBack() {
@@ -130,11 +137,14 @@ var game;
         game.didMakeMove = false; // Only one move per updateUI
         game.currentUpdateUI = params;
         game.originalState = null;
+        game.proposals = null;
+        game.playerIdToProposal = null;
+        game.yourPlayerInfo = null;
         var shouldAnimate = !game.lastHumanMove || !angular.equals(params.move.stateAfterMove, game.lastHumanMove.stateAfterMove);
-        clearTurnAnimationInterval(); // ?
+        clearTurnAnimationInterval();
         if (isFirstMove()) {
             game.currentState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
-            //setInitialTurnIndex();
+            // setInitialTurnIndex();
             if (isMyTurn()) {
                 var firstMove = void 0;
                 firstMove = game.debug === 1 ? gameLogic.createInitialBearMove() : gameLogic.createInitialMove();
@@ -162,6 +172,31 @@ var game;
         }
     }
     game.updateUI = updateUI;
+    function communityUI(communityUI) {
+        log.info("Game got communityUI:", communityUI);
+        // If only proposals changed, then do NOT call updateUI. Then update proposals.
+        var nextUpdateUI = {
+            playersInfo: [],
+            playMode: communityUI.yourPlayerIndex,
+            move: communityUI.move,
+            numberOfPlayers: communityUI.numberOfPlayers,
+            stateBeforeMove: communityUI.stateBeforeMove,
+            turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
+            yourPlayerIndex: communityUI.yourPlayerIndex,
+        };
+        if (angular.equals(game.yourPlayerInfo, communityUI.yourPlayerInfo) &&
+            game.currentUpdateUI && angular.equals(game.currentUpdateUI, nextUpdateUI)) {
+        }
+        else {
+            // Things changed, so call updateUI.
+            updateUI(nextUpdateUI);
+        }
+        // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
+        game.yourPlayerInfo = communityUI.yourPlayerInfo;
+        game.playerIdToProposal = communityUI.playerIdToProposal;
+        game.didMakeMove = !!game.playerIdToProposal[communityUI.yourPlayerInfo.playerId];
+    }
+    game.communityUI = communityUI;
     function clearRollingAnimationTimeout() {
         if (game.rollingEndedTimeout) {
             $timeout.cancel(game.rollingEndedTimeout);
@@ -183,7 +218,19 @@ var game;
             return;
         }
         game.didMakeMove = true;
-        moveService.makeMove(move);
+        if (!game.proposals) {
+            moveService.makeMove(move);
+        }
+        else {
+            var myProposal = {
+                data: {
+                    moves: game.currentState.delta.turns[0].moves,
+                },
+                chatDescription: '',
+                playerInfo: game.yourPlayerInfo,
+            };
+            moveService.communityMove(myProposal, move);
+        }
     }
     function isFirstMove() {
         return !game.currentUpdateUI.move.stateAfterMove;
@@ -386,6 +433,31 @@ var game;
         }
     }
     game.shouldRotate = shouldRotate;
+    // function setInitialTurnIndex(): void {
+    //   if (state && state.currentSteps) return;
+    //   let twoDies = DieCombo.init();
+    //   state.currentSteps = twoDies;
+    //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
+    // }
+    function getStateForOgImage() {
+        if (!game.currentUpdateUI || !game.currentUpdateUI.move) {
+            log.warn("Got stateForOgImage without currentUpdateUI!");
+            return;
+        }
+        var state = game.currentUpdateUI.move.stateAfterMove;
+        if (!state)
+            return '';
+        var board = state.board;
+        if (!board)
+            return '';
+        var boardStr = '';
+        for (var i = 0; i < 28; i++) {
+            var color = board[i].status == 0 ? " black " : board[i].status == 1 ? " white " : " empty ";
+            boardStr += "#" + board[i].tid + color + board[i].count + "\n";
+        }
+        return boardStr;
+    }
+    game.getStateForOgImage = getStateForOgImage;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices', 'ngAnimate'])
     .run(function () {
