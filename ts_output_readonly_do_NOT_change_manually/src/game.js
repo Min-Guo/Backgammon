@@ -1,4 +1,12 @@
 ;
+// interface ICommunityMatch extends IStateTransition {
+//   matchName: string;
+//   playerIdToProposal: IProposals; 
+// }
+// interface ChatMsg {
+//   chat: string;
+//   fromPlayer: IPlayerInfo;
+// }
 var game;
 (function (game) {
     game.debug = 0; //0: normal, 1: bear off, ...
@@ -20,6 +28,10 @@ var game;
     // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
     game.targets = [];
     game.rolling = false;
+    // For community games.
+    game.playerIdToProposal = null;
+    game.proposals = null; // ?
+    game.yourPlayerInfo = null;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -52,8 +64,8 @@ var game;
         return {};
     }
     function setCheckerAnimationInterval() {
-        advanceToNextCheckerAnimation();
-        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 600);
+        clearRecRollingAnimationTimeout();
+        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 850);
     }
     function clearCheckerAnimationInterval() {
         if (game.checkerAnimationInterval) {
@@ -69,7 +81,7 @@ var game;
         var miniMove = game.remainingMiniMoves.shift();
         var usedValues = gameLogic.createMiniMove(game.currentState, miniMove.start, miniMove.end, game.currentUpdateUI.turnIndexBeforeMove);
         setGrayShowStepsControl(usedValues);
-        if (game.remainingMiniMoves.length === 0 && game.remainingTurns.length === 0) {
+        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
             clearCheckerAnimationInterval();
             clearTurnAnimationInterval();
             clearRecRollingAnimationTimeout();
@@ -89,7 +101,9 @@ var game;
     }
     function setTurnAnimationInterval() {
         advanceToNextTurnAnimation();
-        game.turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
+        if (game.remainingTurns.length != 0) {
+            game.turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
+        }
     }
     function clearTurnAnimationInterval() {
         if (game.turnAnimationInterval) {
@@ -101,10 +115,12 @@ var game;
         if (game.remainingTurns.length == 0) {
             clearTurnAnimationInterval();
             clearRecRollingAnimationTimeout();
-            // Save previous move end state in originalState.
-            game.originalState = angular.copy(game.currentState);
-            game.currentState.delta = null;
-            maybeSendComputerMove();
+            if (game.remainingMiniMoves.length == 0) {
+                // Save previous move end state in originalState.
+                game.originalState = angular.copy(game.currentState);
+                game.currentState.delta = null;
+                maybeSendComputerMove();
+            }
             return;
         }
         clearCheckerAnimationInterval();
@@ -133,6 +149,9 @@ var game;
         game.didMakeMove = false; // Only one move per updateUI
         game.currentUpdateUI = params;
         game.originalState = null;
+        game.proposals = null;
+        game.playerIdToProposal = null;
+        game.yourPlayerInfo = null;
         var shouldAnimate = !game.lastHumanMove || !angular.equals(params.move.stateAfterMove, game.lastHumanMove.stateAfterMove);
         clearTurnAnimationInterval();
         if (isFirstMove()) {
@@ -165,7 +184,29 @@ var game;
         }
     }
     game.updateUI = updateUI;
-    function communityUI(params) {
+    function communityUI(communityUI) {
+        log.info("Game got communityUI:", communityUI);
+        // If only proposals changed, then do NOT call updateUI. Then update proposals.
+        var nextUpdateUI = {
+            playersInfo: [],
+            playMode: communityUI.yourPlayerIndex,
+            move: communityUI.move,
+            numberOfPlayers: communityUI.numberOfPlayers,
+            stateBeforeMove: communityUI.stateBeforeMove,
+            turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
+            yourPlayerIndex: communityUI.yourPlayerIndex,
+        };
+        if (angular.equals(game.yourPlayerInfo, communityUI.yourPlayerInfo) &&
+            game.currentUpdateUI && angular.equals(game.currentUpdateUI, nextUpdateUI)) {
+        }
+        else {
+            // Things changed, so call updateUI.
+            updateUI(nextUpdateUI);
+        }
+        // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
+        game.yourPlayerInfo = communityUI.yourPlayerInfo;
+        game.playerIdToProposal = communityUI.playerIdToProposal;
+        game.didMakeMove = !!game.playerIdToProposal[communityUI.yourPlayerInfo.playerId];
     }
     game.communityUI = communityUI;
     function clearRollingAnimationTimeout() {
@@ -189,7 +230,19 @@ var game;
             return;
         }
         game.didMakeMove = true;
-        moveService.makeMove(move);
+        if (!game.proposals) {
+            moveService.makeMove(move);
+        }
+        else {
+            var myProposal = {
+                data: {
+                    moves: game.currentState.delta.turns[0].moves,
+                },
+                chatDescription: '',
+                playerInfo: game.yourPlayerInfo,
+            };
+            moveService.communityMove(myProposal, move);
+        }
     }
     function isFirstMove() {
         return !game.currentUpdateUI.move.stateAfterMove;
@@ -399,7 +452,22 @@ var game;
     //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
     // }
     function getStateForOgImage() {
-        return '';
+        if (!game.currentUpdateUI || !game.currentUpdateUI.move) {
+            log.warn("Got stateForOgImage without currentUpdateUI!");
+            return;
+        }
+        var state = game.currentUpdateUI.move.stateAfterMove;
+        if (!state)
+            return '';
+        var board = state.board;
+        if (!board)
+            return '';
+        var boardStr = '';
+        for (var i = 0; i < 28; i++) {
+            var color = board[i].status == 0 ? " black " : board[i].status == 1 ? " white " : " empty ";
+            boardStr += "#" + board[i].tid + color + board[i].count + "\n";
+        }
+        return boardStr;
     }
     game.getStateForOgImage = getStateForOgImage;
 })(game || (game = {}));

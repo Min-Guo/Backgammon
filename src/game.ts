@@ -6,8 +6,17 @@ interface Translations {
     [index: string]: SupportedLanguages;
 }
 
-module game {
+// interface ICommunityMatch extends IStateTransition {
+//   matchName: string;
+//   playerIdToProposal: IProposals; 
+// }
 
+// interface ChatMsg {
+//   chat: string;
+//   fromPlayer: IPlayerInfo;
+// }
+
+module game {
   export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
@@ -28,6 +37,11 @@ module game {
   // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
   export let targets: number[] = [];
   export let rolling: boolean = false;
+
+  // For community games.
+  export let playerIdToProposal: IProposals = null;
+  export let proposals: any = null; // ?
+  export let yourPlayerInfo: IPlayerInfo = null;
 
   export function init() {
     registerServiceWorker();
@@ -63,9 +77,8 @@ module game {
   }
 
   function setCheckerAnimationInterval() {
-    advanceToNextCheckerAnimation();
-    checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 600);
-
+    clearRecRollingAnimationTimeout();
+    checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 850);
   }
 
   function clearCheckerAnimationInterval() {
@@ -83,7 +96,7 @@ module game {
     let miniMove = remainingMiniMoves.shift();
     let usedValues = gameLogic.createMiniMove(currentState, miniMove.start, miniMove.end, currentUpdateUI.turnIndexBeforeMove);
     setGrayShowStepsControl(usedValues);
-    if (remainingMiniMoves.length === 0 && remainingTurns.length === 0) {
+    if (remainingMiniMoves.length == 0 && remainingTurns.length == 0) {
       clearCheckerAnimationInterval();
       clearTurnAnimationInterval();
       clearRecRollingAnimationTimeout();
@@ -104,7 +117,9 @@ module game {
 
   function setTurnAnimationInterval() {
     advanceToNextTurnAnimation();
-    turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
+    if (remainingTurns.length != 0) {
+      turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
+    }
   }
 
   function clearTurnAnimationInterval() {
@@ -118,10 +133,12 @@ module game {
     if (remainingTurns.length == 0) {
       clearTurnAnimationInterval();
       clearRecRollingAnimationTimeout();
-      // Save previous move end state in originalState.
-      originalState = angular.copy(currentState);
-      currentState.delta = null;
-      maybeSendComputerMove();
+      if (remainingMiniMoves.length == 0) {
+        // Save previous move end state in originalState.
+        originalState = angular.copy(currentState);
+        currentState.delta = null;
+        maybeSendComputerMove();
+      }
       return;
     }
     clearCheckerAnimationInterval();
@@ -153,6 +170,11 @@ module game {
     didMakeMove = false; // Only one move per updateUI
     currentUpdateUI = params;
     originalState = null;
+
+    proposals = null;
+    playerIdToProposal = null;
+    yourPlayerInfo = null;
+    
     let shouldAnimate = !lastHumanMove || !angular.equals(params.move.stateAfterMove, lastHumanMove.stateAfterMove);
     clearTurnAnimationInterval();
     if (isFirstMove()) {
@@ -182,8 +204,29 @@ module game {
     }
   }
 
-  export function communityUI(params: ICommunityUI): void {
-
+  export function communityUI(communityUI: ICommunityUI): void {
+    log.info("Game got communityUI:", communityUI);
+    // If only proposals changed, then do NOT call updateUI. Then update proposals.
+    let nextUpdateUI: IUpdateUI = {
+      playersInfo: [],
+      playMode: communityUI.yourPlayerIndex,
+      move: communityUI.move,
+      numberOfPlayers: communityUI.numberOfPlayers,
+      stateBeforeMove: communityUI.stateBeforeMove,
+      turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
+      yourPlayerIndex: communityUI.yourPlayerIndex,
+    };
+    if (angular.equals(yourPlayerInfo, communityUI.yourPlayerInfo) &&
+      currentUpdateUI && angular.equals(currentUpdateUI, nextUpdateUI)) {
+      // We're not calling updateUI to avoid disrupting the player if he's in the middle of a move.
+    } else {
+      // Things changed, so call updateUI.
+      updateUI(nextUpdateUI);
+    }
+    // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
+    yourPlayerInfo = communityUI.yourPlayerInfo;
+    playerIdToProposal = communityUI.playerIdToProposal; 
+    didMakeMove = !!playerIdToProposal[communityUI.yourPlayerInfo.playerId];
   }
 
   function clearRollingAnimationTimeout() {
@@ -207,7 +250,18 @@ module game {
       return;
     }
     didMakeMove = true;
-    moveService.makeMove(move);
+    if (!proposals) {
+      moveService.makeMove(move);
+    } else {
+      let myProposal: IProposal = {
+        data: {
+          moves: currentState.delta.turns[0].moves,
+        },
+        chatDescription: '',
+        playerInfo: yourPlayerInfo,
+      }
+      moveService.communityMove(myProposal, move);
+    }
   }
 
   function isFirstMove() {
@@ -414,7 +468,20 @@ module game {
   // }
 
   export function getStateForOgImage(): string {
-    return '';
+    if (!currentUpdateUI || !currentUpdateUI.move) {
+      log.warn("Got stateForOgImage without currentUpdateUI!");
+      return;
+    }
+    let state: IState = currentUpdateUI.move.stateAfterMove;
+    if (!state) return '';
+    let board: Board = state.board;
+    if (!board) return '';
+    let boardStr: string = '';
+    for (let i = 0; i < 28; i++) {
+      let color: string = board[i].status == 0 ? " black " : board[i].status == 1 ? " white " : " empty ";
+      boardStr += "#" + board[i].tid + color + board[i].count + "\n";
+    }
+    return boardStr;
   }
 }
 
