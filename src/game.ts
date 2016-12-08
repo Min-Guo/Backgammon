@@ -40,7 +40,9 @@ module game {
       maxNumberOfPlayers: 2,
       checkMoveOk: debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
       updateUI: updateUI,
-      gotMessageFromPlatform: null,
+      // gotMessageFromPlatform: null,
+      communityUI: communityUI, 
+      getStateForOgImage: getStateForOgImage,
     });
   }
 
@@ -118,18 +120,19 @@ module game {
       clearRecRollingAnimationTimeout();
       // Save previous move end state in originalState.
       originalState = angular.copy(currentState);
+      currentState.delta = null;
       maybeSendComputerMove();
       return;
     }
     clearCheckerAnimationInterval();
     let turn = remainingTurns.shift();
-    remainingMiniMoves = turn.moves;
+    remainingMiniMoves = turn.moves || [];
     // roll dices animation
     clearRecRollingAnimationTimeout();
     rolling = true;
     gameLogic.setOriginalStepsWithDefault(currentState, currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
-    showOriginalSteps(turn.originalSteps);
     resetGrayToNormal(showStepsControl);
+    showOriginalSteps(turn.originalSteps);
     recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
   }
 
@@ -151,10 +154,10 @@ module game {
     currentUpdateUI = params;
     originalState = null;
     let shouldAnimate = !lastHumanMove || !angular.equals(params.move.stateAfterMove, lastHumanMove.stateAfterMove);
-    clearTurnAnimationInterval(); // ?
+    clearTurnAnimationInterval();
     if (isFirstMove()) {
       currentState = debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
-      //setInitialTurnIndex();
+      // setInitialTurnIndex();
       if (isMyTurn()) {
         let firstMove: IMove;
         firstMove = debug === 1 ? gameLogic.createInitialBearMove() : gameLogic.createInitialMove();
@@ -177,6 +180,10 @@ module game {
       }
       setTurnAnimationInterval();
     }
+  }
+
+  export function communityUI(params: ICommunityUI): void {
+
   }
 
   function clearRollingAnimationTimeout() {
@@ -405,6 +412,10 @@ module game {
   //   state.currentSteps = twoDies;
   //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
   // }
+
+  export function getStateForOgImage(): string {
+    return '';
+  }
 }
 
 angular.module('myApp', ['gameServices', 'ngAnimate'])

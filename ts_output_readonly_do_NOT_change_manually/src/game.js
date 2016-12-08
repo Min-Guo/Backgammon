@@ -31,7 +31,9 @@ var game;
             maxNumberOfPlayers: 2,
             checkMoveOk: game.debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
             updateUI: updateUI,
-            gotMessageFromPlatform: null,
+            // gotMessageFromPlatform: null,
+            communityUI: communityUI,
+            getStateForOgImage: getStateForOgImage,
         });
     }
     game.init = init;
@@ -101,18 +103,19 @@ var game;
             clearRecRollingAnimationTimeout();
             // Save previous move end state in originalState.
             game.originalState = angular.copy(game.currentState);
+            game.currentState.delta = null;
             maybeSendComputerMove();
             return;
         }
         clearCheckerAnimationInterval();
         var turn = game.remainingTurns.shift();
-        game.remainingMiniMoves = turn.moves;
+        game.remainingMiniMoves = turn.moves || [];
         // roll dices animation
         clearRecRollingAnimationTimeout();
         game.rolling = true;
         gameLogic.setOriginalStepsWithDefault(game.currentState, game.currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
-        showOriginalSteps(turn.originalSteps);
         resetGrayToNormal(game.showStepsControl);
+        showOriginalSteps(turn.originalSteps);
         game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
     }
     function recRollingEndedCallBack() {
@@ -131,10 +134,10 @@ var game;
         game.currentUpdateUI = params;
         game.originalState = null;
         var shouldAnimate = !game.lastHumanMove || !angular.equals(params.move.stateAfterMove, game.lastHumanMove.stateAfterMove);
-        clearTurnAnimationInterval(); // ?
+        clearTurnAnimationInterval();
         if (isFirstMove()) {
             game.currentState = game.debug === 1 ? gameLogic.getBearOffState() : gameLogic.getInitialState();
-            //setInitialTurnIndex();
+            // setInitialTurnIndex();
             if (isMyTurn()) {
                 var firstMove = void 0;
                 firstMove = game.debug === 1 ? gameLogic.createInitialBearMove() : gameLogic.createInitialMove();
@@ -162,6 +165,9 @@ var game;
         }
     }
     game.updateUI = updateUI;
+    function communityUI(params) {
+    }
+    game.communityUI = communityUI;
     function clearRollingAnimationTimeout() {
         if (game.rollingEndedTimeout) {
             $timeout.cancel(game.rollingEndedTimeout);
@@ -386,6 +392,16 @@ var game;
         }
     }
     game.shouldRotate = shouldRotate;
+    // function setInitialTurnIndex(): void {
+    //   if (state && state.currentSteps) return;
+    //   let twoDies = DieCombo.init();
+    //   state.currentSteps = twoDies;
+    //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
+    // }
+    function getStateForOgImage() {
+        return '';
+    }
+    game.getStateForOgImage = getStateForOgImage;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices', 'ngAnimate'])
     .run(function () {
