@@ -60,6 +60,10 @@ interface IEndToStepIndex {
 	[key: number]: number[];
 }
 
+interface IProposalData {
+	moves: IMiniMove[];
+}
+
 module gameLogic {
 	export const BLACKHOME = 27;
 	export const BLACKBAR = 1;
