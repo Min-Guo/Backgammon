@@ -20,6 +20,17 @@ var DieCombo;
         }
     }
     DieCombo.generate = generate;
+    function init() {
+        var die1 = Math.floor(Math.random() * 6 + 1);
+        var die2 = Math.floor(Math.random() * 6 + 1);
+        while (die1 === die2) {
+            //have to regenerate two dies together for fairness issue
+            die1 = Math.floor(Math.random() * 6 + 1);
+            die2 = Math.floor(Math.random() * 6 + 1);
+        }
+        return [die1, die2];
+    }
+    DieCombo.init = init;
 })(DieCombo || (DieCombo = {}));
 var gameLogic;
 (function (gameLogic) {

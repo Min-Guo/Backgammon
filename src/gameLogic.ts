@@ -19,17 +19,17 @@ module DieCombo {
 			return [die1, die2];
 		}
 	}
-////////--------------->  init() ? <-----------------------------///////////
-	// export function init(): Steps {
-	// 	let die1: number = Math.floor(Math.random() * 6 + 1);
-	// 	let die2: number = Math.floor(Math.random() * 6 + 1);
-	// 	while (die1 === die2) {
-	// 		//have to regenerate two dies together for fairness issue
-	// 		die1 = Math.floor(Math.random() * 6 + 1);
-	// 		die2 = Math.floor(Math.random() * 6 + 1);
-	// 	}
-	// 	return [die1, die2];
-	// }
+
+	export function init(): Steps {
+		let die1: number = Math.floor(Math.random() * 6 + 1);
+		let die2: number = Math.floor(Math.random() * 6 + 1);
+		while (die1 === die2) {
+			//have to regenerate two dies together for fairness issue
+			die1 = Math.floor(Math.random() * 6 + 1);
+			die2 = Math.floor(Math.random() * 6 + 1);
+		}
+		return [die1, die2];
+	}
 }
 
 /** The mini-move level delta contains the start and end of this mini-move. */
@@ -58,6 +58,10 @@ interface IState {
 
 interface IEndToStepIndex {
 	[key: number]: number[];
+}
+
+interface IProposalData {
+	moves: IMiniMove[];
 }
 
 module gameLogic {
