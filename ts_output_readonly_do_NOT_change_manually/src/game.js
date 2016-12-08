@@ -221,6 +221,16 @@ var game;
         if (!game.proposals) {
             moveService.makeMove(move);
         }
+        else {
+            var myProposal = {
+                data: {
+                    moves: game.currentState.delta.turns[0].moves,
+                },
+                chatDescription: '',
+                playerInfo: game.yourPlayerInfo,
+            };
+            moveService.communityMove(myProposal, move);
+        }
     }
     function isFirstMove() {
         return !game.currentUpdateUI.move.stateAfterMove;
