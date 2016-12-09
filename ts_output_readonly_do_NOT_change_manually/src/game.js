@@ -133,6 +133,23 @@ var game;
         resetGrayToNormal(game.showStepsControl);
         showOriginalSteps(turn.originalSteps);
         game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
+        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
+            clearCheckerAnimationInterval();
+            clearTurnAnimationInterval();
+            clearRecRollingAnimationTimeout();
+            // Checking we got to the final correct board
+            var expectedBoard = game.currentUpdateUI.move.stateAfterMove.board;
+            if (!angular.equals(game.currentState.board, expectedBoard)) {
+                throw new Error("Animations ended in a different board: expected="
+                    + angular.toJson(expectedBoard, true) + " actual after animations="
+                    + angular.toJson(game.currentState.board, true));
+            }
+            // Save previous move end state in originalState.
+            game.originalState = angular.copy(game.currentState);
+            // Reset currentState.delta to include only data from the current turn.
+            game.currentState.delta = null;
+            maybeSendComputerMove();
+        }
     }
     function recRollingEndedCallBack() {
         game.rolling = false;

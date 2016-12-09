@@ -151,6 +151,23 @@ module game {
     resetGrayToNormal(showStepsControl);
     showOriginalSteps(turn.originalSteps);
     recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
+    if (remainingMiniMoves.length == 0 && remainingTurns.length == 0) {
+      clearCheckerAnimationInterval();
+      clearTurnAnimationInterval();
+      clearRecRollingAnimationTimeout();
+      // Checking we got to the final correct board
+      let expectedBoard = currentUpdateUI.move.stateAfterMove.board;
+      if (!angular.equals(currentState.board, expectedBoard)) {
+        throw new Error("Animations ended in a different board: expected=" 
+          + angular.toJson(expectedBoard, true) + " actual after animations=" 
+          + angular.toJson(currentState.board, true));
+      }
+      // Save previous move end state in originalState.
+      originalState = angular.copy(currentState);
+      // Reset currentState.delta to include only data from the current turn.
+      currentState.delta = null;
+      maybeSendComputerMove();
+    }
   }
 
   function recRollingEndedCallBack() {
