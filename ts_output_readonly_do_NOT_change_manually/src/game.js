@@ -64,8 +64,8 @@ var game;
         return {};
     }
     function setCheckerAnimationInterval() {
-        advanceToNextCheckerAnimation();
-        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 600);
+        clearRecRollingAnimationTimeout();
+        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 850);
     }
     function clearCheckerAnimationInterval() {
         if (game.checkerAnimationInterval) {
@@ -81,7 +81,7 @@ var game;
         var miniMove = game.remainingMiniMoves.shift();
         var usedValues = gameLogic.createMiniMove(game.currentState, miniMove.start, miniMove.end, game.currentUpdateUI.turnIndexBeforeMove);
         setGrayShowStepsControl(usedValues);
-        if (game.remainingMiniMoves.length === 0 && game.remainingTurns.length === 0) {
+        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
             clearCheckerAnimationInterval();
             clearTurnAnimationInterval();
             clearRecRollingAnimationTimeout();
@@ -101,7 +101,9 @@ var game;
     }
     function setTurnAnimationInterval() {
         advanceToNextTurnAnimation();
-        game.turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
+        if (game.remainingTurns.length != 0) {
+            game.turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
+        }
     }
     function clearTurnAnimationInterval() {
         if (game.turnAnimationInterval) {
@@ -113,10 +115,12 @@ var game;
         if (game.remainingTurns.length == 0) {
             clearTurnAnimationInterval();
             clearRecRollingAnimationTimeout();
-            // Save previous move end state in originalState.
-            game.originalState = angular.copy(game.currentState);
-            game.currentState.delta = null;
-            maybeSendComputerMove();
+            if (game.remainingMiniMoves.length == 0) {
+                // Save previous move end state in originalState.
+                game.originalState = angular.copy(game.currentState);
+                game.currentState.delta = null;
+                maybeSendComputerMove();
+            }
             return;
         }
         clearCheckerAnimationInterval();
@@ -129,6 +133,23 @@ var game;
         resetGrayToNormal(game.showStepsControl);
         showOriginalSteps(turn.originalSteps);
         game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
+        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
+            clearCheckerAnimationInterval();
+            clearTurnAnimationInterval();
+            clearRecRollingAnimationTimeout();
+            // Checking we got to the final correct board
+            var expectedBoard = game.currentUpdateUI.move.stateAfterMove.board;
+            if (!angular.equals(game.currentState.board, expectedBoard)) {
+                throw new Error("Animations ended in a different board: expected="
+                    + angular.toJson(expectedBoard, true) + " actual after animations="
+                    + angular.toJson(game.currentState.board, true));
+            }
+            // Save previous move end state in originalState.
+            game.originalState = angular.copy(game.currentState);
+            // Reset currentState.delta to include only data from the current turn.
+            game.currentState.delta = null;
+            maybeSendComputerMove();
+        }
     }
     function recRollingEndedCallBack() {
         game.rolling = false;
