@@ -6,16 +6,6 @@ interface Translations {
     [index: string]: SupportedLanguages;
 }
 
-// interface ICommunityMatch extends IStateTransition {
-//   matchName: string;
-//   playerIdToProposal: IProposals; 
-// }
-
-// interface ChatMsg {
-//   chat: string;
-//   fromPlayer: IPlayerInfo;
-// }
-
 module game {
   export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
@@ -38,11 +28,6 @@ module game {
   export let targets: number[] = [];
   export let rolling: boolean = false;
 
-  // For community games.
-  export let playerIdToProposal: IProposals = null;
-  export let proposals: any = null; // ?
-  export let yourPlayerInfo: IPlayerInfo = null;
-
   export function init() {
     registerServiceWorker();
     translate.setTranslations(getTranslations());
@@ -54,9 +39,7 @@ module game {
       maxNumberOfPlayers: 2,
       checkMoveOk: debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
       updateUI: updateUI,
-      // gotMessageFromPlatform: null,
-      communityUI: communityUI, 
-      getStateForOgImage: getStateForOgImage,
+      gotMessageFromPlatform: null,
     });
   }
 
@@ -186,12 +169,7 @@ module game {
     log.info("Game got updateUI:", params);
     didMakeMove = false; // Only one move per updateUI
     currentUpdateUI = params;
-    originalState = null;
-
-    proposals = null;
-    playerIdToProposal = null;
-    yourPlayerInfo = null;
-    
+    originalState = null;    
     let shouldAnimate = !lastHumanMove || !angular.equals(params.move.stateAfterMove, lastHumanMove.stateAfterMove);
     clearTurnAnimationInterval();
     if (isFirstMove()) {
@@ -221,31 +199,6 @@ module game {
     }
   }
 
-  export function communityUI(communityUI: ICommunityUI): void {
-    log.info("Game got communityUI:", communityUI);
-    // If only proposals changed, then do NOT call updateUI. Then update proposals.
-    let nextUpdateUI: IUpdateUI = {
-      playersInfo: [],
-      playMode: communityUI.yourPlayerIndex,
-      move: communityUI.move,
-      numberOfPlayers: communityUI.numberOfPlayers,
-      stateBeforeMove: communityUI.stateBeforeMove,
-      turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
-      yourPlayerIndex: communityUI.yourPlayerIndex,
-    };
-    if (angular.equals(yourPlayerInfo, communityUI.yourPlayerInfo) &&
-      currentUpdateUI && angular.equals(currentUpdateUI, nextUpdateUI)) {
-      // We're not calling updateUI to avoid disrupting the player if he's in the middle of a move.
-    } else {
-      // Things changed, so call updateUI.
-      updateUI(nextUpdateUI);
-    }
-    // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
-    yourPlayerInfo = communityUI.yourPlayerInfo;
-    playerIdToProposal = communityUI.playerIdToProposal; 
-    didMakeMove = !!playerIdToProposal[communityUI.yourPlayerInfo.playerId];
-  }
-
   function clearRollingAnimationTimeout() {
     if (rollingEndedTimeout) {
       $timeout.cancel(rollingEndedTimeout);
@@ -267,18 +220,7 @@ module game {
       return;
     }
     didMakeMove = true;
-    if (!proposals) {
-      moveService.makeMove(move);
-    } else {
-      let myProposal: IProposal = {
-        data: {
-          moves: currentState.delta.turns[0].moves,
-        },
-        chatDescription: '',
-        playerInfo: yourPlayerInfo,
-      }
-      moveService.communityMove(myProposal, move);
-    }
+    moveService.makeMove(move);
   }
 
   function isFirstMove() {
@@ -483,23 +425,6 @@ module game {
   //   state.currentSteps = twoDies;
   //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
   // }
-
-  export function getStateForOgImage(): string {
-    if (!currentUpdateUI || !currentUpdateUI.move) {
-      log.warn("Got stateForOgImage without currentUpdateUI!");
-      return;
-    }
-    let state: IState = currentUpdateUI.move.stateAfterMove;
-    if (!state) return '';
-    let board: Board = state.board;
-    if (!board) return '';
-    let boardStr: string = '';
-    for (let i = 0; i < 28; i++) {
-      let color: string = board[i].status == 0 ? " black " : board[i].status == 1 ? " white " : " empty ";
-      boardStr += "#" + board[i].tid + color + board[i].count + "\n";
-    }
-    return boardStr;
-  }
 }
 
 angular.module('myApp', ['gameServices', 'ngAnimate'])
