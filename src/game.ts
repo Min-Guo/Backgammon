@@ -39,9 +39,9 @@ module game {
   export let rolling: boolean = false;
 
   // For community games.
-  export let playerIdToProposal: IProposals = null;
-  export let proposals: any = null; // ?
-  export let yourPlayerInfo: IPlayerInfo = null;
+  // export let playerIdToProposal: IProposals = null;
+  // export let proposals: any = null; // ?
+  // export let yourPlayerInfo: IPlayerInfo = null;
 
   export function init() {
     registerServiceWorker();
@@ -55,7 +55,7 @@ module game {
       checkMoveOk: debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
       updateUI: updateUI,
       // gotMessageFromPlatform: null,
-      communityUI: communityUI, 
+      // communityUI: communityUI, 
       getStateForOgImage: getStateForOgImage,
     });
   }
@@ -188,9 +188,9 @@ module game {
     currentUpdateUI = params;
     originalState = null;
 
-    proposals = null;
-    playerIdToProposal = null;
-    yourPlayerInfo = null;
+    // proposals = null;
+    // playerIdToProposal = null;
+    // yourPlayerInfo = null;
     
     let shouldAnimate = !lastHumanMove || !angular.equals(params.move.stateAfterMove, lastHumanMove.stateAfterMove);
     clearTurnAnimationInterval();
@@ -221,30 +221,30 @@ module game {
     }
   }
 
-  export function communityUI(communityUI: ICommunityUI): void {
-    log.info("Game got communityUI:", communityUI);
-    // If only proposals changed, then do NOT call updateUI. Then update proposals.
-    let nextUpdateUI: IUpdateUI = {
-      playersInfo: [],
-      playMode: communityUI.yourPlayerIndex,
-      move: communityUI.move,
-      numberOfPlayers: communityUI.numberOfPlayers,
-      stateBeforeMove: communityUI.stateBeforeMove,
-      turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
-      yourPlayerIndex: communityUI.yourPlayerIndex,
-    };
-    if (angular.equals(yourPlayerInfo, communityUI.yourPlayerInfo) &&
-      currentUpdateUI && angular.equals(currentUpdateUI, nextUpdateUI)) {
-      // We're not calling updateUI to avoid disrupting the player if he's in the middle of a move.
-    } else {
-      // Things changed, so call updateUI.
-      updateUI(nextUpdateUI);
-    }
-    // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
-    yourPlayerInfo = communityUI.yourPlayerInfo;
-    playerIdToProposal = communityUI.playerIdToProposal; 
-    didMakeMove = !!playerIdToProposal[communityUI.yourPlayerInfo.playerId];
-  }
+  // export function communityUI(communityUI: ICommunityUI): void {
+  //   log.info("Game got communityUI:", communityUI);
+  //   // If only proposals changed, then do NOT call updateUI. Then update proposals.
+  //   let nextUpdateUI: IUpdateUI = {
+  //     playersInfo: [],
+  //     playMode: communityUI.yourPlayerIndex,
+  //     move: communityUI.move,
+  //     numberOfPlayers: communityUI.numberOfPlayers,
+  //     stateBeforeMove: communityUI.stateBeforeMove,
+  //     turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
+  //     yourPlayerIndex: communityUI.yourPlayerIndex,
+  //   };
+  //   if (angular.equals(yourPlayerInfo, communityUI.yourPlayerInfo) &&
+  //     currentUpdateUI && angular.equals(currentUpdateUI, nextUpdateUI)) {
+  //     // We're not calling updateUI to avoid disrupting the player if he's in the middle of a move.
+  //   } else {
+  //     // Things changed, so call updateUI.
+  //     updateUI(nextUpdateUI);
+  //   }
+  //   // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
+  //   yourPlayerInfo = communityUI.yourPlayerInfo;
+  //   playerIdToProposal = communityUI.playerIdToProposal; 
+  //   didMakeMove = !!playerIdToProposal[communityUI.yourPlayerInfo.playerId];
+  // }
 
   function clearRollingAnimationTimeout() {
     if (rollingEndedTimeout) {
@@ -267,18 +267,18 @@ module game {
       return;
     }
     didMakeMove = true;
-    if (!proposals) {
-      moveService.makeMove(move);
-    } else {
-      let myProposal: IProposal = {
-        data: {
-          moves: currentState.delta.turns[0].moves,
-        },
-        chatDescription: '',
-        playerInfo: yourPlayerInfo,
-      }
-      moveService.communityMove(myProposal, move);
-    }
+    // if (!proposals) {
+    //   moveService.makeMove(move);
+    // } else {
+    //   let myProposal: IProposal = {
+    //     data: {
+    //       moves: currentState.delta.turns[0].moves,
+    //     },
+    //     chatDescription: '',
+    //     playerInfo: yourPlayerInfo,
+    //   }
+    //   moveService.communityMove(myProposal, move);
+    // }
   }
 
   function isFirstMove() {

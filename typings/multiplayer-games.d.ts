@@ -39,7 +39,7 @@ interface ICommunityUI extends ICommonUI {
 interface IProposal {
   playerInfo: IPlayerInfo; // the player making the proposal.
   chatDescription: string; // string representation of the proposal that will be shown in the community game chat.
-  data: IProposalData; // IProposalData must be defined by the game.
+  // data: IProposalData; // IProposalData must be defined by the game.
 }
 interface IProposals {
   [playerId: string]: IProposal;
@@ -54,7 +54,7 @@ interface IGame {
   maxNumberOfPlayers: number;
   checkMoveOk(stateTransition: IStateTransition): void;
   updateUI(update: IUpdateUI): void;
-  communityUI(communityUI: ICommunityUI): void;
+  // communityUI(communityUI: ICommunityUI): void;
   getStateForOgImage(): string;
 }
 interface IMoveService {
@@ -67,7 +67,7 @@ interface IMoveService {
   // (and then move will be non-null).
   // Do not allow making a community move if a player already submitted his proposal, i.e.,
   // you can submit at most one proposal.
-  communityMove(proposal: IProposal, move: IMove): void;
+  // communityMove(proposal: IProposal, move: IMove): void;
 }
 declare var moveService: IMoveService;
 
