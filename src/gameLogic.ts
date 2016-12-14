@@ -106,16 +106,24 @@ module gameLogic {
 	export function getBearOffBoard(): Board {
 		let board: Board = Array(27);
 		for (let i = 0; i < 28; i++) {
-			if (i === WHITEHOME || i === WHITEBAR) {
+			if (i === WHITEHOME) {
 				board[i] = new Tower(i, WHITE, 0);
+			} else if (i === WHITEBAR) {
+				board[i] = new Tower(i, WHITE, 1);
 			} else if (i === BLACKHOME || i === BLACKBAR) {
 				board[i] = new Tower(i, BLACK, 0);
-			} else if (i >= 2 && i <= 7) {
-				board[i] = new Tower(i, WHITE, 2);
-				if (i === 2) board[i].count = 5;
-			} else if (i >= 20 && i <= 25) {
+			} else if (i > 18 && i < 26) {
 				board[i] = new Tower(i, BLACK, 2);
-				if (i === 25) board[i].count = 5;
+				if (i == 22 || i == 21 || i == 20) {
+					board[i].count = 3;
+				}
+				if (i == 24) {
+					board[i].status = EMPTY;
+					board[i].count = 0;
+				}
+			} else if (i > 1 && i < 6) {
+				board[i] = new Tower(i, WHITE, 3);
+				if (i == 4 || i == 5) board[i].count = 4;
 			} else {
 				board[i] = new Tower(i, EMPTY, 0);
 			}
