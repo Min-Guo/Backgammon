@@ -50,8 +50,7 @@ var game;
         return {};
     }
     function setCheckerAnimationInterval() {
-        clearRecRollingAnimationTimeout();
-        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 850);
+        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 1000);
     }
     function clearCheckerAnimationInterval() {
         if (game.checkerAnimationInterval) {
@@ -62,34 +61,15 @@ var game;
     function advanceToNextCheckerAnimation() {
         if (game.remainingMiniMoves.length == 0) {
             clearCheckerAnimationInterval();
+            advanceToNextTurnAnimation();
             return;
         }
         var miniMove = game.remainingMiniMoves.shift();
         var usedValues = gameLogic.createMiniMove(game.currentState, miniMove.start, miniMove.end, game.currentUpdateUI.turnIndexBeforeMove);
         setGrayShowStepsControl(usedValues);
-        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
-            clearCheckerAnimationInterval();
-            clearTurnAnimationInterval();
-            clearRecRollingAnimationTimeout();
-            // Checking we got to the final correct board
-            var expectedBoard = game.currentUpdateUI.move.stateAfterMove.board;
-            if (!angular.equals(game.currentState.board, expectedBoard)) {
-                throw new Error("Animations ended in a different board: expected="
-                    + angular.toJson(expectedBoard, true) + " actual after animations="
-                    + angular.toJson(game.currentState.board, true));
-            }
-            // Save previous move end state in originalState.
-            game.originalState = angular.copy(game.currentState);
-            // Reset currentState.delta to include only data from the current turn.
-            game.currentState.delta = null;
-            maybeSendComputerMove();
-        }
     }
     function setTurnAnimationInterval() {
         advanceToNextTurnAnimation();
-        if (game.remainingTurns.length != 0) {
-            game.turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
-        }
     }
     function clearTurnAnimationInterval() {
         if (game.turnAnimationInterval) {
@@ -98,32 +78,7 @@ var game;
         }
     }
     function advanceToNextTurnAnimation() {
-        if (game.remainingTurns.length == 0) {
-            clearTurnAnimationInterval();
-            clearRecRollingAnimationTimeout();
-            if (game.remainingMiniMoves.length == 0) {
-                // Save previous move end state in originalState.
-                game.originalState = angular.copy(game.currentState);
-                game.currentState.delta = null;
-                maybeSendComputerMove();
-            }
-            return;
-        }
-        clearCheckerAnimationInterval();
-        var turn = game.remainingTurns.shift();
-        game.remainingMiniMoves = turn.moves || [];
-        // roll dices animation
-        clearRecRollingAnimationTimeout();
-        game.rolling = true;
-        gameLogic.setOriginalStepsWithDefault(game.currentState, game.currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
-        resetGrayToNormal(game.showStepsControl);
-        showOriginalSteps(turn.originalSteps);
-        game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
-        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
-            clearCheckerAnimationInterval();
-            clearTurnAnimationInterval();
-            clearRecRollingAnimationTimeout();
-            // Checking we got to the final correct board
+        if (game.remainingTurns.length == 0 && game.remainingMiniMoves.length == 0) {
             var expectedBoard = game.currentUpdateUI.move.stateAfterMove.board;
             if (!angular.equals(game.currentState.board, expectedBoard)) {
                 throw new Error("Animations ended in a different board: expected="
@@ -135,10 +90,20 @@ var game;
             // Reset currentState.delta to include only data from the current turn.
             game.currentState.delta = null;
             maybeSendComputerMove();
+            return;
         }
+        var turn = game.remainingTurns.shift();
+        game.remainingMiniMoves = turn.moves || [];
+        // roll dices animation
+        game.rolling = true;
+        gameLogic.setOriginalStepsWithDefault(game.currentState, game.currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
+        resetGrayToNormal(game.showStepsControl);
+        showOriginalSteps(turn.originalSteps);
+        game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
     }
     function recRollingEndedCallBack() {
         game.rolling = false;
+        clearRecRollingAnimationTimeout();
         setCheckerAnimationInterval();
     }
     function clearRecRollingAnimationTimeout() {
@@ -196,7 +161,6 @@ var game;
         if (game.currentUpdateUI.move.turnIndexAfterMove === -1)
             return;
         var move = aiService.findComputerMove(game.currentUpdateUI.move, game.currentState);
-        //showOriginalSteps(originalState.delta.turns[0].originalSteps); // need further work    
         log.info("Computer move: ", move);
         makeMove(move);
     }

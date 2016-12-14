@@ -60,8 +60,7 @@ module game {
   }
 
   function setCheckerAnimationInterval() {
-    clearRecRollingAnimationTimeout();
-    checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 850);
+    checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 1000);
   }
 
   function clearCheckerAnimationInterval() {
@@ -74,35 +73,16 @@ module game {
   function advanceToNextCheckerAnimation() {
     if (remainingMiniMoves.length == 0) {
       clearCheckerAnimationInterval();
+      advanceToNextTurnAnimation();
       return;
     }
     let miniMove = remainingMiniMoves.shift();
     let usedValues = gameLogic.createMiniMove(currentState, miniMove.start, miniMove.end, currentUpdateUI.turnIndexBeforeMove);
     setGrayShowStepsControl(usedValues);
-    if (remainingMiniMoves.length == 0 && remainingTurns.length == 0) {
-      clearCheckerAnimationInterval();
-      clearTurnAnimationInterval();
-      clearRecRollingAnimationTimeout();
-      // Checking we got to the final correct board
-      let expectedBoard = currentUpdateUI.move.stateAfterMove.board;
-      if (!angular.equals(currentState.board, expectedBoard)) {
-        throw new Error("Animations ended in a different board: expected=" 
-          + angular.toJson(expectedBoard, true) + " actual after animations=" 
-          + angular.toJson(currentState.board, true));
-      }
-      // Save previous move end state in originalState.
-      originalState = angular.copy(currentState);
-      // Reset currentState.delta to include only data from the current turn.
-      currentState.delta = null;
-      maybeSendComputerMove();
-    }
   }
 
   function setTurnAnimationInterval() {
     advanceToNextTurnAnimation();
-    if (remainingTurns.length != 0) {
-      turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
-    }
   }
 
   function clearTurnAnimationInterval() {
@@ -113,32 +93,7 @@ module game {
   }
 
   function advanceToNextTurnAnimation() {
-    if (remainingTurns.length == 0) {
-      clearTurnAnimationInterval();
-      clearRecRollingAnimationTimeout();
-      if (remainingMiniMoves.length == 0) {
-        // Save previous move end state in originalState.
-        originalState = angular.copy(currentState);
-        currentState.delta = null;
-        maybeSendComputerMove();
-      }
-      return;
-    }
-    clearCheckerAnimationInterval();
-    let turn = remainingTurns.shift();
-    remainingMiniMoves = turn.moves || [];
-    // roll dices animation
-    clearRecRollingAnimationTimeout();
-    rolling = true;
-    gameLogic.setOriginalStepsWithDefault(currentState, currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
-    resetGrayToNormal(showStepsControl);
-    showOriginalSteps(turn.originalSteps);
-    recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
-    if (remainingMiniMoves.length == 0 && remainingTurns.length == 0) {
-      clearCheckerAnimationInterval();
-      clearTurnAnimationInterval();
-      clearRecRollingAnimationTimeout();
-      // Checking we got to the final correct board
+    if (remainingTurns.length == 0 && remainingMiniMoves.length == 0) {  
       let expectedBoard = currentUpdateUI.move.stateAfterMove.board;
       if (!angular.equals(currentState.board, expectedBoard)) {
         throw new Error("Animations ended in a different board: expected=" 
@@ -150,11 +105,21 @@ module game {
       // Reset currentState.delta to include only data from the current turn.
       currentState.delta = null;
       maybeSendComputerMove();
+      return;
     }
+    let turn = remainingTurns.shift();
+    remainingMiniMoves = turn.moves || [];
+    // roll dices animation
+    rolling = true;
+    gameLogic.setOriginalStepsWithDefault(currentState, currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
+    resetGrayToNormal(showStepsControl);
+    showOriginalSteps(turn.originalSteps);
+    recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
   }
 
   function recRollingEndedCallBack() {
     rolling = false;
+    clearRecRollingAnimationTimeout();
     setCheckerAnimationInterval();
   }
 
@@ -210,7 +175,6 @@ module game {
     if (!isComputerTurn()) return;
     if (currentUpdateUI.move.turnIndexAfterMove === -1) return;
     let move = aiService.findComputerMove(currentUpdateUI.move, currentState);
-    //showOriginalSteps(originalState.delta.turns[0].originalSteps); // need further work    
     log.info("Computer move: ", move);
     makeMove(move);
   }

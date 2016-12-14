@@ -88,21 +88,29 @@ var gameLogic;
     function getBearOffBoard() {
         var board = Array(27);
         for (var i = 0; i < 28; i++) {
-            if (i === gameLogic.WHITEHOME || i === gameLogic.WHITEBAR) {
+            if (i === gameLogic.WHITEHOME) {
                 board[i] = new Tower(i, gameLogic.WHITE, 0);
+            }
+            else if (i === gameLogic.WHITEBAR) {
+                board[i] = new Tower(i, gameLogic.WHITE, 1);
             }
             else if (i === gameLogic.BLACKHOME || i === gameLogic.BLACKBAR) {
                 board[i] = new Tower(i, gameLogic.BLACK, 0);
             }
-            else if (i >= 2 && i <= 7) {
-                board[i] = new Tower(i, gameLogic.WHITE, 2);
-                if (i === 2)
-                    board[i].count = 5;
-            }
-            else if (i >= 20 && i <= 25) {
+            else if (i > 18 && i < 26) {
                 board[i] = new Tower(i, gameLogic.BLACK, 2);
-                if (i === 25)
-                    board[i].count = 5;
+                if (i == 22 || i == 21 || i == 20) {
+                    board[i].count = 3;
+                }
+                if (i == 24) {
+                    board[i].status = gameLogic.EMPTY;
+                    board[i].count = 0;
+                }
+            }
+            else if (i > 1 && i < 6) {
+                board[i] = new Tower(i, gameLogic.WHITE, 3);
+                if (i == 4 || i == 5)
+                    board[i].count = 4;
             }
             else {
                 board[i] = new Tower(i, gameLogic.EMPTY, 0);
