@@ -1,12 +1,4 @@
 ;
-// interface ICommunityMatch extends IStateTransition {
-//   matchName: string;
-//   playerIdToProposal: IProposals; 
-// }
-// interface ChatMsg {
-//   chat: string;
-//   fromPlayer: IPlayerInfo;
-// }
 var game;
 (function (game) {
     game.debug = 0; //0: normal, 1: bear off, ...
@@ -28,10 +20,6 @@ var game;
     // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
     game.targets = [];
     game.rolling = false;
-    // For community games.
-    game.playerIdToProposal = null;
-    game.proposals = null; // ?
-    game.yourPlayerInfo = null;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -43,9 +31,7 @@ var game;
             maxNumberOfPlayers: 2,
             checkMoveOk: game.debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
             updateUI: updateUI,
-            // gotMessageFromPlatform: null,
-            communityUI: communityUI,
-            getStateForOgImage: getStateForOgImage,
+            gotMessageFromPlatform: null,
         });
     }
     game.init = init;
@@ -64,8 +50,7 @@ var game;
         return {};
     }
     function setCheckerAnimationInterval() {
-        clearRecRollingAnimationTimeout();
-        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 850);
+        game.checkerAnimationInterval = $interval(advanceToNextCheckerAnimation, 1000);
     }
     function clearCheckerAnimationInterval() {
         if (game.checkerAnimationInterval) {
@@ -76,34 +61,15 @@ var game;
     function advanceToNextCheckerAnimation() {
         if (game.remainingMiniMoves.length == 0) {
             clearCheckerAnimationInterval();
+            advanceToNextTurnAnimation();
             return;
         }
         var miniMove = game.remainingMiniMoves.shift();
         var usedValues = gameLogic.createMiniMove(game.currentState, miniMove.start, miniMove.end, game.currentUpdateUI.turnIndexBeforeMove);
         setGrayShowStepsControl(usedValues);
-        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
-            clearCheckerAnimationInterval();
-            clearTurnAnimationInterval();
-            clearRecRollingAnimationTimeout();
-            // Checking we got to the final correct board
-            var expectedBoard = game.currentUpdateUI.move.stateAfterMove.board;
-            if (!angular.equals(game.currentState.board, expectedBoard)) {
-                throw new Error("Animations ended in a different board: expected="
-                    + angular.toJson(expectedBoard, true) + " actual after animations="
-                    + angular.toJson(game.currentState.board, true));
-            }
-            // Save previous move end state in originalState.
-            game.originalState = angular.copy(game.currentState);
-            // Reset currentState.delta to include only data from the current turn.
-            game.currentState.delta = null;
-            maybeSendComputerMove();
-        }
     }
     function setTurnAnimationInterval() {
         advanceToNextTurnAnimation();
-        if (game.remainingTurns.length != 0) {
-            game.turnAnimationInterval = $interval(advanceToNextTurnAnimation, 3000); // At lease 2900 ms needed = 500 + 600 * 4.
-        }
     }
     function clearTurnAnimationInterval() {
         if (game.turnAnimationInterval) {
@@ -112,32 +78,7 @@ var game;
         }
     }
     function advanceToNextTurnAnimation() {
-        if (game.remainingTurns.length == 0) {
-            clearTurnAnimationInterval();
-            clearRecRollingAnimationTimeout();
-            if (game.remainingMiniMoves.length == 0) {
-                // Save previous move end state in originalState.
-                game.originalState = angular.copy(game.currentState);
-                game.currentState.delta = null;
-                maybeSendComputerMove();
-            }
-            return;
-        }
-        clearCheckerAnimationInterval();
-        var turn = game.remainingTurns.shift();
-        game.remainingMiniMoves = turn.moves || [];
-        // roll dices animation
-        clearRecRollingAnimationTimeout();
-        game.rolling = true;
-        gameLogic.setOriginalStepsWithDefault(game.currentState, game.currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
-        resetGrayToNormal(game.showStepsControl);
-        showOriginalSteps(turn.originalSteps);
-        game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
-        if (game.remainingMiniMoves.length == 0 && game.remainingTurns.length == 0) {
-            clearCheckerAnimationInterval();
-            clearTurnAnimationInterval();
-            clearRecRollingAnimationTimeout();
-            // Checking we got to the final correct board
+        if (game.remainingTurns.length == 0 && game.remainingMiniMoves.length == 0) {
             var expectedBoard = game.currentUpdateUI.move.stateAfterMove.board;
             if (!angular.equals(game.currentState.board, expectedBoard)) {
                 throw new Error("Animations ended in a different board: expected="
@@ -149,10 +90,20 @@ var game;
             // Reset currentState.delta to include only data from the current turn.
             game.currentState.delta = null;
             maybeSendComputerMove();
+            return;
         }
+        var turn = game.remainingTurns.shift();
+        game.remainingMiniMoves = turn.moves || [];
+        // roll dices animation
+        game.rolling = true;
+        gameLogic.setOriginalStepsWithDefault(game.currentState, game.currentUpdateUI.turnIndexBeforeMove, turn.originalSteps);
+        resetGrayToNormal(game.showStepsControl);
+        showOriginalSteps(turn.originalSteps);
+        game.recRollingEndedTimeout = $timeout(recRollingEndedCallBack, 500);
     }
     function recRollingEndedCallBack() {
         game.rolling = false;
+        clearRecRollingAnimationTimeout();
         setCheckerAnimationInterval();
     }
     function clearRecRollingAnimationTimeout() {
@@ -166,9 +117,6 @@ var game;
         game.didMakeMove = false; // Only one move per updateUI
         game.currentUpdateUI = params;
         game.originalState = null;
-        game.proposals = null;
-        game.playerIdToProposal = null;
-        game.yourPlayerInfo = null;
         var shouldAnimate = !game.lastHumanMove || !angular.equals(params.move.stateAfterMove, game.lastHumanMove.stateAfterMove);
         clearTurnAnimationInterval();
         if (isFirstMove()) {
@@ -201,31 +149,6 @@ var game;
         }
     }
     game.updateUI = updateUI;
-    function communityUI(communityUI) {
-        log.info("Game got communityUI:", communityUI);
-        // If only proposals changed, then do NOT call updateUI. Then update proposals.
-        var nextUpdateUI = {
-            playersInfo: [],
-            playMode: communityUI.yourPlayerIndex,
-            move: communityUI.move,
-            numberOfPlayers: communityUI.numberOfPlayers,
-            stateBeforeMove: communityUI.stateBeforeMove,
-            turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
-            yourPlayerIndex: communityUI.yourPlayerIndex,
-        };
-        if (angular.equals(game.yourPlayerInfo, communityUI.yourPlayerInfo) &&
-            game.currentUpdateUI && angular.equals(game.currentUpdateUI, nextUpdateUI)) {
-        }
-        else {
-            // Things changed, so call updateUI.
-            updateUI(nextUpdateUI);
-        }
-        // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
-        game.yourPlayerInfo = communityUI.yourPlayerInfo;
-        game.playerIdToProposal = communityUI.playerIdToProposal;
-        game.didMakeMove = !!game.playerIdToProposal[communityUI.yourPlayerInfo.playerId];
-    }
-    game.communityUI = communityUI;
     function clearRollingAnimationTimeout() {
         if (game.rollingEndedTimeout) {
             $timeout.cancel(game.rollingEndedTimeout);
@@ -238,7 +161,6 @@ var game;
         if (game.currentUpdateUI.move.turnIndexAfterMove === -1)
             return;
         var move = aiService.findComputerMove(game.currentUpdateUI.move, game.currentState);
-        //showOriginalSteps(originalState.delta.turns[0].originalSteps); // need further work    
         log.info("Computer move: ", move);
         makeMove(move);
     }
@@ -247,19 +169,7 @@ var game;
             return;
         }
         game.didMakeMove = true;
-        if (!game.proposals) {
-            moveService.makeMove(move);
-        }
-        else {
-            var myProposal = {
-                data: {
-                    moves: game.currentState.delta.turns[0].moves,
-                },
-                chatDescription: '',
-                playerInfo: game.yourPlayerInfo,
-            };
-            moveService.communityMove(myProposal, move);
-        }
+        moveService.makeMove(move);
     }
     function isFirstMove() {
         return !game.currentUpdateUI.move.stateAfterMove;
@@ -462,31 +372,6 @@ var game;
         }
     }
     game.shouldRotate = shouldRotate;
-    // function setInitialTurnIndex(): void {
-    //   if (state && state.currentSteps) return;
-    //   let twoDies = DieCombo.init();
-    //   state.currentSteps = twoDies;
-    //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
-    // }
-    function getStateForOgImage() {
-        if (!game.currentUpdateUI || !game.currentUpdateUI.move) {
-            log.warn("Got stateForOgImage without currentUpdateUI!");
-            return;
-        }
-        var state = game.currentUpdateUI.move.stateAfterMove;
-        if (!state)
-            return '';
-        var board = state.board;
-        if (!board)
-            return '';
-        var boardStr = '';
-        for (var i = 0; i < 28; i++) {
-            var color = board[i].status == 0 ? " black " : board[i].status == 1 ? " white " : " empty ";
-            boardStr += "#" + board[i].tid + color + board[i].count + "\n";
-        }
-        return boardStr;
-    }
-    game.getStateForOgImage = getStateForOgImage;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices', 'ngAnimate'])
     .run(function () {
