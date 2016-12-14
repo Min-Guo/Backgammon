@@ -124,7 +124,7 @@
             <div class="blur">
             </div>
             <div class="closebtn" onclick="this.parentElement.style.display='none';">&times;</div>
-            <h2>Game Over<br><br> Winner: {{game.currentUpdateUI.yourPlayerIndex == 1 ? "Red" : "Blue" }} </h2>
+            <h2>Game Over<br><br> Winner: {{game.getTowerCount(0).length==15 ? "Red" : "Blue" }} </h2>
         </div>
     
     </div>
