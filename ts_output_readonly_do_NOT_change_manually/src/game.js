@@ -1,12 +1,4 @@
 ;
-// interface ICommunityMatch extends IStateTransition {
-//   matchName: string;
-//   playerIdToProposal: IProposals; 
-// }
-// interface ChatMsg {
-//   chat: string;
-//   fromPlayer: IPlayerInfo;
-// }
 var game;
 (function (game) {
     game.debug = 0; //0: normal, 1: bear off, ...
@@ -28,10 +20,6 @@ var game;
     // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
     game.targets = [];
     game.rolling = false;
-    // For community games.
-    // export let playerIdToProposal: IProposals = null;
-    // export let proposals: any = null; // ?
-    // export let yourPlayerInfo: IPlayerInfo = null;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -43,9 +31,7 @@ var game;
             maxNumberOfPlayers: 2,
             checkMoveOk: game.debug === 1 ? gameLogic.checkMoveOkBear : gameLogic.checkMoveOk,
             updateUI: updateUI,
-            // gotMessageFromPlatform: null,
-            // communityUI: communityUI, 
-            getStateForOgImage: getStateForOgImage,
+            gotMessageFromPlatform: null,
         });
     }
     game.init = init;
@@ -166,9 +152,6 @@ var game;
         game.didMakeMove = false; // Only one move per updateUI
         game.currentUpdateUI = params;
         game.originalState = null;
-        // proposals = null;
-        // playerIdToProposal = null;
-        // yourPlayerInfo = null;
         var shouldAnimate = !game.lastHumanMove || !angular.equals(params.move.stateAfterMove, game.lastHumanMove.stateAfterMove);
         clearTurnAnimationInterval();
         if (isFirstMove()) {
@@ -201,30 +184,6 @@ var game;
         }
     }
     game.updateUI = updateUI;
-    // export function communityUI(communityUI: ICommunityUI): void {
-    //   log.info("Game got communityUI:", communityUI);
-    //   // If only proposals changed, then do NOT call updateUI. Then update proposals.
-    //   let nextUpdateUI: IUpdateUI = {
-    //     playersInfo: [],
-    //     playMode: communityUI.yourPlayerIndex,
-    //     move: communityUI.move,
-    //     numberOfPlayers: communityUI.numberOfPlayers,
-    //     stateBeforeMove: communityUI.stateBeforeMove,
-    //     turnIndexBeforeMove: communityUI.turnIndexBeforeMove,
-    //     yourPlayerIndex: communityUI.yourPlayerIndex,
-    //   };
-    //   if (angular.equals(yourPlayerInfo, communityUI.yourPlayerInfo) &&
-    //     currentUpdateUI && angular.equals(currentUpdateUI, nextUpdateUI)) {
-    //     // We're not calling updateUI to avoid disrupting the player if he's in the middle of a move.
-    //   } else {
-    //     // Things changed, so call updateUI.
-    //     updateUI(nextUpdateUI);
-    //   }
-    //   // This must be after calling updateUI, because we nullify things there (like playerIdToProposal&proposals&etc)
-    //   yourPlayerInfo = communityUI.yourPlayerInfo;
-    //   playerIdToProposal = communityUI.playerIdToProposal; 
-    //   didMakeMove = !!playerIdToProposal[communityUI.yourPlayerInfo.playerId];
-    // }
     function clearRollingAnimationTimeout() {
         if (game.rollingEndedTimeout) {
             $timeout.cancel(game.rollingEndedTimeout);
@@ -246,18 +205,7 @@ var game;
             return;
         }
         game.didMakeMove = true;
-        // if (!proposals) {
-        //   moveService.makeMove(move);
-        // } else {
-        //   let myProposal: IProposal = {
-        //     data: {
-        //       moves: currentState.delta.turns[0].moves,
-        //     },
-        //     chatDescription: '',
-        //     playerInfo: yourPlayerInfo,
-        //   }
-        //   moveService.communityMove(myProposal, move);
-        // }
+        moveService.makeMove(move);
     }
     function isFirstMove() {
         return !game.currentUpdateUI.move.stateAfterMove;
@@ -466,25 +414,6 @@ var game;
     //   state.currentSteps = twoDies;
     //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
     // }
-    function getStateForOgImage() {
-        if (!game.currentUpdateUI || !game.currentUpdateUI.move) {
-            log.warn("Got stateForOgImage without currentUpdateUI!");
-            return;
-        }
-        var state = game.currentUpdateUI.move.stateAfterMove;
-        if (!state)
-            return '';
-        var board = state.board;
-        if (!board)
-            return '';
-        var boardStr = '';
-        for (var i = 0; i < 28; i++) {
-            var color = board[i].status == 0 ? " black " : board[i].status == 1 ? " white " : " empty ";
-            boardStr += "#" + board[i].tid + color + board[i].count + "\n";
-        }
-        return boardStr;
-    }
-    game.getStateForOgImage = getStateForOgImage;
 })(game || (game = {}));
 angular.module('myApp', ['gameServices', 'ngAnimate'])
     .run(function () {
