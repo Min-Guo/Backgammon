@@ -411,6 +411,56 @@ describe("aiService", function() {
         expect(angular.equals(move.stateAfterMove, {board: boardAfterMove, delta: {turns: curTurn}})).toBe(true);
     });
 
-    
+//     it("White extreme case.", function() {
+//     let boardBeforeMove: Tower[] = 
+//         [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+//           new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 1),
+//           new Tower(4, WHITE_TURN, 2), new Tower(5, WHITE_TURN, 4),
+//           new Tower(6, WHITE_TURN, 3), new Tower(7, WHITE_TURN, 4),
+//           new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+//           new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+//           new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+//           new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+//           new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+//           new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+//           new Tower(20, BLACK_TURN, 5), new Tower(21, BLACK_TURN, 2),
+//           new Tower(22, BLACK_TURN, 2), new Tower(23, BLACK_TURN, 2),
+//           new Tower(24, BLACK_TURN, 2), new Tower(25, BLACK_TURN, 2),
+//           new Tower(26, WHITE_TURN, 1), new Tower(27, BLACK_TURN, 0)];
+//     let boardAfterMove: Tower[] = 
+//         [new Tower(0, WHITE_TURN, 0), new Tower(1, BLACK_TURN, 0),
+//           new Tower(2, NO_ONE_TURN, 0), new Tower(3, WHITE_TURN, 1),
+//           new Tower(4, WHITE_TURN, 2), new Tower(5, WHITE_TURN, 4),
+//           new Tower(6, WHITE_TURN, 3), new Tower(7, WHITE_TURN, 4),
+//           new Tower(8, NO_ONE_TURN, 0), new Tower(9, NO_ONE_TURN, 0),
+//           new Tower(10, NO_ONE_TURN, 0), new Tower(11, NO_ONE_TURN, 0),
+//           new Tower(12, NO_ONE_TURN, 0), new Tower(13, NO_ONE_TURN, 0),
+//           new Tower(14, NO_ONE_TURN, 0), new Tower(15, NO_ONE_TURN, 0),
+//           new Tower(16, NO_ONE_TURN, 0), new Tower(17, NO_ONE_TURN, 0),
+//           new Tower(18, NO_ONE_TURN, 0), new Tower(19, NO_ONE_TURN, 0),
+//           new Tower(20, BLACK_TURN, 5), new Tower(21, BLACK_TURN, 1),
+//           new Tower(22, BLACK_TURN, 3), new Tower(23, BLACK_TURN, 2),
+//           new Tower(24, BLACK_TURN, 1), new Tower(25, BLACK_TURN, 3),
+//           new Tower(26, WHITE_TURN, 3), new Tower(27, BLACK_TURN, 0)];
+//     let preMove: IMove = {
+//         endMatchScores: NO_ONE_WINS, 
+//         turnIndexAfterMove: BLACK_TURN, 
+//         stateAfterMove: {board: boardBeforeMove, delta: null}
+//     };
+//     let state: IState = {board: boardBeforeMove, delta: null}
+//     // let curTurn: ITurnDelta[] = [{originalSteps: [5, 2], currentSteps: [], moves:[{start: 21, end: 26}, {start: 24, end: 26}]}];
+//         let curTurn: ITurnDelta[] = [{originalSteps: [], currentSteps: [], moves:[]}];
+
+//     let testTurn: ITurnDelta[] = [{originalSteps: [5, 2], currentSteps: [5, 2], moves: null}];
+//     let numberOfTimesCalledRandom = 0;
+//     Math.random = function () {
+//         numberOfTimesCalledRandom++;
+//         if (numberOfTimesCalledRandom == 1) return 0.7;
+//         if (numberOfTimesCalledRandom == 2) return 0.2;
+//     };
+//     debugger
+//     let move = createComputerMove(preMove, state)
+//         expect(angular.equals(move.stateAfterMove, {board: boardAfterMove, delta: {turns: curTurn}})).toBe(true);
+//   });
 
 });
