@@ -1,7 +1,7 @@
 ;
 var game;
 (function (game) {
-    game.debug = 1; //0: normal, 1: bear off, ...
+    game.debug = 0; //0: normal, 1: bear off, ...
     game.currentUpdateUI = null;
     game.didMakeMove = false; // You can only make one move per updateUI
     game.lastHumanMove = null; // We don't animate moves we just made.
@@ -17,7 +17,6 @@ var game;
     game.moveEnd = -1;
     game.showSteps = [0, 0, 0, 0];
     game.showStepsControl = [true, true, true, true];
-    // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
     game.targets = [];
     game.rolling = false;
     function init() {

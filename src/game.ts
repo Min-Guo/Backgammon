@@ -7,7 +7,7 @@ interface Translations {
 }
 
 module game {
-  export let debug: number = 1; //0: normal, 1: bear off, ...
+  export let debug: number = 0; //0: normal, 1: bear off, ...
   export let currentUpdateUI: IUpdateUI = null;
   export let didMakeMove: boolean = false; // You can only make one move per updateUI
   export let lastHumanMove: IMove = null; // We don't animate moves we just made.
@@ -24,7 +24,6 @@ module game {
   export let moveEnd = -1;
   export let showSteps: number[] = [0, 0, 0, 0];
   export let showStepsControl: boolean[] = [true, true, true, true];
-  // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
   export let targets: number[] = [];
   export let rolling: boolean = false;
 
