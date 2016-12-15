@@ -40,8 +40,6 @@ module game {
       updateUI: updateUI,
       gotMessageFromPlatform: null,
     });
-    showSteps = [0, 0, 0, 0];
-    showStepsControl = [true, true, true, true];
   }
 
   function registerServiceWorker() {

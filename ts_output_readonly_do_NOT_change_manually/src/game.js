@@ -32,8 +32,6 @@ var game;
             updateUI: updateUI,
             gotMessageFromPlatform: null,
         });
-        game.showSteps = [0, 0, 0, 0];
-        game.showStepsControl = [true, true, true, true];
     }
     game.init = init;
     function registerServiceWorker() {
