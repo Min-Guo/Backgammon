@@ -22,9 +22,8 @@ module game {
   export let currentState: IState = null;
   export let moveStart = -1;
   export let moveEnd = -1;
-  export let showSteps: number[] = [0, 0, 0, 0];
-  export let showStepsControl: boolean[] = [true, true, true, true];
-  // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
+  export let showSteps: number[];
+  export let showStepsControl: boolean[];
   export let targets: number[] = [];
   export let rolling: boolean = false;
 
@@ -41,6 +40,8 @@ module game {
       updateUI: updateUI,
       gotMessageFromPlatform: null,
     });
+    showSteps = [0, 0, 0, 0];
+    showStepsControl = [true, true, true, true];
   }
 
   function registerServiceWorker() {

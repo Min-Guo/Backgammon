@@ -15,9 +15,6 @@ var game;
     game.currentState = null;
     game.moveStart = -1;
     game.moveEnd = -1;
-    game.showSteps = [0, 0, 0, 0];
-    game.showStepsControl = [true, true, true, true];
-    // export let slowlyAppearEndedTimeout : ng.IPromise<any> = null;
     game.targets = [];
     game.rolling = false;
     function init() {
@@ -33,6 +30,8 @@ var game;
             updateUI: updateUI,
             gotMessageFromPlatform: null,
         });
+        game.showSteps = [0, 0, 0, 0];
+        game.showStepsControl = [true, true, true, true];
     }
     game.init = init;
     function registerServiceWorker() {
