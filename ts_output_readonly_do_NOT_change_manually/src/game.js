@@ -381,6 +381,12 @@ var game;
         }
     }
     game.shouldRotate = shouldRotate;
+    // function setInitialTurnIndex(): void {
+    //   if (state && state.currentSteps) return;
+    //   let twoDies = DieCombo.init();
+    //   state.currentSteps = twoDies;
+    //   currentUpdateUI.move.turnIndexAfterMove = twoDies[0] > twoDies[1] ? 0 : 1;
+    // }
 })(game || (game = {}));
 angular.module('myApp', ['gameServices', 'ngAnimate'])
     .run(function () {
