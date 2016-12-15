@@ -114,7 +114,7 @@ var game;
     function resetDefaultParameters() {
         game.didMakeMove = false; // Only one move per updateUI
         game.originalState = null;
-        game.currentState = null;
+        game.currentState = { board: null, delta: null };
         game.showSteps = [0, 0, 0, 0];
         game.showStepsControl = [true, true, true, true];
         game.targets = [];

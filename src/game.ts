@@ -132,7 +132,7 @@ module game {
   function resetDefaultParameters(): void {
     didMakeMove = false; // Only one move per updateUI
     originalState = null;
-    currentState = null;
+    currentState = {board: null, delta: null};
     showSteps = [0, 0, 0, 0];
     showStepsControl = [true, true, true, true];
     targets = [];
