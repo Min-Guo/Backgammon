@@ -19,6 +19,7 @@ var game;
     game.showStepsControl = [true, true, true, true];
     game.targets = [];
     game.rolling = false;
+    game.animationEnded = true;
     function init() {
         registerServiceWorker();
         translate.setTranslations(getTranslations());
@@ -68,6 +69,7 @@ var game;
         setGrayShowStepsControl(usedValues);
     }
     function setTurnAnimationInterval() {
+        game.animationEnded = false;
         advanceToNextTurnAnimation();
     }
     function clearTurnAnimationInterval() {
@@ -88,6 +90,7 @@ var game;
             game.originalState = angular.copy(game.currentState);
             // Reset currentState.delta to include only data from the current turn.
             game.currentState.delta = null;
+            game.animationEnded = true;
             maybeSendComputerMove();
             return;
         }
@@ -121,6 +124,7 @@ var game;
         game.rolling = false;
         game.moveStart = -1;
         game.moveEnd = -1;
+        game.animationEnded = true;
     }
     function updateUI(params) {
         log.info("Game got updateUI:", params);
@@ -207,6 +211,8 @@ var game;
             return;
         if (!game.currentState.delta)
             return;
+        if (!game.animationEnded)
+            return;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
@@ -268,6 +274,8 @@ var game;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");
         }
+        if (!game.animationEnded)
+            return;
         try {
             game.lastHumanMove = gameLogic.createMove(game.originalState, game.currentState, game.currentUpdateUI.move.turnIndexAfterMove);
         }
@@ -286,6 +294,8 @@ var game;
     function rollClicked() {
         log.info("Clicked on roll.");
         if (!isMyTurn())
+            return;
+        if (!game.animationEnded)
             return;
         if (window.location.search === '?throwException') {
             throw new Error("Throwing the error because URL has '?throwException'");

@@ -26,6 +26,7 @@ module game {
   export let showStepsControl: boolean[] = [true, true, true, true];
   export let targets: number[] = [];
   export let rolling: boolean = false;
+  export let animationEnded: boolean = true;
 
   export function init() {
     registerServiceWorker();
@@ -81,6 +82,7 @@ module game {
   }
 
   function setTurnAnimationInterval() {
+    animationEnded = false;
     advanceToNextTurnAnimation();
   }
 
@@ -103,6 +105,7 @@ module game {
       originalState = angular.copy(currentState);
       // Reset currentState.delta to include only data from the current turn.
       currentState.delta = null;
+      animationEnded = true;
       maybeSendComputerMove();
       return;
     }
@@ -139,6 +142,7 @@ module game {
     rolling = false;
     moveStart = -1;
     moveEnd = -1;
+    animationEnded = true;
   }
 
   export function updateUI(params: IUpdateUI): void {
@@ -228,6 +232,7 @@ module game {
     }
     if (!isHumanTurn()) return;
     if (!currentState.delta) return;
+    if (!animationEnded) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
@@ -286,6 +291,7 @@ module game {
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
+    if (!animationEnded) return;
     try {
       lastHumanMove = gameLogic.createMove(originalState, currentState, currentUpdateUI.move.turnIndexAfterMove);
     } catch (e) {
@@ -303,6 +309,7 @@ module game {
   export function rollClicked(): void {
     log.info("Clicked on roll.");
     if (!isMyTurn()) return;
+    if (!animationEnded) return;
     if (window.location.search === '?throwException') { // to test encoding a stack trace with sourcemap
       throw new Error("Throwing the error because URL has '?throwException'");
     }
