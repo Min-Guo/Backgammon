@@ -15,6 +15,8 @@ var game;
     game.currentState = null;
     game.moveStart = -1;
     game.moveEnd = -1;
+    game.showSteps = [0, 0, 0, 0];
+    game.showStepsControl = [true, true, true, true];
     game.targets = [];
     game.rolling = false;
     function init() {
