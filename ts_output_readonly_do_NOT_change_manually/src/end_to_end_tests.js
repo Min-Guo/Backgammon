@@ -26,7 +26,7 @@ var JasmineOverrides;
     jasmineSpec.prototype.execute = function () {
         var args = [];
         for (var _i = 0; _i < arguments.length; _i++) {
-            args[_i - 0] = arguments[_i];
+            args[_i] = arguments[_i];
         }
         lastTest = this.result;
         executeMock.apply(this, args);
@@ -71,7 +71,7 @@ describe('Backgammon', function () {
         clearInterval(checkNoErrorInLogsIntervalId);
     });
     function getPage(page) {
-        browser.get('https://dihou.github.io/Backgammon/');
+        browser.get('/index_forTestWithGameTS.html');
     }
     function expectPieceKindDisplayed(col, pieceId, isDisplayed) {
         var selector = by.id('t' + col);

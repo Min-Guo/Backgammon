@@ -71,7 +71,7 @@ describe('Backgammon', function() {
   });
   
   function getPage(page: string) {
-    browser.get('https://dihou.github.io/Backgammon/');
+    browser.get('/index_forTestWithGameTS.html');
   }
 
   function expectPieceKindDisplayed(col: number, pieceId: number, isDisplayed: boolean) {
